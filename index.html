@@ -34,6 +34,21 @@
     .popup h3 { margin: 0 0 6px 0; font-size: 15px; }
     .popup .muted { color: #666; font-size: 12px; margin-bottom: 6px; }
 
+    /* Chip (checkbox filter) */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      background: #fff;
+      user-select: none;
+    }
+    .chip input { transform: scale(1.1); }
+    .chip img { width: 26px; height: 26px; object-fit: contain; }
+    .chip span { font-weight: 600; }
+
     /* Видимая панель ошибок */
     #err {
       position: fixed;
@@ -60,6 +75,13 @@
     <div class="kpi"><div class="v" id="kpiSchools">—</div><div class="t">школ (точек)</div></div>
     <div class="kpi"><div class="v" id="kpiGirls">—</div><div class="t">девочек (в сумме)</div></div>
     <div class="kpi"><div class="v" id="kpiSchoolsWithGirls">—</div><div class="t">школ с девочками</div></div>
+
+    <!-- Superleague toggle -->
+    <label class="chip" title="Подсветить регионы Суперлиги и показать клубы в попапе региона">
+      <input type="checkbox" id="toggleSuperleague" />
+      <img src="./assets/superleague_logo.png" alt="Суперлига" />
+      <span>Суперлига</span>
+    </label>
   </div>
   <div id="map"></div>
 </div>
@@ -96,6 +118,15 @@
   }).addTo(map);
 
   const fmt = new Intl.NumberFormat('ru-RU');
+
+  function normRegion(s) {
+    if (!s) return "";
+    return String(s)
+      .toLowerCase()
+      .replaceAll("ё", "е")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
 
   function colorFor(value, breaks) {
     if (value == null) return '#f3f4f6';
@@ -208,6 +239,66 @@
       return div;
     };
     legend.addTo(map);
+
+    // --- Superleague: highlight regions + show clubs in region popup ---
+    const superCheckbox = document.getElementById('toggleSuperleague');
+
+    fetchJSON('./data/superleague_clubs.json')
+      .then(sl => {
+        const brand = sl.brand || { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
+
+        // нормализуем: регион -> клубы
+        const byRegion = {};
+        const src = sl.by_region || {};
+        for (const [rName, clubs] of Object.entries(src)) {
+          byRegion[normRegion(rName)] = (clubs || []).filter(Boolean);
+        }
+
+        function regionPopupWithSuperleague(p) {
+          const base = regionPopupHTML(p);
+          const clubs = byRegion[normRegion(p.name)] || [];
+          if (!superCheckbox.checked || clubs.length === 0) return base;
+
+          const extra = `
+            <div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <img src="${brand.logo}" alt="Суперлига" style="width:18px; height:18px; object-fit:contain;">
+                <b style="color:${brand.color}">Суперлига</b>
+              </div>
+              <div style="margin-top:4px; line-height:1.35;">
+                ${clubs.map(c => `• ${c}`).join("<br>")}
+              </div>
+            </div>
+          `;
+          // вставляем extra перед закрывающим </div> в попапе
+          return base.replace("</div>", extra + "</div>");
+        }
+
+        function applySuperleague(isOn) {
+          regionsLayer.eachLayer(layer => {
+            const p = layer.feature?.properties || {};
+            const clubs = byRegion[normRegion(p.name)] || [];
+            const hasClubs = clubs.length > 0;
+
+            // обновляем попап (чтобы список появлялся/исчезал)
+            layer.bindPopup(regionPopupWithSuperleague(p), { maxWidth: 360 });
+
+            if (isOn && hasClubs) {
+              layer.setStyle({ color: brand.color, weight: 3, fillOpacity: 0.68 });
+              layer.bringToFront();
+            } else {
+              layer.setStyle(styleRegion(layer.feature));
+            }
+          });
+        }
+
+        superCheckbox.addEventListener('change', () => applySuperleague(superCheckbox.checked));
+        applySuperleague(superCheckbox.checked);
+      })
+      .catch(e => {
+        console.error("Superleague overlay failed:", e);
+        // не ломаем базовую карту
+      });
 
     // если всё ок, прячем панель ошибок
     errBox.style.display = 'none';
