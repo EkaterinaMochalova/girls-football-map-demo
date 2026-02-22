@@ -81,6 +81,7 @@
       <input type="checkbox" id="toggleSuperleague" />
       <img src="./assets/superleague_logo.png" alt="Суперлига" />
       <span>Суперлига</span>
+      <small id="slStatus" style="color:#666;">(загрузка…)</small>
     </label>
   </div>
   <div id="map"></div>
@@ -120,13 +121,18 @@
   const fmt = new Intl.NumberFormat('ru-RU');
 
   function normRegion(s) {
-    if (!s) return "";
-    return String(s)
-      .toLowerCase()
-      .replaceAll("ё", "е")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
+  if (!s) return "";
+  return String(s)
+    .toLowerCase()
+    .replaceAll("ё", "е")
+    .replace(/[().,"]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    // убираем “типы” регионов, чтобы сравнение было по ядру
+    .replace(/\b(республика|область|край|автономная область|автономный округ|округ|г\.|город)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
   function colorFor(value, breaks) {
     if (value == null) return '#f3f4f6';
@@ -311,3 +317,4 @@
 </script>
 </body>
 </html>
+
