@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Карта девичьего футбола — демо</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+
+  <style>
+    html, body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    #app { height: 100%; display: grid; grid-template-rows: auto 1fr; }
+    #topbar {
+      padding: 12px 14px; border-bottom: 1px solid #eee;
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+      background: #fff;
+    }
+    .kpi { background: #f6f7f9; border: 1px solid #eee; border-radius: 12px; padding: 10px 12px; }
+    .kpi .v { font-weight: 700; font-size: 18px; }
+    .kpi .t { color: #666; font-size: 12px; margin-top: 2px; }
+    #map { height: 100%; }
+    .legend {
+      position: absolute; bottom: 16px; left: 16px; z-index: 999;
+      background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      font-size: 12px;
+    }
+    .legend .row { display:flex; align-items:center; gap:8px; margin:6px 0; }
+    .swatch { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15); }
+    .popup h3 { margin: 0 0 6px 0; font-size: 15px; }
+    .popup .muted { color: #666; font-size: 12px; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div class="kpi"><div class="v" id="kpiRegions">—</div><div class="t">регионов в GeoJSON</div></div>
+    <div class="kpi"><div class="v" id="kpiSchools">—</div><div class="t">школ (точек)</div></div>
+    <div class="kpi"><div class="v" id="kpiGirls">—</div><div class="t">девочек (в сумме)</div></div>
+    <div class="kpi"><div class="v" id="kpiSchoolsWithGirls">—</div><div class="t">школ с девочками</div></div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+  const map = L.map('map', { preferCanvas: true }).setView([61.5, 96.5], 3);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  // --- helpers ---
+  const fmt = new Intl.NumberFormat('ru-RU');
+
+  function colorFor(value, breaks) {
+    // breaks: ascending thresholds
+    if (value == null) return '#f3f4f6';
+    if (value <= breaks[0]) return '#eff6ff';
+    if (value <= breaks[1]) return '#dbeafe';
+    if (value <= breaks[2]) return '#bfdbfe';
+    if (value <= breaks[3]) return '#93c5fd';
+    if (value <= breaks[4]) return '#60a5fa';
+    return '#3b82f6';
+  }
+
+  function styleRegion(feature) {
+    const girls = feature.properties?.total_girls ?? 0;
+    // простые пороги; позже сделаем квантильные
+    const fill = colorFor(girls, [0, 50, 150, 300, 700]);
+    return {
+      weight: 1,
+      color: 'rgba(0,0,0,0.25)',
+      fillColor: fill,
+      fillOpacity: 0.55
+    };
+  }
+
+  function regionPopupHTML(p) {
+    const schools = p.total_schools ?? 0;
+    const schoolsWithGirls = p.schools_with_girls ?? 0;
+    const girls = p.total_girls ?? 0;
+    const avg = p.avg_girls_per_school ?? 0;
+    return `
+      <div class="popup">
+        <h3>${p.name ?? 'Регион'}</h3>
+        <div class="muted">Сводка по спортшколам 2024</div>
+        <div><b>Школ:</b> ${fmt.format(schools)}</div>
+        <div><b>Школ с девочками:</b> ${fmt.format(schoolsWithGirls)}</div>
+        <div><b>Девочек:</b> ${fmt.format(girls)}</div>
+        <div><b>Среднее на школу:</b> ${fmt.format(Math.round(avg*10)/10)}</div>
+      </div>
+    `;
+  }
+
+  // --- layers ---
+  const cluster = L.markerClusterGroup({
+    chunkedLoading: true,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false
+  });
+
+  let regionsLayer = null;
+  let pointsLayer = null;
+
+  Promise.all([
+    fetch('./russia_subjects_with_sportschools2024.geojson').then(r => r.json()),
+    fetch('./schools_points.geojson').then(r => r.json())
+  ])
+  .then(([regions, points]) => {
+    // KPI topbar from regions
+    const totalRegions = regions.features?.length ?? 0;
+    const sumGirls = regions.features.reduce((a,f)=>a + (f.properties?.total_girls ?? 0), 0);
+    const sumSchools = regions.features.reduce((a,f)=>a + (f.properties?.total_schools ?? 0), 0);
+    const sumSchoolsWithGirls = regions.features.reduce((a,f)=>a + (f.properties?.schools_with_girls ?? 0), 0);
+
+    document.getElementById('kpiRegions').textContent = fmt.format(totalRegions);
+    document.getElementById('kpiGirls').textContent = fmt.format(sumGirls);
+    document.getElementById('kpiSchools').textContent = fmt.format(points.features?.length ?? sumSchools);
+    document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(sumSchoolsWithGirls);
+
+    // Regions layer
+    regionsLayer = L.geoJSON(regions, {
+      style: styleRegion,
+      onEachFeature: (feature, layer) => {
+        const p = feature.properties || {};
+        layer.bindPopup(regionPopupHTML(p), { maxWidth: 360 });
+
+        layer.on('mouseover', () => layer.setStyle({ weight: 2 }));
+        layer.on('mouseout', () => layer.setStyle({ weight: 1 }));
+      }
+    }).addTo(map);
+
+    // Points layer
+    pointsLayer = L.geoJSON(points, {
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+        radius: 6,
+        weight: 1,
+        fillOpacity: 0.75
+      }),
+      onEachFeature: (feature, layer) => {
+        const p = feature.properties || {};
+        const html = `
+          <div class="popup">
+            <h3>${p.name ?? "Без названия"}</h3>
+            <div class="muted">${p.region ?? ""}${p.city ? ", " + p.city : ""}</div>
+            <div>${p.address ?? ""}</div>
+            <div style="margin-top:8px;"><b>Девочек:</b> ${fmt.format(p.girls_total ?? 0)}</div>
+            ${p.phone ? `<div><b>Тел:</b> ${p.phone}</div>` : ""}
+            ${p.email ? `<div><b>Email:</b> ${p.email}</div>` : ""}
+          </div>
+        `;
+        layer.bindPopup(html, { maxWidth: 360 });
+      }
+    });
+
+    cluster.addLayer(pointsLayer);
+    map.addLayer(cluster);
+
+    // Fit to regions (stable) or points
+    map.fitBounds(regionsLayer.getBounds().pad(0.1));
+
+    // Legend
+    const legend = L.control({position: 'bottomleft'});
+    legend.onAdd = function() {
+      const div = L.DomUtil.create('div', 'legend');
+      div.innerHTML = `
+        <div style="font-weight:700; margin-bottom:6px;">Заливка: девочек в регионе</div>
+        <div class="row"><span class="swatch" style="background:#eff6ff"></span> 0</div>
+        <div class="row"><span class="swatch" style="background:#dbeafe"></span> 1–50</div>
+        <div class="row"><span class="swatch" style="background:#bfdbfe"></span> 51–150</div>
+        <div class="row"><span class="swatch" style="background:#93c5fd"></span> 151–300</div>
+        <div class="row"><span class="swatch" style="background:#60a5fa"></span> 301–700</div>
+        <div class="row"><span class="swatch" style="background:#3b82f6"></span> 701+</div>
+      `;
+      return div;
+    };
+    legend.addTo(map);
+
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Ошибка загрузки GeoJSON. Проверь, что файлы лежат рядом с index.html в репозитории.");
+  });
+</script>
+</body>
+</html>
