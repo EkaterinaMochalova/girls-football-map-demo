@@ -83,6 +83,11 @@
       <span>Суперлига</span>
       <small id="slStatus" style="color:#666;">(загрузка…)</small>
     </label>
+    <label class="chip" title="Подсветить регионы Первой лиги и показать клубы в попапе региона">
+  <input type="checkbox" id="toggleFirstLeague" />
+  <img src="./assets/firstleague_logo_orange.png" alt="Первая лига" />
+  <span>Первая лига</span>
+</label>
   </div>
   <div id="map"></div>
 </div>
@@ -321,6 +326,86 @@ if (statusEl) {
   if (statusEl) statusEl.textContent = '(ошибка загрузки данных)';
 });
 
+    // --- First League: highlight regions + show clubs in region popup ---
+const firstCheckbox = document.getElementById('toggleFirstLeague');
+
+fetchJSON('./data/firstleague_clubs_v1.json')
+  .then(fl => {
+    const brand = fl.brand || { color: "#ff4b00", colorDark: "#111111", logo: "./assets/firstleague_logo_orange.png" };
+
+    // нормализуем: регион -> список клубов
+    const byRegion = {};
+    const src = fl.by_region || {};
+    for (const [rName, clubs] of Object.entries(src)) {
+      byRegion[normRegion(rName)] = (clubs || []).filter(Boolean);
+    }
+
+    function firstLeagueBlockHTML(p) {
+      const items = byRegion[normRegion(p.name)] || [];
+      if (!firstCheckbox.checked || items.length === 0) return "";
+
+      const lines = items.map(x => {
+        if (typeof x === "string") return `• ${x}`;
+        const club = x.club || "Клуб";
+        const city = x.city ? ` (${x.city})` : "";
+        return `• ${club}${city}`;
+      }).join("<br>");
+
+      return `
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <img src="${brand.logo}" alt="Первая лига" style="width:18px; height:18px; object-fit:contain;">
+            <b style="color:${brand.color}">Первая лига</b>
+          </div>
+          <div style="margin-top:4px; line-height:1.35;">
+            ${lines}
+          </div>
+        </div>
+      `;
+    }
+
+    // аккуратно: обновляем popups и стили
+    function applyFirstLeague() {
+      regionsLayer.eachLayer(layer => {
+        const p = layer.feature?.properties || {};
+        const items = byRegion[normRegion(p.name)] || [];
+        const hasClubs = items.length > 0;
+
+        // обновим popup: базовый + (возможно) блок первой лиги
+        // (если у тебя уже добавлена Суперлига в popup, она останется, т.к. мы дописываем в конец)
+        const base = regionPopupHTML(p);
+        const extra = firstLeagueBlockHTML(p);
+
+        // вставляем extra перед закрывающим </div> (первым, потому что base заканчивается </div>)
+        const merged = extra ? base.replace("</div>", extra + "</div>") : base;
+        layer.bindPopup(merged, { maxWidth: 360 });
+
+        // стиль: если включено и есть клубы, оранжевая подсветка
+        // Важно: если включена Суперлига одновременно, её подсветка может “перебивать”.
+        // Поэтому делаем оранжевую подсветку как dashed-обводку (видно даже поверх).
+        if (firstCheckbox.checked && hasClubs) {
+          const current = styleRegion(layer.feature);
+          layer.setStyle({
+            ...current,
+            color: brand.color,
+            weight: 3,
+            dashArray: "6 4",
+            fillOpacity: 0.68
+          });
+          layer.bringToFront();
+        } else {
+          layer.setStyle(styleRegion(layer.feature));
+        }
+      });
+    }
+
+    firstCheckbox.addEventListener('change', applyFirstLeague);
+    applyFirstLeague();
+  })
+  .catch(e => {
+    console.error("First league overlay failed:", e);
+  });
+
     // если всё ок, прячем панель ошибок
     errBox.style.display = 'none';
   })
@@ -332,5 +417,6 @@ if (statusEl) {
 </script>
 </body>
 </html>
+
 
 
