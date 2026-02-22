@@ -109,8 +109,8 @@
   let pointsLayer = null;
 
   Promise.all([
-    fetch('./russia_subjects_with_sportschools2024.geojson').then(r => r.json()),
-    fetch('./schools_points.geojson').then(r => r.json())
+    fetch('./russia_subjects_with_sportschools2024.json').then(r => r.json()),
+    fetch('./schools_points.json').then(r => r.json())
   ])
   .then(([regions, points]) => {
     // KPI topbar from regions
@@ -190,3 +190,4 @@
 </script>
 </body>
 </html>
+
