@@ -98,6 +98,16 @@
     };
   }
 
+  function normRegion(s) {
+  if (!s) return "";
+  return String(s)
+    .toLowerCase()
+    .replaceAll("ё", "е")
+    .replaceAll("—", "-")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
   function regionPopupHTML(p) {
     const schools = p.total_schools ?? 0;
     const schoolsWithGirls = p.schools_with_girls ?? 0;
@@ -215,6 +225,40 @@
     };
     legend.addTo(map);
 
+    // --- Superleague highlight overlay ---
+fetchJSON('./data/superleague_regions.json')
+  .then(data => {
+    const superSet = new Set((data.regions || []).map(normRegion));
+
+    const checkbox = document.getElementById('toggleSuperleague');
+
+    function applySuperleagueHighlight(isOn) {
+      if (!regionsLayer) return;
+
+      regionsLayer.eachLayer(layer => {
+        const p = layer.feature?.properties || {};
+        const rName = normRegion(p.name);
+
+        // Включено + регион в списке -> яркая подсветка
+        if (isOn && superSet.has(rName)) {
+          layer.setStyle({
+            color: '#d000e0',
+            weight: 3,
+            fillOpacity: 0.65
+          });
+          layer.bringToFront();
+        } else {
+          // Возвращаем базовый стиль (choropleth)
+          layer.setStyle(styleRegion(layer.feature));
+        }
+      });
+    }
+
+    checkbox.addEventListener('change', () => applySuperleagueHighlight(checkbox.checked));
+
+    // на всякий: если чекбокс был сохранён браузером
+    applySuperleagueHighlight(checkbox.checked);
+
   })
   .catch(err => {
     console.error(err);
@@ -223,4 +267,5 @@
 </script>
 </body>
 </html>
+
 
