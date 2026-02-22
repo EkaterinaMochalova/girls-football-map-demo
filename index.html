@@ -251,6 +251,7 @@
 
     fetchJSON('./data/superleague_clubs.json')
       .then(sl => {
+        const statusEl = document.getElementById('slStatus');
         const brand = sl.brand || { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
 
         // нормализуем: регион -> клубы
@@ -259,6 +260,19 @@
         for (const [rName, clubs] of Object.entries(src)) {
           byRegion[normRegion(rName)] = (clubs || []).filter(Boolean);
         }
+        // считаем, сколько регионов GeoJSON совпало со списком
+const geoRegions = new Set();
+regionsLayer.eachLayer(layer => {
+  const p = layer.feature?.properties || {};
+  geoRegions.add(normRegion(p.name));
+});
+
+const byRegionKeys = Object.keys(byRegion);
+const matched = byRegionKeys.filter(k => geoRegions.has(k)).length;
+
+if (statusEl) {
+  statusEl.textContent = `(клубов в JSON: ${byRegionKeys.length} регионов, совпало: ${matched})`;
+}
 
         function regionPopupWithSuperleague(p) {
           const base = regionPopupHTML(p);
@@ -302,9 +316,10 @@
         applySuperleague(superCheckbox.checked);
       })
       .catch(e => {
-        console.error("Superleague overlay failed:", e);
-        // не ломаем базовую карту
-      });
+  console.error("Superleague overlay failed:", e);
+  const statusEl = document.getElementById('slStatus');
+  if (statusEl) statusEl.textContent = '(ошибка загрузки данных)';
+});
 
     // если всё ок, прячем панель ошибок
     errBox.style.display = 'none';
@@ -317,4 +332,5 @@
 </script>
 </body>
 </html>
+
 
