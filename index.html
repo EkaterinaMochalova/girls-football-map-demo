@@ -20,6 +20,24 @@
     .kpi { background: #f6f7f9; border: 1px solid #eee; border-radius: 12px; padding: 10px 12px; }
     .kpi .v { font-weight: 700; font-size: 18px; }
     .kpi .t { color: #666; font-size: 12px; margin-top: 2px; }
+    <label class="chip">
+  <input type="checkbox" id="toggleSuperleague" />
+  <img src="./assets/superleague_logo.png" alt="Суперлига" />
+  <span>Суперлига</span>
+</label>
+    .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  background: #fff;
+  user-select: none;
+}
+.chip input { transform: scale(1.1); }
+.chip img { width: 26px; height: 26px; object-fit: contain; }
+.chip span { font-weight: 600; }
     #map { height: 100%; }
     .legend {
       position: absolute; bottom: 16px; left: 16px; z-index: 999;
@@ -205,3 +223,4 @@
 </script>
 </body>
 </html>
+
