@@ -10,54 +10,303 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 
   <style>
-    html, body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-    #app { height: 100%; display: flex; flex-direction: column; }
-
-    #topbar{
-      padding: 12px 14px; border-bottom: 1px solid #eee;
-      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
-      background: #fff;
+    :root{
+      --bg: #f6f7fb;
+      --card: rgba(255,255,255,0.65);
+      --card-strong: rgba(255,255,255,0.78);
+      --stroke: rgba(0,0,0,0.08);
+      --stroke-strong: rgba(0,0,0,0.12);
+      --shadow: 0 18px 45px rgba(0,0,0,0.12);
+      --shadow-soft: 0 10px 30px rgba(0,0,0,0.08);
+      --text: rgba(20,20,25,0.92);
+      --muted: rgba(20,20,25,0.55);
+      --accent: #3b82f6;
+      --chip: rgba(255,255,255,0.65);
+      --chip-hover: rgba(255,255,255,0.78);
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --blur: 18px;
     }
 
-    .kpi { background: #f6f7f9; border: 1px solid #eee; border-radius: 12px; padding: 10px 12px; min-width: 140px; }
-    .kpi .v { font-weight: 700; font-size: 18px; }
-    .kpi .t { color: #666; font-size: 12px; margin-top: 2px; }
+    html, body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: var(--text); background: var(--bg); }
 
-    #map { flex: 1; min-height: 420px; }
-
-    .legend{
-      position:absolute; bottom:16px; left:16px; z-index:999;
-      background:#fff; border:1px solid #eee; border-radius:12px; padding:10px 12px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.08);
-      font-size:12px;
+    /* soft background glow */
+    body:before{
+      content:"";
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(900px 500px at 20% -10%, rgba(255,75,0,0.12), transparent 55%),
+        radial-gradient(700px 450px at 90% 10%, rgba(208,0,224,0.12), transparent 55%),
+        radial-gradient(900px 600px at 40% 120%, rgba(59,130,246,0.14), transparent 60%);
+      pointer-events:none;
+      z-index:0;
     }
-    .legend .row{ display:flex; align-items:center; gap:8px; margin:6px 0; }
-    .swatch{ width:14px; height:14px; border-radius:4px; border:1px solid rgba(0,0,0,0.15); }
 
-    .popup h3 { margin: 0 0 6px 0; font-size: 15px; }
-    .popup .muted { color: #666; font-size: 12px; margin-bottom: 6px; }
+    #app { height: 100%; display: grid; grid-template-columns: 340px 1fr; grid-template-rows: 1fr 280px; gap: 14px; padding: 14px; position: relative; z-index: 1; }
 
-    /* Chip (checkbox filter) */
+    /* Left glass panel */
+    #sidebar{
+      grid-column: 1; grid-row: 1 / span 2;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(var(--blur));
+      -webkit-backdrop-filter: blur(var(--blur));
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    #sidebarHeader{
+      padding: 14px 14px 10px 14px;
+      border-bottom: 1px solid var(--stroke);
+      background: linear-gradient(to bottom, rgba(255,255,255,0.76), rgba(255,255,255,0.60));
+    }
+
+    .title{
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: 16px;
+      line-height: 1.1;
+    }
+    .subtitle{
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    #kpis{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px 14px 14px 14px;
+      border-bottom: 1px solid var(--stroke);
+    }
+    .kpi{
+      background: rgba(255,255,255,0.6);
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      padding: 10px 10px;
+      box-shadow: var(--shadow-soft);
+    }
+    .kpi .v{ font-weight: 800; font-size: 18px; letter-spacing:-0.02em; }
+    .kpi .t{ margin-top: 2px; font-size: 11px; color: var(--muted); }
+
+    #filters{
+      padding: 12px 14px 14px 14px;
+      overflow: auto;
+      min-height: 0;
+    }
+
+    .section{
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--stroke);
+    }
+    .section:last-child{ border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+
+    .section h4{
+      margin: 0 0 10px 0;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
     .chip{
-      display:inline-flex;
+      display:flex;
       align-items:center;
       gap:10px;
-      padding:10px 12px;
-      border:1px solid #eee;
-      border-radius:12px;
-      background:#fff;
+      padding: 10px 12px;
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      background: var(--chip);
+      backdrop-filter: blur(var(--blur));
+      -webkit-backdrop-filter: blur(var(--blur));
+      box-shadow: var(--shadow-soft);
       user-select:none;
       cursor:pointer;
-      transition: box-shadow .15s ease, border-color .15s ease, transform .05s ease;
+      transition: background .15s ease, border-color .15s ease, transform .05s ease;
+      margin-bottom: 10px;
     }
-    .chip:hover{ border-color:#e6e6e6; box-shadow:0 8px 22px rgba(0,0,0,0.06); }
+    .chip:hover{ background: var(--chip-hover); border-color: var(--stroke-strong); }
     .chip:active{ transform: translateY(1px); }
     .chip input{ transform: scale(1.05); }
-    .chip img{ width:26px; height:26px; object-fit:contain; }
-    .chip span{ font-weight:600; }
-    .chip small{ color:#666; }
+    .chip img{ width: 24px; height: 24px; object-fit: contain; }
+    .chip span{ font-weight: 700; font-size: 13px; }
+    .chip small{ margin-left: auto; color: var(--muted); font-size: 12px; }
 
-    /* Visible error panel */
+    .controlRow{ display:flex; gap:10px; align-items:center; }
+    .controlRow .grow{ flex: 1; }
+
+    .select{
+      width: 100%;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.62);
+      border-radius: 14px;
+      padding: 10px 10px;
+      font-size: 13px;
+      outline: none;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .hint{
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .rangeWrap{
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      padding: 10px 10px;
+      box-shadow: var(--shadow-soft);
+    }
+    .rangeWrap .labelLine{
+      display:flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .rangeWrap .labelLine b{ font-size: 13px; }
+    .rangeWrap .labelLine span{ font-size: 12px; color: var(--muted); }
+    input[type="range"]{ width: 100%; }
+
+    .checks{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .check{
+      display:flex; gap:10px; align-items:center;
+      padding: 10px 10px;
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.6);
+      box-shadow: var(--shadow-soft);
+      cursor:pointer;
+      user-select:none;
+    }
+    .check input{ transform: scale(1.05); }
+    .check span{ font-weight: 650; font-size: 13px; }
+
+    .btnRow{ display:flex; gap:10px; }
+    .btn{
+      flex: 1;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.62);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 800;
+      cursor:pointer;
+      box-shadow: var(--shadow-soft);
+      transition: background .15s ease, border-color .15s ease, transform .05s ease;
+    }
+    .btn:hover{ background: rgba(255,255,255,0.78); border-color: var(--stroke-strong); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.secondary{ font-weight: 700; color: var(--muted); }
+
+    /* Main map glass card */
+    #mapCard{
+      grid-column: 2; grid-row: 1;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(var(--blur));
+      -webkit-backdrop-filter: blur(var(--blur));
+      overflow: hidden;
+      position: relative;
+      min-height: 0;
+    }
+    #map{ height: 100%; }
+
+    /* Schools list card (bottom) */
+    #listCard{
+      grid-column: 2; grid-row: 2;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(var(--blur));
+      -webkit-backdrop-filter: blur(var(--blur));
+      overflow: hidden;
+      display:flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    #listHeader{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--stroke);
+      background: linear-gradient(to bottom, rgba(255,255,255,0.76), rgba(255,255,255,0.60));
+      display:flex; align-items:center; justify-content: space-between; gap: 10px;
+    }
+    #listHeader .left{
+      display:flex; flex-direction: column;
+    }
+    #listHeader .left b{ font-size: 13px; }
+    #listHeader .left span{ font-size: 12px; color: var(--muted); margin-top: 2px; }
+    #listHeader .right{
+      display:flex; gap: 8px; align-items:center;
+    }
+    #search{
+      width: 260px;
+      max-width: 38vw;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.62);
+      border-radius: 14px;
+      padding: 10px 10px;
+      font-size: 13px;
+      outline: none;
+      box-shadow: var(--shadow-soft);
+    }
+
+    #schoolsList{
+      padding: 10px 14px 14px 14px;
+      overflow: auto;
+      min-height: 0;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1.2fr 1fr 100px 150px;
+      gap: 10px;
+      padding: 10px 10px;
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.6);
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease;
+    }
+    .row:hover{ background: rgba(255,255,255,0.78); border-color: var(--stroke-strong); }
+    .row .name{ font-weight: 800; font-size: 13px; }
+    .row .meta{ font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .row .girls{ font-weight: 900; text-align:right; font-variant-numeric: tabular-nums; }
+    .row .addr{ font-size: 12px; color: var(--muted); line-height: 1.25; }
+
+    @media (max-width: 1080px){
+      #app{ grid-template-columns: 1fr; grid-template-rows: auto 1fr 260px; }
+      #sidebar{ grid-column: 1; grid-row: 1; }
+      #mapCard{ grid-column: 1; grid-row: 2; }
+      #listCard{ grid-column: 1; grid-row: 3; }
+      #search{ width: 100%; max-width: none; }
+      .row{ grid-template-columns: 1.4fr 1fr 90px; }
+      .row .addr{ display:none; }
+    }
+
+    /* Leaflet popup polish */
+    .leaflet-popup-content-wrapper{
+      border-radius: 14px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+    }
+
+    /* Error panel */
     #err{
       position:fixed;
       right:16px;
@@ -79,29 +328,131 @@
 
 <body>
 <div id="app">
-  <div id="topbar">
-    <div class="kpi"><div class="v" id="kpiRegions">—</div><div class="t">регионов в GeoJSON</div></div>
-    <div class="kpi"><div class="v" id="kpiSchools">—</div><div class="t">школ (точек)</div></div>
-    <div class="kpi"><div class="v" id="kpiGirls">—</div><div class="t">девочек (в сумме)</div></div>
-    <div class="kpi"><div class="v" id="kpiSchoolsWithGirls">—</div><div class="t">школ с девочками</div></div>
 
-    <!-- Toggles control ONLY highlighting -->
-    <label class="chip" title="Подсветить регионы Суперлиги (клубы всегда видны в попапе региона)">
-      <input type="checkbox" id="toggleSuperleague" />
-      <img src="./assets/superleague_logo.png" alt="Суперлига" />
-      <span>Суперлига</span>
-      <small id="slStatus">(…)</small>
-    </label>
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div id="sidebarHeader">
+      <div class="title">Girls Football Map · demo</div>
+      <div class="subtitle">Фильтры управляют регионами и школами. Данных по возрастам и соревнованиям пока может не быть, интерфейс уже готов.</div>
+    </div>
 
-    <label class="chip" title="Подсветить регионы Первой лиги (клубы всегда видны в попапе региона)">
-      <input type="checkbox" id="toggleFirstLeague" />
-      <img src="./assets/firstleague_logo_orange.png" alt="Первая лига" />
-      <span>Первая лига</span>
-      <small id="flStatus">(…)</small>
-    </label>
-  </div>
+    <div id="kpis">
+      <div class="kpi"><div class="v" id="kpiRegions">—</div><div class="t">регионов</div></div>
+      <div class="kpi"><div class="v" id="kpiSchools">—</div><div class="t">школ</div></div>
+      <div class="kpi"><div class="v" id="kpiGirls">—</div><div class="t">девочек</div></div>
+      <div class="kpi"><div class="v" id="kpiSchoolsWithGirls">—</div><div class="t">школ с девочками</div></div>
+    </div>
 
-  <div id="map"></div>
+    <div id="filters">
+      <div class="section">
+        <h4>Соревнования</h4>
+
+        <label class="chip" title="Подсветить регионы Суперлиги (клубы всегда видны в попапе региона)">
+          <input type="checkbox" id="toggleSuperleague" />
+          <img src="./assets/superleague_logo.png" alt="Суперлига" />
+          <span>Суперлига</span>
+          <small id="slStatus">(…)</small>
+        </label>
+
+        <label class="chip" title="Подсветить регионы Первой лиги (клубы всегда видны в попапе региона)">
+          <input type="checkbox" id="toggleFirstLeague" />
+          <img src="./assets/firstleague_logo_orange.png" alt="Первая лига" />
+          <span>Первая лига</span>
+          <small id="flStatus">(…)</small>
+        </label>
+
+        <div class="hint">Клубы в попапе региона показываются всегда. Галочки управляют только подсветкой.</div>
+      </div>
+
+      <div class="section">
+        <h4>Регионы</h4>
+
+        <select id="regionSelect" class="select" multiple size="10" title="Можно выбрать несколько регионов">
+          <!-- filled by JS -->
+        </select>
+
+        <div class="hint">Выбранные регионы остаются “цветными” (по девочкам), остальные приглушаются.</div>
+
+        <div class="btnRow" style="margin-top:10px;">
+          <button class="btn secondary" id="clearRegions">Очистить</button>
+          <button class="btn" id="selectAllRegions">Выбрать все</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h4>Пороговые фильтры</h4>
+
+        <div class="rangeWrap" style="margin-bottom:10px;">
+          <div class="labelLine"><b>Девочек в школе</b><span>≥ <span id="minGirlsSchoolVal">0</span></span></div>
+          <input type="range" id="minGirlsSchool" min="0" max="200" step="1" value="0"/>
+        </div>
+
+        <div class="rangeWrap" style="margin-bottom:10px;">
+          <div class="labelLine"><b>Девочек в регионе</b><span>≥ <span id="minGirlsRegionVal">0</span></span></div>
+          <input type="range" id="minGirlsRegion" min="0" max="2000" step="10" value="0"/>
+        </div>
+
+        <div class="rangeWrap">
+          <div class="labelLine"><b>Школ с девочками в регионе</b><span>≥ <span id="minSchoolsWithGirlsVal">0</span></span></div>
+          <input type="range" id="minSchoolsWithGirls" min="0" max="200" step="1" value="0"/>
+        </div>
+
+        <div class="hint">Пока данные неполные: фильтры работают там, где значения есть.</div>
+      </div>
+
+      <div class="section">
+        <h4>Возрастные группы</h4>
+        <div class="checks">
+          <label class="check"><input type="checkbox" class="ageChk" value="5-6"><span>5–6</span></label>
+          <label class="check"><input type="checkbox" class="ageChk" value="7-8"><span>7–8</span></label>
+          <label class="check"><input type="checkbox" class="ageChk" value="9-10"><span>9–10</span></label>
+          <label class="check"><input type="checkbox" class="ageChk" value="11-12"><span>11–12</span></label>
+          <label class="check"><input type="checkbox" class="ageChk" value="13-15"><span>13–15</span></label>
+          <label class="check"><input type="checkbox" class="ageChk" value="16+"><span>16+</span></label>
+        </div>
+        <div class="hint">Пока ищем поля по возрастам автоматически. Если полей нет, фильтр мягко игнорируется.</div>
+      </div>
+
+      <div class="section">
+        <h4>Соревновательная практика</h4>
+        <div class="checks">
+          <label class="check"><input type="checkbox" class="compChk" value="school"><span>школьные</span></label>
+          <label class="check"><input type="checkbox" class="compChk" value="muni"><span>муниципальные</span></label>
+          <label class="check"><input type="checkbox" class="compChk" value="region"><span>региональные</span></label>
+          <label class="check"><input type="checkbox" class="compChk" value="inter"><span>межрегиональные</span></label>
+        </div>
+        <div class="hint">Пока данные о соревнованиях добавим позже. Сейчас фильтр готов, будет работать автоматически.</div>
+      </div>
+
+      <div class="section">
+        <h4>Сервис</h4>
+        <div class="btnRow">
+          <button class="btn secondary" id="resetAll">Сбросить всё</button>
+          <button class="btn" id="fitRussia">Показать РФ</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Map -->
+  <main id="mapCard">
+    <div id="map"></div>
+  </main>
+
+  <!-- List -->
+  <section id="listCard">
+    <div id="listHeader">
+      <div class="left">
+        <b id="listTitle">Список школ</b>
+        <span id="listSub">—</span>
+      </div>
+      <div class="right">
+        <input id="search" placeholder="Поиск по названию / городу / регионy" />
+      </div>
+    </div>
+    <div id="schoolsList"></div>
+  </section>
+
 </div>
 
 <div id="err"></div>
@@ -117,7 +468,6 @@
     errBox.style.display = 'block';
     errBox.innerHTML = `<strong>${title}</strong>${String(msg || '')}`;
   }
-
   window.addEventListener('error', (e) => showErr('JS ошибка', e.message || e.error || e));
   window.addEventListener('unhandledrejection', (e) => showErr('Promise ошибка', e.reason || e));
 
@@ -125,13 +475,6 @@
     showErr('Leaflet не загрузился', 'Проверь доступ к https://unpkg.com (возможно блокировка).');
     return;
   }
-
-  // Map init
-  const map = L.map('map', { preferCanvas: true }).setView([61.5, 96.5], 3);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
 
   const fmt = new Intl.NumberFormat('ru-RU');
 
@@ -158,14 +501,14 @@
     return '#3b82f6';
   }
 
-  function styleFill(feature) {
+  function styleFill(feature, enabled=true) {
     const girls = feature.properties?.total_girls ?? 0;
     const fill = colorFor(girls, [0, 50, 150, 300, 700]);
     return {
       weight: 1,
-      color: 'rgba(0,0,0,0.25)',
-      fillColor: fill,
-      fillOpacity: 0.55
+      color: enabled ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.10)',
+      fillColor: enabled ? fill : '#f3f4f6',
+      fillOpacity: enabled ? 0.55 : 0.20
     };
   }
 
@@ -194,31 +537,120 @@
     catch (e) { throw new Error(`Не могу распарсить JSON: ${url}\n${e}\n${text.slice(0,200)}`); }
   }
 
+  // --- UI refs ---
+  const superCheckbox = document.getElementById('toggleSuperleague');
+  const firstCheckbox = document.getElementById('toggleFirstLeague');
+  const slStatus = document.getElementById('slStatus');
+  const flStatus = document.getElementById('flStatus');
+
+  const regionSelect = document.getElementById('regionSelect');
+  const clearRegionsBtn = document.getElementById('clearRegions');
+  const selectAllRegionsBtn = document.getElementById('selectAllRegions');
+
+  const minGirlsSchool = document.getElementById('minGirlsSchool');
+  const minGirlsSchoolVal = document.getElementById('minGirlsSchoolVal');
+
+  const minGirlsRegion = document.getElementById('minGirlsRegion');
+  const minGirlsRegionVal = document.getElementById('minGirlsRegionVal');
+
+  const minSchoolsWithGirls = document.getElementById('minSchoolsWithGirls');
+  const minSchoolsWithGirlsVal = document.getElementById('minSchoolsWithGirlsVal');
+
+  const ageChks = Array.from(document.querySelectorAll('.ageChk'));
+  const compChks = Array.from(document.querySelectorAll('.compChk'));
+
+  const resetAllBtn = document.getElementById('resetAll');
+  const fitRussiaBtn = document.getElementById('fitRussia');
+
+  const listTitle = document.getElementById('listTitle');
+  const listSub = document.getElementById('listSub');
+  const searchInput = document.getElementById('search');
+  const schoolsList = document.getElementById('schoolsList');
+
+  // --- Map init ---
+  const map = L.map('map', { preferCanvas: true }).setView([61.5, 96.5], 3);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
   const cluster = L.markerClusterGroup({
     chunkedLoading: true,
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false
   });
 
-  const superCheckbox = document.getElementById('toggleSuperleague');
-  const firstCheckbox = document.getElementById('toggleFirstLeague');
-  const slStatus = document.getElementById('slStatus');
-  const flStatus = document.getElementById('flStatus');
-
-  // Data holders
+  // --- Data holders ---
   let regionsData = null;
   let pointsData = null;
 
-  let regionsFillLayer = null;   // interactive layer (popups)
-  let superOutlineLayer = null;  // non-interactive outline layer
-  let firstOutlineLayer = null;  // non-interactive outline layer
+  let regionsFillLayer = null;   // interactive layer
+  let superOutlineLayer = null;  // non-interactive outline
+  let firstOutlineLayer = null;  // non-interactive outline
 
-  // Competitions data
   let superBrand = { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
   let firstBrand = { color: "#ff4b00", colorDark: "#111111", logo: "./assets/firstleague_logo_orange.png" };
 
   let superByRegion = {}; // normalized -> array of strings
-  let firstByRegion = {}; // normalized -> array of {club,city} or strings
+  let firstByRegion = {}; // normalized -> array of objects/strings
+
+  let pointsGeoLayer = null; // L.geoJSON of points
+  let currentFilteredPointFeatures = []; // for list
+
+  // --- Helpers: age & competitions fields (future-proof) ---
+  function schoolHasAnySelectedAges(p, selectedAges){
+    if (selectedAges.length === 0) return true;
+
+    // Future-proof: try to find any property keys that include an age label
+    // We accept keys containing 5-6 / 7-8 / 9-10 / 11-12 / 13-15 / 16+
+    // Value should be >0 or truthy.
+    const keys = Object.keys(p || {});
+    for (const age of selectedAges){
+      const needle = age.replace('+','\\+');
+      const re = new RegExp(needle, 'i');
+      const matching = keys.filter(k => re.test(k));
+      if (matching.length === 0) return false; // no data yet -> treat as not matching
+      const ok = matching.some(k => {
+        const v = p[k];
+        if (v === true) return true;
+        const num = Number(v);
+        return Number.isFinite(num) && num > 0;
+      });
+      if (!ok) return false;
+    }
+    return true;
+  }
+
+  function schoolMatchesCompetitions(p, selectedComps){
+    if (selectedComps.length === 0) return true;
+
+    // Future-proof: look for any properties that hint competitions. If none -> false.
+    // We check keys containing: школьн, муницип, региональн, межрегион
+    const mapNeedles = {
+      school: /школьн/i,
+      muni: /муницип/i,
+      region: /регионал/i,
+      inter: /межрегион/i
+    };
+    const keys = Object.keys(p || {});
+    // if no comp-like keys at all, data missing => false
+    const anyCompKey = keys.some(k => /(школьн|муницип|регионал|межрегион)/i.test(k));
+    if (!anyCompKey) return false;
+
+    for (const c of selectedComps){
+      const re = mapNeedles[c];
+      const matching = keys.filter(k => re.test(k));
+      if (matching.length === 0) return false;
+      const ok = matching.some(k => {
+        const v = p[k];
+        if (v === true) return true;
+        const num = Number(v);
+        return Number.isFinite(num) && num > 0;
+      });
+      if (!ok) return false;
+    }
+    return true;
+  }
 
   function renderClubLines(items) {
     return (items || []).map(x => {
@@ -240,7 +672,7 @@
 
     if (sl.length > 0) {
       extra += `
-        <div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.08);">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
             <img src="${superBrand.logo}" alt="Суперлига" style="width:18px; height:18px; object-fit:contain;">
             <b style="color:${superBrand.color}">Суперлига</b>
@@ -254,7 +686,7 @@
 
     if (fl.length > 0) {
       extra += `
-        <div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.08);">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
             <img src="${firstBrand.logo}" alt="Первая лига" style="width:18px; height:18px; object-fit:contain;">
             <b style="color:${firstBrand.color}">Первая лига</b>
@@ -273,7 +705,7 @@
     if (!regionsFillLayer) return;
     regionsFillLayer.eachLayer(layer => {
       const p = layer.feature?.properties || {};
-      layer.bindPopup(buildRegionPopup(p), { maxWidth: 360 });
+      layer.bindPopup(buildRegionPopup(p), { maxWidth: 380 });
     });
   }
 
@@ -292,124 +724,290 @@
   function rebuildOutlines() {
     if (!regionsData) return;
 
-    // remove old
     if (superOutlineLayer) map.removeLayer(superOutlineLayer);
     if (firstOutlineLayer) map.removeLayer(firstOutlineLayer);
     superOutlineLayer = null;
     firstOutlineLayer = null;
 
-    // build new super outline if toggled
+    const enabledSet = getEnabledRegionSet(); // based on region selection and thresholds
+    const enabledNorm = enabledSet; // Set of normalized names
+
     if (superCheckbox?.checked) {
       superOutlineLayer = L.geoJSON(regionsData, {
         interactive: false,
         style: (feature) => {
           const key = normRegion(feature?.properties?.name);
+          if (!enabledNorm.has(key)) return { opacity: 0, fillOpacity: 0 };
           const has = (superByRegion[key] || []).length > 0;
           if (!has) return { opacity: 0, fillOpacity: 0 };
-          return {
-            color: superBrand.color,
-            weight: 3,
-            opacity: 1,
-            fillOpacity: 0
-          };
+          return { color: superBrand.color, weight: 3, opacity: 1, fillOpacity: 0 };
         }
       }).addTo(map);
-      // keep outlines above fill
       superOutlineLayer.bringToFront();
     }
 
-    // build first league outline if toggled (dashed orange)
     if (firstCheckbox?.checked) {
       firstOutlineLayer = L.geoJSON(regionsData, {
         interactive: false,
         style: (feature) => {
           const key = normRegion(feature?.properties?.name);
+          if (!enabledNorm.has(key)) return { opacity: 0, fillOpacity: 0 };
           const has = (firstByRegion[key] || []).length > 0;
           if (!has) return { opacity: 0, fillOpacity: 0 };
-          return {
-            color: firstBrand.color,
-            weight: 3,
-            opacity: 1,
-            dashArray: "7 5",
-            lineCap: "round",
-            lineJoin: "round",
-            fillOpacity: 0
-          };
+          return { color: firstBrand.color, weight: 3, opacity: 1, dashArray: "7 5", lineCap: "round", lineJoin: "round", fillOpacity: 0 };
         }
       }).addTo(map);
       firstOutlineLayer.bringToFront();
     }
 
-    // ensure fill is under outlines but still clickable
     if (regionsFillLayer) regionsFillLayer.bringToBack();
   }
 
-  // MAIN LOAD
-  Promise.all([
-    fetchJSON('./russia_subjects_with_sportschools2024.json'),
-    fetchJSON('./schools_points.json')
-  ])
-  .then(([regions, points]) => {
-    regionsData = regions;
-    pointsData = points;
+  // --- Filters state getters ---
+  function getSelectedRegionNormSetFromUI(){
+    const selected = Array.from(regionSelect.selectedOptions || []).map(o => o.value);
+    if (selected.length === 0) return null; // null means no filter by region (all)
+    return new Set(selected.map(normRegion));
+  }
 
-    // KPI
-    const totalRegions = regions.features?.length ?? 0;
-    const sumGirls = (regions.features || []).reduce((a,f)=>a + (f.properties?.total_girls ?? 0), 0);
-    const sumSchools = (regions.features || []).reduce((a,f)=>a + (f.properties?.total_schools ?? 0), 0);
-    const sumSchoolsWithGirls = (regions.features || []).reduce((a,f)=>a + (f.properties?.schools_with_girls ?? 0), 0);
+  function getEnabledRegionSet(){
+    // enabled = passes (region selection + region thresholds)
+    const selectedSet = getSelectedRegionNormSetFromUI();
 
-    document.getElementById('kpiRegions').textContent = fmt.format(totalRegions);
-    document.getElementById('kpiGirls').textContent = fmt.format(sumGirls);
-    document.getElementById('kpiSchools').textContent = fmt.format(points.features?.length ?? sumSchools);
-    document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(sumSchoolsWithGirls);
+    const minGirlsR = Number(minGirlsRegion.value || 0);
+    const minSWG = Number(minSchoolsWithGirls.value || 0);
 
-    // Regions fill (interactive)
-    regionsFillLayer = L.geoJSON(regions, {
-      style: styleFill,
+    const enabled = new Set();
+
+    (regionsData?.features || []).forEach(f => {
+      const p = f.properties || {};
+      const key = normRegion(p.name);
+      const inSelected = !selectedSet || selectedSet.has(key);
+
+      const girls = Number(p.total_girls ?? 0);
+      const swg = Number(p.schools_with_girls ?? 0);
+
+      const pass = inSelected && (girls >= minGirlsR) && (swg >= minSWG);
+      if (pass) enabled.add(key);
+    });
+
+    // if selectedSet exists, but none passes thresholds, enabled may be empty -> that's ok.
+    return enabled;
+  }
+
+  function readUIState(){
+    const minGS = Number(minGirlsSchool.value || 0);
+    const minGR = Number(minGirlsRegion.value || 0);
+    const minSWG = Number(minSchoolsWithGirls.value || 0);
+
+    const selectedAges = ageChks.filter(x => x.checked).map(x => x.value);
+    const selectedComps = compChks.filter(x => x.checked).map(x => x.value);
+
+    const regionSelectedNorm = getSelectedRegionNormSetFromUI();
+    const search = (searchInput.value || "").trim().toLowerCase();
+
+    return { minGS, minGR, minSWG, selectedAges, selectedComps, regionSelectedNorm, search };
+  }
+
+  // --- Apply filters to regions (visual dim) ---
+  function applyRegionFilterStyles(){
+    if (!regionsFillLayer) return;
+
+    const enabled = getEnabledRegionSet();
+    regionsFillLayer.eachLayer(layer => {
+      const p = layer.feature?.properties || {};
+      const key = normRegion(p.name);
+      const on = enabled.has(key);
+      layer.setStyle(styleFill(layer.feature, on));
+    });
+
+    // outlines depend on enabled regions too
+    rebuildOutlines();
+  }
+
+  // --- Apply filters to points (schools) + list ---
+  function applySchoolsFilter(){
+    if (!pointsData || !pointsGeoLayer) return;
+
+    const state = readUIState();
+    const enabledRegions = getEnabledRegionSet();
+
+    const filtered = [];
+    for (const f of (pointsData.features || [])){
+      const p = f.properties || {};
+      const regionKey = normRegion(p.region || p.Region || p.name_region || p.subject || "");
+      // If point doesn't have region, we can still keep it only when no region filter and thresholds pass
+      const regionOK = enabledRegions.size === 0 ? true : enabledRegions.has(regionKey);
+
+      // girls in school
+      const girls = Number(p.girls_total ?? p.girls ?? p["Численность занимающихся футболом девочек"] ?? 0);
+      const girlsOK = girls >= state.minGS;
+
+      // ages (future-proof)
+      const agesOK = schoolHasAnySelectedAges(p, state.selectedAges);
+
+      // competitions (future-proof)
+      const compsOK = schoolMatchesCompetitions(p, state.selectedComps);
+
+      // region selection (multi) if enabledRegions empty but selection exists? Actually enabledRegions already includes selection + thresholds
+      const keep = regionOK && girlsOK && agesOK && compsOK;
+      if (keep) filtered.push(f);
+    }
+
+    currentFilteredPointFeatures = filtered;
+
+    // refresh markers: simplest approach = clear cluster and re-add a new layer
+    cluster.clearLayers();
+    pointsGeoLayer = L.geoJSON({ type:"FeatureCollection", features: filtered }, {
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 6, weight: 1, fillOpacity: 0.75 }),
       onEachFeature: (feature, layer) => {
         const p = feature.properties || {};
-        layer.bindPopup(regionBaseHTML(p), { maxWidth: 360 });
-
-        layer.on('mouseover', () => layer.setStyle({ weight: 2 }));
-        layer.on('mouseout', () => layer.setStyle({ weight: 1 }));
-      }
-    }).addTo(map);
-
-    // Points (schools)
-    const pointsLayer = L.geoJSON(points, {
-      pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-        radius: 6,
-        weight: 1,
-        fillOpacity: 0.75
-      }),
-      onEachFeature: (feature, layer) => {
-        const p = feature.properties || {};
+        const girls = Number(p.girls_total ?? p.girls ?? 0);
         const html = `
           <div class="popup">
             <h3>${p.name ?? "Без названия"}</h3>
             <div class="muted">${p.region ?? ""}${p.city ? ", " + p.city : ""}</div>
             <div>${p.address ?? ""}</div>
-            <div style="margin-top:8px;"><b>Девочек:</b> ${fmt.format(p.girls_total ?? 0)}</div>
+            <div style="margin-top:8px;"><b>Девочек:</b> ${fmt.format(girls)}</div>
             ${p.phone ? `<div><b>Тел:</b> ${p.phone}</div>` : ""}
             ${p.email ? `<div><b>Email:</b> ${p.email}</div>` : ""}
           </div>
         `;
         layer.bindPopup(html, { maxWidth: 360 });
+
+        // click from list support
+        layer._schoolFeature = feature;
       }
     });
 
-    cluster.addLayer(pointsLayer);
+    cluster.addLayer(pointsGeoLayer);
     map.addLayer(cluster);
 
-    map.fitBounds(regionsFillLayer.getBounds().pad(0.1));
+    renderSchoolsList();
+  }
 
-    // Legend
+  function renderSchoolsList(){
+    const state = readUIState();
+    const search = state.search;
+
+    let rows = currentFilteredPointFeatures.slice();
+
+    if (search){
+      rows = rows.filter(f => {
+        const p = f.properties || {};
+        const hay = [
+          p.name, p.region, p.city, p.address
+        ].filter(Boolean).join(" ").toLowerCase();
+        return hay.includes(search);
+      });
+    }
+
+    // sort by girls desc
+    rows.sort((a,b) => {
+      const ga = Number(a.properties?.girls_total ?? 0);
+      const gb = Number(b.properties?.girls_total ?? 0);
+      return gb - ga;
+    });
+
+    listTitle.textContent = "Список школ (отфильтровано)";
+    listSub.textContent = `${fmt.format(rows.length)} школ`;
+
+    schoolsList.innerHTML = "";
+    if (rows.length === 0){
+      schoolsList.innerHTML = `<div style="padding:12px; color:rgba(20,20,25,0.55);">Ничего не найдено по текущим фильтрам.</div>`;
+      return;
+    }
+
+    for (const f of rows.slice(0, 400)) { // safety cap for DOM
+      const p = f.properties || {};
+      const girls = Number(p.girls_total ?? 0);
+      const name = p.name ?? "Без названия";
+      const region = p.region ?? "";
+      const city = p.city ?? "";
+      const addr = p.address ?? "";
+
+      const el = document.createElement('div');
+      el.className = 'row';
+      el.innerHTML = `
+        <div>
+          <div class="name">${escapeHTML(name)}</div>
+          <div class="meta">${escapeHTML([region, city].filter(Boolean).join(", "))}</div>
+        </div>
+        <div class="addr">${escapeHTML(addr)}</div>
+        <div class="girls">${fmt.format(girls)}</div>
+        <div style="text-align:right; font-size:12px; color:rgba(20,20,25,0.55); align-self:center;">девочек</div>
+      `;
+
+      el.addEventListener('click', () => {
+        const coords = f.geometry?.coordinates;
+        if (coords && coords.length >= 2){
+          const latlng = [coords[1], coords[0]];
+          map.setView(latlng, Math.max(map.getZoom(), 10), { animate: true });
+        }
+      });
+
+      schoolsList.appendChild(el);
+    }
+  }
+
+  function escapeHTML(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // --- UI: fill region select + dynamic ranges ---
+  function fillRegionSelectFromGeoJSON(){
+    const regions = (regionsData?.features || [])
+      .map(f => f.properties?.name)
+      .filter(Boolean)
+      .sort((a,b) => String(a).localeCompare(String(b), 'ru'));
+
+    regionSelect.innerHTML = "";
+    for (const r of regions){
+      const opt = document.createElement('option');
+      opt.value = r;
+      opt.textContent = r;
+      regionSelect.appendChild(opt);
+    }
+  }
+
+  function setRangesFromData(){
+    // girls in school (max)
+    const maxGirlsSchool = Math.max(0, ...(pointsData?.features || []).map(f => Number(f.properties?.girls_total ?? 0) || 0));
+    minGirlsSchool.max = String(Math.max(50, Math.ceil(maxGirlsSchool/10)*10));
+    minGirlsSchool.value = "0";
+    minGirlsSchoolVal.textContent = "0";
+
+    // girls in region (max)
+    const maxGirlsRegion = Math.max(0, ...(regionsData?.features || []).map(f => Number(f.properties?.total_girls ?? 0) || 0));
+    minGirlsRegion.max = String(Math.max(100, Math.ceil(maxGirlsRegion/50)*50));
+    minGirlsRegion.step = String(maxGirlsRegion > 500 ? 25 : 10);
+    minGirlsRegion.value = "0";
+    minGirlsRegionVal.textContent = "0";
+
+    // schools_with_girls max
+    const maxSWG = Math.max(0, ...(regionsData?.features || []).map(f => Number(f.properties?.schools_with_girls ?? 0) || 0));
+    minSchoolsWithGirls.max = String(Math.max(20, maxSWG));
+    minSchoolsWithGirls.value = "0";
+    minSchoolsWithGirlsVal.textContent = "0";
+  }
+
+  // --- Fit to Russia ---
+  function fitToRussia(){
+    if (regionsFillLayer) map.fitBounds(regionsFillLayer.getBounds().pad(0.1));
+  }
+
+  // --- Legend on map ---
+  function addLegend(){
     const legend = L.control({position: 'bottomleft'});
     legend.onAdd = function() {
       const div = L.DomUtil.create('div', 'legend');
       div.innerHTML = `
-        <div style="font-weight:700; margin-bottom:6px;">Заливка: девочек в регионе</div>
+        <div style="font-weight:800; margin-bottom:6px;">Заливка: девочек в регионе</div>
         <div class="row"><span class="swatch" style="background:#eff6ff"></span> 0</div>
         <div class="row"><span class="swatch" style="background:#dbeafe"></span> 1–50</div>
         <div class="row"><span class="swatch" style="background:#bfdbfe"></span> 51–150</div>
@@ -420,20 +1018,143 @@
       return div;
     };
     legend.addTo(map);
+  }
+  addLegend();
 
-    // Load competitions (popups ALWAYS show; checkboxes ONLY highlight)
+  // --- Wire UI events ---
+  function wireEvents(){
+    function refreshLabels(){
+      minGirlsSchoolVal.textContent = String(minGirlsSchool.value);
+      minGirlsRegionVal.textContent = String(minGirlsRegion.value);
+      minSchoolsWithGirlsVal.textContent = String(minSchoolsWithGirls.value);
+    }
+
+    const rerunAll = () => {
+      refreshLabels();
+      applyRegionFilterStyles();
+      applySchoolsFilter();
+      updateAllRegionPopups(); // popups don't depend on filters, but safe
+    };
+
+    regionSelect.addEventListener('change', rerunAll);
+
+    minGirlsSchool.addEventListener('input', rerunAll);
+    minGirlsRegion.addEventListener('input', rerunAll);
+    minSchoolsWithGirls.addEventListener('input', rerunAll);
+
+    ageChks.forEach(x => x.addEventListener('change', rerunAll));
+    compChks.forEach(x => x.addEventListener('change', rerunAll));
+
+    superCheckbox.addEventListener('change', rebuildOutlines);
+    firstCheckbox.addEventListener('change', rebuildOutlines);
+
+    clearRegionsBtn.addEventListener('click', () => {
+      Array.from(regionSelect.options).forEach(o => o.selected = false);
+      rerunAll();
+    });
+    selectAllRegionsBtn.addEventListener('click', () => {
+      Array.from(regionSelect.options).forEach(o => o.selected = true);
+      rerunAll();
+    });
+
+    searchInput.addEventListener('input', renderSchoolsList);
+
+    resetAllBtn.addEventListener('click', () => {
+      superCheckbox.checked = false;
+      firstCheckbox.checked = false;
+
+      Array.from(regionSelect.options).forEach(o => o.selected = false);
+
+      minGirlsSchool.value = "0";
+      minGirlsRegion.value = "0";
+      minSchoolsWithGirls.value = "0";
+
+      ageChks.forEach(x => x.checked = false);
+      compChks.forEach(x => x.checked = false);
+
+      searchInput.value = "";
+
+      rerunAll();
+      fitToRussia();
+    });
+
+    fitRussiaBtn.addEventListener('click', fitToRussia);
+
+    refreshLabels();
+  }
+
+  // --- Load base data ---
+  Promise.all([
+    fetchJSON('./russia_subjects_with_sportschools2024.json'),
+    fetchJSON('./schools_points.json')
+  ])
+  .then(([regions, points]) => {
+    regionsData = regions;
+    pointsData = points;
+
+    // KPIs
+    const totalRegions = regions.features?.length ?? 0;
+    const sumGirls = (regions.features || []).reduce((a,f)=>a + (f.properties?.total_girls ?? 0), 0);
+    const sumSchools = (regions.features || []).reduce((a,f)=>a + (f.properties?.total_schools ?? 0), 0);
+    const sumSchoolsWithGirls = (regions.features || []).reduce((a,f)=>a + (f.properties?.schools_with_girls ?? 0), 0);
+
+    document.getElementById('kpiRegions').textContent = fmt.format(totalRegions);
+    document.getElementById('kpiGirls').textContent = fmt.format(sumGirls);
+    document.getElementById('kpiSchools').textContent = fmt.format(points.features?.length ?? sumSchools);
+    document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(sumSchoolsWithGirls);
+
+    // Regions layer (interactive)
+    regionsFillLayer = L.geoJSON(regions, {
+      style: (feature) => styleFill(feature, true),
+      onEachFeature: (feature, layer) => {
+        const p = feature.properties || {};
+        layer.bindPopup(regionBaseHTML(p), { maxWidth: 380 });
+      }
+    }).addTo(map);
+
+    // Points layer initial
+    pointsGeoLayer = L.geoJSON(points, {
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 6, weight: 1, fillOpacity: 0.75 }),
+      onEachFeature: (feature, layer) => {
+        const p = feature.properties || {};
+        const girls = Number(p.girls_total ?? 0);
+        const html = `
+          <div class="popup">
+            <h3>${p.name ?? "Без названия"}</h3>
+            <div class="muted">${p.region ?? ""}${p.city ? ", " + p.city : ""}</div>
+            <div>${p.address ?? ""}</div>
+            <div style="margin-top:8px;"><b>Девочек:</b> ${fmt.format(girls)}</div>
+            ${p.phone ? `<div><b>Тел:</b> ${p.phone}</div>` : ""}
+            ${p.email ? `<div><b>Email:</b> ${p.email}</div>` : ""}
+          </div>
+        `;
+        layer.bindPopup(html, { maxWidth: 360 });
+      }
+    });
+
+    cluster.addLayer(pointsGeoLayer);
+    map.addLayer(cluster);
+
+    map.fitBounds(regionsFillLayer.getBounds().pad(0.1));
+
+    // UI setup
+    fillRegionSelectFromGeoJSON();
+    setRangesFromData();
+    currentFilteredPointFeatures = (pointsData.features || []);
+    wireEvents();
+    renderSchoolsList();
+
+    // Load competitions
     return Promise.all([
       fetchJSON('./data/superleague_clubs.json').catch(e => { console.error("Superleague data failed:", e); if (slStatus) slStatus.textContent = "(ошибка)"; return null; }),
       fetchJSON('./data/firstleague_clubs_v1.json').catch(e => { console.error("First league data failed:", e); if (flStatus) flStatus.textContent = "(ошибка)"; return null; })
     ]);
   })
   .then(([sl, fl]) => {
-    // Superleague
     if (sl) {
       superBrand = sl.brand || superBrand;
       superByRegion = {};
-      const src = sl.by_region || {};
-      for (const [rName, clubs] of Object.entries(src)) {
+      for (const [rName, clubs] of Object.entries(sl.by_region || {})) {
         superByRegion[normRegion(rName)] = (clubs || []).filter(Boolean);
       }
       computeMatchedStatus(superByRegion, slStatus);
@@ -441,12 +1162,10 @@
       if (slStatus) slStatus.textContent = "(нет данных)";
     }
 
-    // First league
     if (fl) {
       firstBrand = fl.brand || firstBrand;
       firstByRegion = {};
-      const src = fl.by_region || {};
-      for (const [rName, clubs] of Object.entries(src)) {
+      for (const [rName, clubs] of Object.entries(fl.by_region || {})) {
         firstByRegion[normRegion(rName)] = (clubs || []).filter(Boolean);
       }
       computeMatchedStatus(firstByRegion, flStatus);
@@ -454,21 +1173,20 @@
       if (flStatus) flStatus.textContent = "(нет данных)";
     }
 
-    // Now that we have competitions data, upgrade popups everywhere
+    // Popups always show clubs (where available)
     updateAllRegionPopups();
 
-    // Outlines depend on toggles
+    // Apply filters initially
+    applyRegionFilterStyles();
+    applySchoolsFilter();
+
+    // Outlines are controlled by checkboxes + enabled regions
     rebuildOutlines();
 
-    superCheckbox?.addEventListener('change', rebuildOutlines);
-    firstCheckbox?.addEventListener('change', rebuildOutlines);
-
-    // Hide error box if all good
+    // hide error if ok
     errBox.style.display = 'none';
   })
-  .catch(err => {
-    showErr('Ошибка загрузки данных', err);
-  });
+  .catch(err => showErr('Ошибка загрузки данных', err));
 
 })();
 </script>
