@@ -48,6 +48,7 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 <script>
+  // --- map init ---
   const map = L.map('map', { preferCanvas: true }).setView([61.5, 96.5], 3);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -59,7 +60,6 @@
   const fmt = new Intl.NumberFormat('ru-RU');
 
   function colorFor(value, breaks) {
-    // breaks: ascending thresholds
     if (value == null) return '#f3f4f6';
     if (value <= breaks[0]) return '#eff6ff';
     if (value <= breaks[1]) return '#dbeafe';
@@ -71,7 +71,6 @@
 
   function styleRegion(feature) {
     const girls = feature.properties?.total_girls ?? 0;
-    // простые пороги; позже сделаем квантильные
     const fill = colorFor(girls, [0, 50, 150, 300, 700]);
     return {
       weight: 1,
@@ -108,16 +107,32 @@
   let regionsLayer = null;
   let pointsLayer = null;
 
+  // --- patched fetch with diagnostics + cache-bust ---
+  async function fetchJSON(url) {
+    const res = await fetch(url + '?v=' + Date.now());
+    const text = await res.text();
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} при загрузке ${url}\nПервые 200 символов:\n${text.slice(0,200)}`);
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error(`Не могу распарсить JSON: ${url}\n${e}\nПервые 200 символов:\n${text.slice(0,200)}`);
+    }
+  }
+
   Promise.all([
-    fetch('./russia_subjects_with_sportschools2024.json').then(r => r.json()),
-    fetch('./schools_points.json').then(r => r.json())
+    fetchJSON('./russia_subjects_with_sportschools2024.json'),
+    fetchJSON('./schools_points.json')
   ])
   .then(([regions, points]) => {
     // KPI topbar from regions
     const totalRegions = regions.features?.length ?? 0;
-    const sumGirls = regions.features.reduce((a,f)=>a + (f.properties?.total_girls ?? 0), 0);
-    const sumSchools = regions.features.reduce((a,f)=>a + (f.properties?.total_schools ?? 0), 0);
-    const sumSchoolsWithGirls = regions.features.reduce((a,f)=>a + (f.properties?.schools_with_girls ?? 0), 0);
+    const sumGirls = (regions.features || []).reduce((a,f)=>a + (f.properties?.total_girls ?? 0), 0);
+    const sumSchools = (regions.features || []).reduce((a,f)=>a + (f.properties?.total_schools ?? 0), 0);
+    const sumSchoolsWithGirls = (regions.features || []).reduce((a,f)=>a + (f.properties?.schools_with_girls ?? 0), 0);
 
     document.getElementById('kpiRegions').textContent = fmt.format(totalRegions);
     document.getElementById('kpiGirls').textContent = fmt.format(sumGirls);
@@ -185,9 +200,8 @@
   })
   .catch(err => {
     console.error(err);
-    alert("Ошибка загрузки GeoJSON. Проверь, что файлы лежат рядом с index.html в репозитории.");
+    alert(String(err));
   });
 </script>
 </body>
 </html>
-
