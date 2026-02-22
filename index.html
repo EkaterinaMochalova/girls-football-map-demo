@@ -11,34 +11,17 @@
 
   <style>
     html, body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-    #app { height: 100%; display: grid; grid-template-rows: auto 1fr; }
+    #app { height: 100%; display: flex; flex-direction: column; }
     #topbar {
       padding: 12px 14px; border-bottom: 1px solid #eee;
       display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
       background: #fff;
     }
-    .kpi { background: #f6f7f9; border: 1px solid #eee; border-radius: 12px; padding: 10px 12px; }
+    .kpi { background: #f6f7f9; border: 1px solid #eee; border-radius: 12px; padding: 10px 12px; min-width: 140px; }
     .kpi .v { font-weight: 700; font-size: 18px; }
     .kpi .t { color: #666; font-size: 12px; margin-top: 2px; }
-    <label class="chip">
-  <input type="checkbox" id="toggleSuperleague" />
-  <img src="./assets/superleague_logo.png" alt="Суперлига" />
-  <span>Суперлига</span>
-</label>
-    .chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  background: #fff;
-  user-select: none;
-}
-.chip input { transform: scale(1.1); }
-.chip img { width: 26px; height: 26px; object-fit: contain; }
-.chip span { font-weight: 600; }
-    #map { height: 100%; }
+    #map { flex: 1; min-height: 420px; }
+
     .legend {
       position: absolute; bottom: 16px; left: 16px; z-index: 999;
       background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px 12px;
@@ -47,8 +30,27 @@
     }
     .legend .row { display:flex; align-items:center; gap:8px; margin:6px 0; }
     .swatch { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15); }
+
     .popup h3 { margin: 0 0 6px 0; font-size: 15px; }
     .popup .muted { color: #666; font-size: 12px; margin-bottom: 6px; }
+
+    /* Видимая панель ошибок */
+    #err {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      max-width: 520px;
+      white-space: pre-wrap;
+      background: rgba(15, 15, 15, 0.92);
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.35;
+      z-index: 9999;
+      display: none;
+    }
+    #err strong { display:block; margin-bottom: 6px; }
   </style>
 </head>
 <body>
@@ -62,19 +64,37 @@
   <div id="map"></div>
 </div>
 
+<div id="err"></div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 <script>
-  // --- map init ---
-  const map = L.map('map', { preferCanvas: true }).setView([61.5, 96.5], 3);
+(function () {
+  const errBox = document.getElementById('err');
+  function showErr(title, msg) {
+    console.error(title, msg);
+    errBox.style.display = 'block';
+    errBox.innerHTML = `<strong>${title}</strong>${String(msg || '')}`;
+  }
 
+  // ловим любые “тихие” падения
+  window.addEventListener('error', (e) => showErr('JS ошибка', e.message || e.error || e));
+  window.addEventListener('unhandledrejection', (e) => showErr('Promise ошибка', e.reason || e));
+
+  // проверим, что Leaflet реально загрузился
+  if (typeof L === 'undefined') {
+    showErr('Leaflet не загрузился', 'Проверь доступ к https://unpkg.com (возможно блокировка).');
+    return;
+  }
+
+  // --- map init (ЭТО ДОЛЖНО ВСЕГДА ОТРИСОВАТЬ ТАЙЛЫ И ЗУМ) ---
+  const map = L.map('map', { preferCanvas: true }).setView([61.5, 96.5], 3);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
 
-  // --- helpers ---
   const fmt = new Intl.NumberFormat('ru-RU');
 
   function colorFor(value, breaks) {
@@ -90,23 +110,8 @@
   function styleRegion(feature) {
     const girls = feature.properties?.total_girls ?? 0;
     const fill = colorFor(girls, [0, 50, 150, 300, 700]);
-    return {
-      weight: 1,
-      color: 'rgba(0,0,0,0.25)',
-      fillColor: fill,
-      fillOpacity: 0.55
-    };
+    return { weight: 1, color: 'rgba(0,0,0,0.25)', fillColor: fill, fillOpacity: 0.55 };
   }
-
-  function normRegion(s) {
-  if (!s) return "";
-  return String(s)
-    .toLowerCase()
-    .replaceAll("ё", "е")
-    .replaceAll("—", "-")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
   function regionPopupHTML(p) {
     const schools = p.total_schools ?? 0;
@@ -125,38 +130,23 @@
     `;
   }
 
-  // --- layers ---
-  const cluster = L.markerClusterGroup({
-    chunkedLoading: true,
-    spiderfyOnMaxZoom: true,
-    showCoverageOnHover: false
-  });
-
-  let regionsLayer = null;
-  let pointsLayer = null;
-
-  // --- patched fetch with diagnostics + cache-bust ---
   async function fetchJSON(url) {
-    const res = await fetch(url + '?v=' + Date.now());
+    const res = await fetch(url + '?v=' + Date.now()); // cache-bust
     const text = await res.text();
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} при загрузке ${url}\nПервые 200 символов:\n${text.slice(0,200)}`);
-    }
-
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      throw new Error(`Не могу распарсить JSON: ${url}\n${e}\nПервые 200 символов:\n${text.slice(0,200)}`);
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status} при загрузке ${url}\n${text.slice(0,200)}`);
+    try { return JSON.parse(text); }
+    catch (e) { throw new Error(`Не могу распарсить JSON: ${url}\n${e}\n${text.slice(0,200)}`); }
   }
 
+  const cluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
+
+  // --- main load ---
   Promise.all([
     fetchJSON('./russia_subjects_with_sportschools2024.json'),
     fetchJSON('./schools_points.json')
   ])
   .then(([regions, points]) => {
-    // KPI topbar from regions
+    // KPI
     const totalRegions = regions.features?.length ?? 0;
     const sumGirls = (regions.features || []).reduce((a,f)=>a + (f.properties?.total_girls ?? 0), 0);
     const sumSchools = (regions.features || []).reduce((a,f)=>a + (f.properties?.total_schools ?? 0), 0);
@@ -167,25 +157,20 @@
     document.getElementById('kpiSchools').textContent = fmt.format(points.features?.length ?? sumSchools);
     document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(sumSchoolsWithGirls);
 
-    // Regions layer
-    regionsLayer = L.geoJSON(regions, {
+    // Regions
+    const regionsLayer = L.geoJSON(regions, {
       style: styleRegion,
       onEachFeature: (feature, layer) => {
         const p = feature.properties || {};
         layer.bindPopup(regionPopupHTML(p), { maxWidth: 360 });
-
         layer.on('mouseover', () => layer.setStyle({ weight: 2 }));
         layer.on('mouseout', () => layer.setStyle({ weight: 1 }));
       }
     }).addTo(map);
 
-    // Points layer
-    pointsLayer = L.geoJSON(points, {
-      pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-        radius: 6,
-        weight: 1,
-        fillOpacity: 0.75
-      }),
+    // Points
+    const pointsLayer = L.geoJSON(points, {
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 6, weight: 1, fillOpacity: 0.75 }),
       onEachFeature: (feature, layer) => {
         const p = feature.properties || {};
         const html = `
@@ -205,7 +190,6 @@
     cluster.addLayer(pointsLayer);
     map.addLayer(cluster);
 
-    // Fit to regions (stable) or points
     map.fitBounds(regionsLayer.getBounds().pad(0.1));
 
     // Legend
@@ -225,47 +209,14 @@
     };
     legend.addTo(map);
 
-    // --- Superleague highlight overlay ---
-fetchJSON('./data/superleague_regions.json')
-  .then(data => {
-    const superSet = new Set((data.regions || []).map(normRegion));
-
-    const checkbox = document.getElementById('toggleSuperleague');
-
-    function applySuperleagueHighlight(isOn) {
-      if (!regionsLayer) return;
-
-      regionsLayer.eachLayer(layer => {
-        const p = layer.feature?.properties || {};
-        const rName = normRegion(p.name);
-
-        // Включено + регион в списке -> яркая подсветка
-        if (isOn && superSet.has(rName)) {
-          layer.setStyle({
-            color: '#d000e0',
-            weight: 3,
-            fillOpacity: 0.65
-          });
-          layer.bringToFront();
-        } else {
-          // Возвращаем базовый стиль (choropleth)
-          layer.setStyle(styleRegion(layer.feature));
-        }
-      });
-    }
-
-    checkbox.addEventListener('change', () => applySuperleagueHighlight(checkbox.checked));
-
-    // на всякий: если чекбокс был сохранён браузером
-    applySuperleagueHighlight(checkbox.checked);
-
+    // если всё ок, прячем панель ошибок
+    errBox.style.display = 'none';
   })
   .catch(err => {
-    console.error(err);
-    alert(String(err));
+    showErr('Ошибка загрузки данных', err);
   });
+
+})();
 </script>
 </body>
 </html>
-
-
