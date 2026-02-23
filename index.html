@@ -20,9 +20,6 @@
       --shadow-soft: 0 10px 30px rgba(0,0,0,0.08);
       --text: rgba(20,20,25,0.92);
       --muted: rgba(20,20,25,0.55);
-      --accent: #3b82f6;
-      --chip: rgba(255,255,255,0.65);
-      --chip-hover: rgba(255,255,255,0.78);
       --radius-lg: 18px;
       --radius-md: 14px;
       --blur: 18px;
@@ -30,7 +27,6 @@
 
     html, body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: var(--text); background: var(--bg); }
 
-    /* soft background glow */
     body:before{
       content:"";
       position: fixed; inset: 0;
@@ -124,7 +120,7 @@
       padding: 10px 12px;
       border: 1px solid var(--stroke);
       border-radius: 14px;
-      background: var(--chip);
+      background: rgba(255,255,255,0.65);
       backdrop-filter: blur(var(--blur));
       -webkit-backdrop-filter: blur(var(--blur));
       box-shadow: var(--shadow-soft);
@@ -133,15 +129,12 @@
       transition: background .15s ease, border-color .15s ease, transform .05s ease;
       margin-bottom: 10px;
     }
-    .chip:hover{ background: var(--chip-hover); border-color: var(--stroke-strong); }
+    .chip:hover{ background: rgba(255,255,255,0.78); border-color: var(--stroke-strong); }
     .chip:active{ transform: translateY(1px); }
     .chip input{ transform: scale(1.05); }
     .chip img{ width: 24px; height: 24px; object-fit: contain; }
     .chip span{ font-weight: 700; font-size: 13px; }
     .chip small{ margin-left: auto; color: var(--muted); font-size: 12px; }
-
-    .controlRow{ display:flex; gap:10px; align-items:center; }
-    .controlRow .grow{ flex: 1; }
 
     .select{
       width: 100%;
@@ -210,7 +203,7 @@
     .btn:active{ transform: translateY(1px); }
     .btn.secondary{ font-weight: 700; color: var(--muted); }
 
-    /* Main map glass card */
+    /* Map glass card */
     #mapCard{
       grid-column: 2; grid-row: 1;
       background: var(--card);
@@ -225,7 +218,7 @@
     }
     #map{ height: 100%; }
 
-    /* Schools list card (bottom) */
+    /* Schools list */
     #listCard{
       grid-column: 2; grid-row: 2;
       background: var(--card);
@@ -245,14 +238,9 @@
       background: linear-gradient(to bottom, rgba(255,255,255,0.76), rgba(255,255,255,0.60));
       display:flex; align-items:center; justify-content: space-between; gap: 10px;
     }
-    #listHeader .left{
-      display:flex; flex-direction: column;
-    }
+    #listHeader .left{ display:flex; flex-direction: column; }
     #listHeader .left b{ font-size: 13px; }
     #listHeader .left span{ font-size: 12px; color: var(--muted); margin-top: 2px; }
-    #listHeader .right{
-      display:flex; gap: 8px; align-items:center;
-    }
     #search{
       width: 260px;
       max-width: 38vw;
@@ -264,13 +252,11 @@
       outline: none;
       box-shadow: var(--shadow-soft);
     }
-
     #schoolsList{
       padding: 10px 14px 14px 14px;
       overflow: auto;
       min-height: 0;
     }
-
     .row{
       display:grid;
       grid-template-columns: 1.2fr 1fr 100px 150px;
@@ -304,6 +290,52 @@
     .leaflet-popup-content-wrapper{
       border-radius: 14px;
       box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+    }
+
+    /* ===== NEW: Compact horizontal legend ===== */
+    .legend-compact{
+      background: rgba(255,255,255,0.60);
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 14px;
+      padding: 8px 10px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+      max-width: min(680px, calc(100vw - 420px)); /* чтобы не лезла под сайдбар */
+      pointer-events: none; /* важно: карта кликается под легендой */
+    }
+    .legend-compact .title{
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(20,20,25,0.72);
+      margin: 0 0 6px 0;
+      letter-spacing: -0.01em;
+    }
+    .legend-compact .items{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .legend-compact .item{
+      display:flex;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 8px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.45);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .legend-compact .swatch{
+      width: 22px;
+      height: 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.12);
+    }
+    .legend-compact .lbl{
+      font-size: 12px;
+      color: rgba(20,20,25,0.78);
+      white-space: nowrap;
     }
 
     /* Error panel */
@@ -367,9 +399,7 @@
       <div class="section">
         <h4>Регионы</h4>
 
-        <select id="regionSelect" class="select" multiple size="10" title="Можно выбрать несколько регионов">
-          <!-- filled by JS -->
-        </select>
+        <select id="regionSelect" class="select" multiple size="10" title="Можно выбрать несколько регионов"></select>
 
         <div class="hint">Выбранные регионы остаются “цветными” (по девочкам), остальные приглушаются.</div>
 
@@ -537,7 +567,7 @@
     catch (e) { throw new Error(`Не могу распарсить JSON: ${url}\n${e}\n${text.slice(0,200)}`); }
   }
 
-  // --- UI refs ---
+  // UI refs
   const superCheckbox = document.getElementById('toggleSuperleague');
   const firstCheckbox = document.getElementById('toggleFirstLeague');
   const slStatus = document.getElementById('slStatus');
@@ -567,90 +597,53 @@
   const searchInput = document.getElementById('search');
   const schoolsList = document.getElementById('schoolsList');
 
-  // --- Map init ---
+  // Map init
   const map = L.map('map', { preferCanvas: true }).setView([61.5, 96.5], 3);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
 
-  const cluster = L.markerClusterGroup({
-    chunkedLoading: true,
-    spiderfyOnMaxZoom: true,
-    showCoverageOnHover: false
-  });
+  const cluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
 
-  // --- Data holders ---
+  // Data holders
   let regionsData = null;
   let pointsData = null;
 
-  let regionsFillLayer = null;   // interactive layer
-  let superOutlineLayer = null;  // non-interactive outline
-  let firstOutlineLayer = null;  // non-interactive outline
+  let regionsFillLayer = null;
+  let superOutlineLayer = null;
+  let firstOutlineLayer = null;
 
   let superBrand = { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
   let firstBrand = { color: "#ff4b00", colorDark: "#111111", logo: "./assets/firstleague_logo_orange.png" };
 
-  let superByRegion = {}; // normalized -> array of strings
-  let firstByRegion = {}; // normalized -> array of objects/strings
+  let superByRegion = {};
+  let firstByRegion = {};
 
-  let pointsGeoLayer = null; // L.geoJSON of points
-  let currentFilteredPointFeatures = []; // for list
+  let pointsGeoLayer = null;
+  let currentFilteredPointFeatures = [];
 
-  // --- Helpers: age & competitions fields (future-proof) ---
-  function schoolHasAnySelectedAges(p, selectedAges){
-    if (selectedAges.length === 0) return true;
-
-    // Future-proof: try to find any property keys that include an age label
-    // We accept keys containing 5-6 / 7-8 / 9-10 / 11-12 / 13-15 / 16+
-    // Value should be >0 or truthy.
-    const keys = Object.keys(p || {});
-    for (const age of selectedAges){
-      const needle = age.replace('+','\\+');
-      const re = new RegExp(needle, 'i');
-      const matching = keys.filter(k => re.test(k));
-      if (matching.length === 0) return false; // no data yet -> treat as not matching
-      const ok = matching.some(k => {
-        const v = p[k];
-        if (v === true) return true;
-        const num = Number(v);
-        return Number.isFinite(num) && num > 0;
-      });
-      if (!ok) return false;
-    }
-    return true;
-  }
-
-  function schoolMatchesCompetitions(p, selectedComps){
-    if (selectedComps.length === 0) return true;
-
-    // Future-proof: look for any properties that hint competitions. If none -> false.
-    // We check keys containing: школьн, муницип, региональн, межрегион
-    const mapNeedles = {
-      school: /школьн/i,
-      muni: /муницип/i,
-      region: /регионал/i,
-      inter: /межрегион/i
+  // ===== NEW: compact legend control =====
+  function addCompactLegend(){
+    const legend = L.control({ position: 'bottomleft' });
+    legend.onAdd = function() {
+      const div = L.DomUtil.create('div', 'legend-compact');
+      div.innerHTML = `
+        <div class="title">Заливка: девочек в регионе</div>
+        <div class="items">
+          <div class="item"><span class="swatch" style="background:#eff6ff"></span><span class="lbl">0</span></div>
+          <div class="item"><span class="swatch" style="background:#dbeafe"></span><span class="lbl">1–50</span></div>
+          <div class="item"><span class="swatch" style="background:#bfdbfe"></span><span class="lbl">51–150</span></div>
+          <div class="item"><span class="swatch" style="background:#93c5fd"></span><span class="lbl">151–300</span></div>
+          <div class="item"><span class="swatch" style="background:#60a5fa"></span><span class="lbl">301–700</span></div>
+          <div class="item"><span class="swatch" style="background:#3b82f6"></span><span class="lbl">701+</span></div>
+        </div>
+      `;
+      return div;
     };
-    const keys = Object.keys(p || {});
-    // if no comp-like keys at all, data missing => false
-    const anyCompKey = keys.some(k => /(школьн|муницип|регионал|межрегион)/i.test(k));
-    if (!anyCompKey) return false;
-
-    for (const c of selectedComps){
-      const re = mapNeedles[c];
-      const matching = keys.filter(k => re.test(k));
-      if (matching.length === 0) return false;
-      const ok = matching.some(k => {
-        const v = p[k];
-        if (v === true) return true;
-        const num = Number(v);
-        return Number.isFinite(num) && num > 0;
-      });
-      if (!ok) return false;
-    }
-    return true;
+    legend.addTo(map);
   }
+  addCompactLegend();
 
   function renderClubLines(items) {
     return (items || []).map(x => {
@@ -721,6 +714,32 @@
     statusEl.textContent = `(регионов: ${keys.length}, совпало: ${matched})`;
   }
 
+  function getSelectedRegionNormSetFromUI(){
+    const selected = Array.from(regionSelect.selectedOptions || []).map(o => o.value);
+    if (selected.length === 0) return null;
+    return new Set(selected.map(normRegion));
+  }
+
+  function getEnabledRegionSet(){
+    const selectedSet = getSelectedRegionNormSetFromUI();
+    const minGirlsR = Number(minGirlsRegion.value || 0);
+    const minSWG = Number(minSchoolsWithGirls.value || 0);
+
+    const enabled = new Set();
+    (regionsData?.features || []).forEach(f => {
+      const p = f.properties || {};
+      const key = normRegion(p.name);
+      const inSelected = !selectedSet || selectedSet.has(key);
+
+      const girls = Number(p.total_girls ?? 0);
+      const swg = Number(p.schools_with_girls ?? 0);
+
+      const pass = inSelected && (girls >= minGirlsR) && (swg >= minSWG);
+      if (pass) enabled.add(key);
+    });
+    return enabled;
+  }
+
   function rebuildOutlines() {
     if (!regionsData) return;
 
@@ -729,15 +748,14 @@
     superOutlineLayer = null;
     firstOutlineLayer = null;
 
-    const enabledSet = getEnabledRegionSet(); // based on region selection and thresholds
-    const enabledNorm = enabledSet; // Set of normalized names
+    const enabled = getEnabledRegionSet();
 
     if (superCheckbox?.checked) {
       superOutlineLayer = L.geoJSON(regionsData, {
         interactive: false,
         style: (feature) => {
           const key = normRegion(feature?.properties?.name);
-          if (!enabledNorm.has(key)) return { opacity: 0, fillOpacity: 0 };
+          if (!enabled.has(key)) return { opacity: 0, fillOpacity: 0 };
           const has = (superByRegion[key] || []).length > 0;
           if (!has) return { opacity: 0, fillOpacity: 0 };
           return { color: superBrand.color, weight: 3, opacity: 1, fillOpacity: 0 };
@@ -751,7 +769,7 @@
         interactive: false,
         style: (feature) => {
           const key = normRegion(feature?.properties?.name);
-          if (!enabledNorm.has(key)) return { opacity: 0, fillOpacity: 0 };
+          if (!enabled.has(key)) return { opacity: 0, fillOpacity: 0 };
           const has = (firstByRegion[key] || []).length > 0;
           if (!has) return { opacity: 0, fillOpacity: 0 };
           return { color: firstBrand.color, weight: 3, opacity: 1, dashArray: "7 5", lineCap: "round", lineJoin: "round", fillOpacity: 0 };
@@ -763,56 +781,8 @@
     if (regionsFillLayer) regionsFillLayer.bringToBack();
   }
 
-  // --- Filters state getters ---
-  function getSelectedRegionNormSetFromUI(){
-    const selected = Array.from(regionSelect.selectedOptions || []).map(o => o.value);
-    if (selected.length === 0) return null; // null means no filter by region (all)
-    return new Set(selected.map(normRegion));
-  }
-
-  function getEnabledRegionSet(){
-    // enabled = passes (region selection + region thresholds)
-    const selectedSet = getSelectedRegionNormSetFromUI();
-
-    const minGirlsR = Number(minGirlsRegion.value || 0);
-    const minSWG = Number(minSchoolsWithGirls.value || 0);
-
-    const enabled = new Set();
-
-    (regionsData?.features || []).forEach(f => {
-      const p = f.properties || {};
-      const key = normRegion(p.name);
-      const inSelected = !selectedSet || selectedSet.has(key);
-
-      const girls = Number(p.total_girls ?? 0);
-      const swg = Number(p.schools_with_girls ?? 0);
-
-      const pass = inSelected && (girls >= minGirlsR) && (swg >= minSWG);
-      if (pass) enabled.add(key);
-    });
-
-    // if selectedSet exists, but none passes thresholds, enabled may be empty -> that's ok.
-    return enabled;
-  }
-
-  function readUIState(){
-    const minGS = Number(minGirlsSchool.value || 0);
-    const minGR = Number(minGirlsRegion.value || 0);
-    const minSWG = Number(minSchoolsWithGirls.value || 0);
-
-    const selectedAges = ageChks.filter(x => x.checked).map(x => x.value);
-    const selectedComps = compChks.filter(x => x.checked).map(x => x.value);
-
-    const regionSelectedNorm = getSelectedRegionNormSetFromUI();
-    const search = (searchInput.value || "").trim().toLowerCase();
-
-    return { minGS, minGR, minSWG, selectedAges, selectedComps, regionSelectedNorm, search };
-  }
-
-  // --- Apply filters to regions (visual dim) ---
   function applyRegionFilterStyles(){
     if (!regionsFillLayer) return;
-
     const enabled = getEnabledRegionSet();
     regionsFillLayer.eachLayer(layer => {
       const p = layer.feature?.properties || {};
@@ -820,43 +790,94 @@
       const on = enabled.has(key);
       layer.setStyle(styleFill(layer.feature, on));
     });
-
-    // outlines depend on enabled regions too
     rebuildOutlines();
   }
 
-  // --- Apply filters to points (schools) + list ---
+  // future-proof stubs (as in previous version)
+  function schoolHasAnySelectedAges(p, selectedAges){
+    if (selectedAges.length === 0) return true;
+    const keys = Object.keys(p || {});
+    for (const age of selectedAges){
+      const needle = age.replace('+','\\+');
+      const re = new RegExp(needle, 'i');
+      const matching = keys.filter(k => re.test(k));
+      if (matching.length === 0) return false;
+      const ok = matching.some(k => {
+        const v = p[k];
+        if (v === true) return true;
+        const num = Number(v);
+        return Number.isFinite(num) && num > 0;
+      });
+      if (!ok) return false;
+    }
+    return true;
+  }
+  function schoolMatchesCompetitions(p, selectedComps){
+    if (selectedComps.length === 0) return true;
+    const mapNeedles = {
+      school: /школьн/i,
+      muni: /муницип/i,
+      region: /регионал/i,
+      inter: /межрегион/i
+    };
+    const keys = Object.keys(p || {});
+    const anyCompKey = keys.some(k => /(школьн|муницип|регионал|межрегион)/i.test(k));
+    if (!anyCompKey) return false;
+
+    for (const c of selectedComps){
+      const re = mapNeedles[c];
+      const matching = keys.filter(k => re.test(k));
+      if (matching.length === 0) return false;
+      const ok = matching.some(k => {
+        const v = p[k];
+        if (v === true) return true;
+        const num = Number(v);
+        return Number.isFinite(num) && num > 0;
+      });
+      if (!ok) return false;
+    }
+    return true;
+  }
+
+  function escapeHTML(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function readUIState(){
+    const minGS = Number(minGirlsSchool.value || 0);
+    const selectedAges = ageChks.filter(x => x.checked).map(x => x.value);
+    const selectedComps = compChks.filter(x => x.checked).map(x => x.value);
+    const search = (searchInput.value || "").trim().toLowerCase();
+    return { minGS, selectedAges, selectedComps, search };
+  }
+
   function applySchoolsFilter(){
     if (!pointsData || !pointsGeoLayer) return;
-
-    const state = readUIState();
     const enabledRegions = getEnabledRegionSet();
+    const state = readUIState();
 
     const filtered = [];
     for (const f of (pointsData.features || [])){
       const p = f.properties || {};
       const regionKey = normRegion(p.region || p.Region || p.name_region || p.subject || "");
-      // If point doesn't have region, we can still keep it only when no region filter and thresholds pass
       const regionOK = enabledRegions.size === 0 ? true : enabledRegions.has(regionKey);
 
-      // girls in school
       const girls = Number(p.girls_total ?? p.girls ?? p["Численность занимающихся футболом девочек"] ?? 0);
       const girlsOK = girls >= state.minGS;
 
-      // ages (future-proof)
       const agesOK = schoolHasAnySelectedAges(p, state.selectedAges);
-
-      // competitions (future-proof)
       const compsOK = schoolMatchesCompetitions(p, state.selectedComps);
 
-      // region selection (multi) if enabledRegions empty but selection exists? Actually enabledRegions already includes selection + thresholds
-      const keep = regionOK && girlsOK && agesOK && compsOK;
-      if (keep) filtered.push(f);
+      if (regionOK && girlsOK && agesOK && compsOK) filtered.push(f);
     }
 
     currentFilteredPointFeatures = filtered;
 
-    // refresh markers: simplest approach = clear cluster and re-add a new layer
     cluster.clearLayers();
     pointsGeoLayer = L.geoJSON({ type:"FeatureCollection", features: filtered }, {
       pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 6, weight: 1, fillOpacity: 0.75 }),
@@ -874,9 +895,6 @@
           </div>
         `;
         layer.bindPopup(html, { maxWidth: 360 });
-
-        // click from list support
-        layer._schoolFeature = feature;
       }
     });
 
@@ -888,26 +906,15 @@
 
   function renderSchoolsList(){
     const state = readUIState();
-    const search = state.search;
-
     let rows = currentFilteredPointFeatures.slice();
-
-    if (search){
+    if (state.search){
       rows = rows.filter(f => {
         const p = f.properties || {};
-        const hay = [
-          p.name, p.region, p.city, p.address
-        ].filter(Boolean).join(" ").toLowerCase();
-        return hay.includes(search);
+        const hay = [p.name, p.region, p.city, p.address].filter(Boolean).join(" ").toLowerCase();
+        return hay.includes(state.search);
       });
     }
-
-    // sort by girls desc
-    rows.sort((a,b) => {
-      const ga = Number(a.properties?.girls_total ?? 0);
-      const gb = Number(b.properties?.girls_total ?? 0);
-      return gb - ga;
-    });
+    rows.sort((a,b) => (Number(b.properties?.girls_total ?? 0) - Number(a.properties?.girls_total ?? 0)));
 
     listTitle.textContent = "Список школ (отфильтровано)";
     listSub.textContent = `${fmt.format(rows.length)} школ`;
@@ -918,7 +925,7 @@
       return;
     }
 
-    for (const f of rows.slice(0, 400)) { // safety cap for DOM
+    for (const f of rows.slice(0, 400)) {
       const p = f.properties || {};
       const girls = Number(p.girls_total ?? 0);
       const name = p.name ?? "Без названия";
@@ -950,16 +957,6 @@
     }
   }
 
-  function escapeHTML(s){
-    return String(s ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  // --- UI: fill region select + dynamic ranges ---
   function fillRegionSelectFromGeoJSON(){
     const regions = (regionsData?.features || [])
       .map(f => f.properties?.name)
@@ -976,64 +973,38 @@
   }
 
   function setRangesFromData(){
-    // girls in school (max)
     const maxGirlsSchool = Math.max(0, ...(pointsData?.features || []).map(f => Number(f.properties?.girls_total ?? 0) || 0));
     minGirlsSchool.max = String(Math.max(50, Math.ceil(maxGirlsSchool/10)*10));
     minGirlsSchool.value = "0";
     minGirlsSchoolVal.textContent = "0";
 
-    // girls in region (max)
     const maxGirlsRegion = Math.max(0, ...(regionsData?.features || []).map(f => Number(f.properties?.total_girls ?? 0) || 0));
     minGirlsRegion.max = String(Math.max(100, Math.ceil(maxGirlsRegion/50)*50));
     minGirlsRegion.step = String(maxGirlsRegion > 500 ? 25 : 10);
     minGirlsRegion.value = "0";
     minGirlsRegionVal.textContent = "0";
 
-    // schools_with_girls max
     const maxSWG = Math.max(0, ...(regionsData?.features || []).map(f => Number(f.properties?.schools_with_girls ?? 0) || 0));
     minSchoolsWithGirls.max = String(Math.max(20, maxSWG));
     minSchoolsWithGirls.value = "0";
     minSchoolsWithGirlsVal.textContent = "0";
   }
 
-  // --- Fit to Russia ---
   function fitToRussia(){
     if (regionsFillLayer) map.fitBounds(regionsFillLayer.getBounds().pad(0.1));
   }
 
-  // --- Legend on map ---
-  function addLegend(){
-    const legend = L.control({position: 'bottomleft'});
-    legend.onAdd = function() {
-      const div = L.DomUtil.create('div', 'legend');
-      div.innerHTML = `
-        <div style="font-weight:800; margin-bottom:6px;">Заливка: девочек в регионе</div>
-        <div class="row"><span class="swatch" style="background:#eff6ff"></span> 0</div>
-        <div class="row"><span class="swatch" style="background:#dbeafe"></span> 1–50</div>
-        <div class="row"><span class="swatch" style="background:#bfdbfe"></span> 51–150</div>
-        <div class="row"><span class="swatch" style="background:#93c5fd"></span> 151–300</div>
-        <div class="row"><span class="swatch" style="background:#60a5fa"></span> 301–700</div>
-        <div class="row"><span class="swatch" style="background:#3b82f6"></span> 701+</div>
-      `;
-      return div;
-    };
-    legend.addTo(map);
-  }
-  addLegend();
-
-  // --- Wire UI events ---
   function wireEvents(){
     function refreshLabels(){
       minGirlsSchoolVal.textContent = String(minGirlsSchool.value);
       minGirlsRegionVal.textContent = String(minGirlsRegion.value);
       minSchoolsWithGirlsVal.textContent = String(minSchoolsWithGirls.value);
     }
-
     const rerunAll = () => {
       refreshLabels();
       applyRegionFilterStyles();
       applySchoolsFilter();
-      updateAllRegionPopups(); // popups don't depend on filters, but safe
+      updateAllRegionPopups();
     };
 
     regionSelect.addEventListener('change', rerunAll);
@@ -1083,7 +1054,7 @@
     refreshLabels();
   }
 
-  // --- Load base data ---
+  // Load base
   Promise.all([
     fetchJSON('./russia_subjects_with_sportschools2024.json'),
     fetchJSON('./schools_points.json')
@@ -1103,7 +1074,7 @@
     document.getElementById('kpiSchools').textContent = fmt.format(points.features?.length ?? sumSchools);
     document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(sumSchoolsWithGirls);
 
-    // Regions layer (interactive)
+    // Regions
     regionsFillLayer = L.geoJSON(regions, {
       style: (feature) => styleFill(feature, true),
       onEachFeature: (feature, layer) => {
@@ -1112,7 +1083,7 @@
       }
     }).addTo(map);
 
-    // Points layer initial
+    // Points
     pointsGeoLayer = L.geoJSON(points, {
       pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 6, weight: 1, fillOpacity: 0.75 }),
       onEachFeature: (feature, layer) => {
@@ -1137,14 +1108,13 @@
 
     map.fitBounds(regionsFillLayer.getBounds().pad(0.1));
 
-    // UI setup
     fillRegionSelectFromGeoJSON();
     setRangesFromData();
+
     currentFilteredPointFeatures = (pointsData.features || []);
     wireEvents();
     renderSchoolsList();
 
-    // Load competitions
     return Promise.all([
       fetchJSON('./data/superleague_clubs.json').catch(e => { console.error("Superleague data failed:", e); if (slStatus) slStatus.textContent = "(ошибка)"; return null; }),
       fetchJSON('./data/firstleague_clubs_v1.json').catch(e => { console.error("First league data failed:", e); if (flStatus) flStatus.textContent = "(ошибка)"; return null; })
@@ -1173,17 +1143,10 @@
       if (flStatus) flStatus.textContent = "(нет данных)";
     }
 
-    // Popups always show clubs (where available)
     updateAllRegionPopups();
-
-    // Apply filters initially
     applyRegionFilterStyles();
     applySchoolsFilter();
-
-    // Outlines are controlled by checkboxes + enabled regions
     rebuildOutlines();
-
-    // hide error if ok
     errBox.style.display = 'none';
   })
   .catch(err => showErr('Ошибка загрузки данных', err));
