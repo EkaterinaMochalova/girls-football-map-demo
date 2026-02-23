@@ -393,6 +393,12 @@
           <small id="flStatus">(…)</small>
         </label>
 
+        <label class="chip" title="Показать/скрыть общеобразовательные школы проекта ФвШ">
+  <input type="checkbox" id="toggleFVSH" checked />
+  <span>Школы ФвШ</span>
+  <small id="fvshStatus">(…)</small>
+</label>
+
         <div class="hint">Клубы в попапе региона показываются всегда. Галочки управляют только подсветкой.</div>
       </div>
 
@@ -573,6 +579,13 @@
   const slStatus = document.getElementById('slStatus');
   const flStatus = document.getElementById('flStatus');
 
+  const fvshCheckbox = document.getElementById('toggleFVSH');
+const fvshStatus = document.getElementById('fvshStatus');
+
+let fvshData = null;
+let fvshLayer = null;             // GeoJSON слой
+let fvshCluster = null;           // отдельный кластер под ФвШ (чтобы можно было скрывать)
+
   const regionSelect = document.getElementById('regionSelect');
   const clearRegionsBtn = document.getElementById('clearRegions');
   const selectAllRegionsBtn = document.getElementById('selectAllRegions');
@@ -653,6 +666,51 @@
       return `• ${club}${city}`;
     }).join("<br>");
   }
+
+  function haversineKm(lat1, lon1, lat2, lon2){
+  const R = 6371;
+  const toRad = (x) => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat/2)*Math.sin(dLat/2) +
+    Math.cos(toRad(lat1))*Math.cos(toRad(lat2)) *
+    Math.sin(dLon/2)*Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+  function buildSportsIndex(points){
+  const arr = [];
+  for (const f of (points.features || [])){
+    const coords = f.geometry?.coordinates;
+    if (!coords || coords.length < 2) continue;
+    const p = f.properties || {};
+    arr.push({
+      lat: coords[1],
+      lon: coords[0],
+      name: p.name || "Спортшкола",
+      region: p.region || "",
+      city: p.city || "",
+      address: p.address || ""
+    });
+  }
+  return arr;
+}
+
+  function findNearestSportsSchool(lat, lon, sportsArr){
+  let best = null;
+  let bestD = Infinity;
+  for (const s of sportsArr){
+    const d = haversineKm(lat, lon, s.lat, s.lon);
+    if (d < bestD){
+      bestD = d;
+      best = s;
+    }
+  }
+  if (!best) return null;
+  return { ...best, distanceKm: bestD };
+}
 
   function buildRegionPopup(p) {
     const base = regionBaseHTML(p);
@@ -1103,6 +1161,84 @@
       }
     });
 
+    const sportsArr = buildSportsIndex(points);
+
+// === FVSH layer load ===
+fetchJSON('./data/fvsh_schools.json')
+  .then(data => {
+    fvshData = data;
+    if (fvshStatus) fvshStatus.textContent = `(${fmt.format(data.features?.length || 0)})`;
+
+    fvshCluster = L.markerClusterGroup({
+      chunkedLoading: true,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false
+    });
+
+    fvshLayer = L.geoJSON(fvshData, {
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+        radius: 6,
+        weight: 2,
+        // другой цвет для ФвШ
+        color: '#ff4b00',
+        fillColor: '#ff4b00',
+        fillOpacity: 0.70
+      }),
+      onEachFeature: (feature, layer) => {
+        layer.on('click', () => {
+          const coords = feature.geometry?.coordinates;
+          if (!coords || coords.length < 2) return;
+          const lat = coords[1], lon = coords[0];
+          const p = feature.properties || {};
+
+          const nearest = findNearestSportsSchool(lat, lon, sportsArr);
+
+          const nearestHtml = nearest ? `
+            <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.10);">
+              <div style="font-weight:800;">Ближайшая спортшкола</div>
+              <div style="margin-top:6px;"><b>${nearest.name}</b></div>
+              <div style="color:#666; font-size:12px; margin-top:2px;">
+                ${[nearest.region, nearest.city].filter(Boolean).join(", ")}
+              </div>
+              <div style="margin-top:6px;">
+                <b>Расстояние:</b> ${fmt.format(Math.round(nearest.distanceKm * 10) / 10)} км
+              </div>
+            </div>
+          ` : `<div style="margin-top:10px; color:#666;">Не удалось найти ближайшую спортшколу.</div>`;
+
+          const html = `
+            <div class="popup">
+              <h3>${p.name || "Школа ФвШ"}</h3>
+              <div class="muted">${[p.region, p.city].filter(Boolean).join(", ")}</div>
+              ${p.address ? `<div>${p.address}</div>` : ""}
+              ${nearestHtml}
+            </div>
+          `;
+
+          layer.bindPopup(html, { maxWidth: 380 }).openPopup();
+        });
+      }
+    });
+
+    fvshCluster.addLayer(fvshLayer);
+
+    // по умолчанию показываем, если чекбокс включен
+    if (!fvshCheckbox || fvshCheckbox.checked){
+      map.addLayer(fvshCluster);
+    }
+
+    if (fvshCheckbox){
+      fvshCheckbox.addEventListener('change', () => {
+        if (fvshCheckbox.checked) map.addLayer(fvshCluster);
+        else map.removeLayer(fvshCluster);
+      });
+    }
+  })
+  .catch(e => {
+    console.error("FVSH overlay failed:", e);
+    if (fvshStatus) fvshStatus.textContent = '(ошибка)';
+  });
+
     cluster.addLayer(pointsGeoLayer);
     map.addLayer(cluster);
 
@@ -1155,3 +1291,4 @@
 </script>
 </body>
 </html>
+
