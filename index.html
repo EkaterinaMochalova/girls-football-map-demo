@@ -292,7 +292,7 @@
       box-shadow: 0 18px 45px rgba(0,0,0,0.18);
     }
 
-    /* ===== NEW: Compact horizontal legend ===== */
+    /* ===== Compact horizontal legend ===== */
     .legend-compact{
       background: rgba(255,255,255,0.60);
       border: 1px solid rgba(0,0,0,0.10);
@@ -301,8 +301,8 @@
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.10);
-      max-width: min(680px, calc(100vw - 420px)); /* чтобы не лезла под сайдбар */
-      pointer-events: none; /* важно: карта кликается под легендой */
+      max-width: min(680px, calc(100vw - 420px));
+      pointer-events: none;
     }
     .legend-compact .title{
       font-size: 12px;
@@ -337,6 +337,36 @@
       color: rgba(20,20,25,0.78);
       white-space: nowrap;
     }
+
+    /* ===== Added: styles for "Есть/нет девочек" block ===== */
+    .filterBlock{
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--stroke);
+    }
+    .filterTitle{
+      margin: 0 0 10px 0;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .chipRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding: 10px 10px;
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.6);
+      box-shadow: var(--shadow-soft);
+      cursor:pointer;
+      user-select:none;
+      margin-bottom: 10px;
+    }
+    .chipRow input{ transform: scale(1.05); }
+    .chipRow span{ font-weight: 650; font-size: 13px; }
 
     /* Error panel */
     #err{
@@ -394,10 +424,10 @@
         </label>
 
         <label class="chip" title="Показать/скрыть общеобразовательные школы проекта ФвШ">
-  <input type="checkbox" id="toggleFVSH" checked />
-  <span>Школы ФвШ</span>
-  <small id="fvshStatus">(…)</small>
-</label>
+          <input type="checkbox" id="toggleFVSH" checked />
+          <span>Школы ФвШ</span>
+          <small id="fvshStatus">(…)</small>
+        </label>
 
         <div class="hint">Клубы в попапе региона показываются всегда. Галочки управляют только подсветкой.</div>
       </div>
@@ -436,21 +466,22 @@
         <div class="hint">Пока данные неполные: фильтры работают там, где значения есть.</div>
       </div>
 
+      <!-- Есть/нет девочек -->
       <div class="filterBlock">
-  <div class="filterTitle">Девочки в школе</div>
+        <div class="filterTitle">Девочки в школе</div>
 
-  <label class="chipRow">
-    <input type="checkbox" id="onlyGirlsYes" />
-    <span>Только “есть девочки”</span>
-  </label>
+        <label class="chipRow">
+          <input type="checkbox" id="onlyGirlsYes" />
+          <span>Только “есть девочки”</span>
+        </label>
 
-  <label class="chipRow">
-    <input type="checkbox" id="onlyGirlsNo" />
-    <span>Только “нет девочек”</span>
-  </label>
+        <label class="chipRow">
+          <input type="checkbox" id="onlyGirlsNo" />
+          <span>Только “нет девочек”</span>
+        </label>
 
-  <div class="hint">Если оба выключены или оба включены, показываем все школы.</div>
-</div>
+        <div class="hint">Если оба выключены или оба включены, показываем все школы.</div>
+      </div>
 
       <div class="section">
         <h4>Возрастные группы</h4>
@@ -499,7 +530,7 @@
         <span id="listSub">—</span>
       </div>
       <div class="right">
-        <input id="search" placeholder="Поиск по названию / городу / регионy" />
+        <input id="search" placeholder="Поиск по названию / городу / региону" />
       </div>
     </div>
     <div id="schoolsList"></div>
@@ -543,31 +574,24 @@
       .trim();
   }
 
-  function hasGirlsInProps(p) {
-  if (!p) return false;
-  if (p.has_girls === true) return true;
-  if (String(p.has_girls).toLowerCase() === "true") return true;
-
-  const girls = Number(p.girls_total ?? p.girls ?? 0);
-  return girls > 0;
-}
-
   function styleSportsSchoolMarker(feature) {
-  const p = feature.properties || {};
-  const hasGirls = (p.has_girls === true) || (String(p.has_girls).toLowerCase() === "true") || (Number(p.girls_total ?? 0) > 0);
+    const p = feature.properties || {};
+    const hasGirls =
+      (p.has_girls === true) ||
+      (String(p.has_girls).toLowerCase() === "true") ||
+      (Number(p.girls_total ?? 0) > 0);
 
-  // синий = есть девочки, красный = нет
-  const stroke = hasGirls ? "#2563eb" : "#ef4444";
-  const fill = hasGirls ? "#3b82f6" : "#f87171";
+    const stroke = hasGirls ? "#2563eb" : "#ef4444";
+    const fill   = hasGirls ? "#3b82f6" : "#f87171";
 
-  return {
-    radius: 6,
-    weight: 1.5,
-    color: stroke,
-    fillColor: fill,
-    fillOpacity: 0.85
-  };
-}
+    return {
+      radius: 6,
+      weight: 1.5,
+      color: stroke,
+      fillColor: fill,
+      fillOpacity: 0.85
+    };
+  }
 
   function colorFor(value, breaks) {
     if (value == null) return '#f3f4f6';
@@ -610,9 +634,9 @@
   async function fetchJSON(url) {
     const res = await fetch(url + '?v=' + Date.now());
     const text = await res.text();
-    if (!res.ok) throw new Error(`HTTP ${res.status} при загрузке ${url}\n${text.slice(0,200)}`);
+    if (!res.ok) throw new Error(\`HTTP \${res.status} при загрузке \${url}\n\${text.slice(0,200)}\`);
     try { return JSON.parse(text); }
-    catch (e) { throw new Error(`Не могу распарсить JSON: ${url}\n${e}\n${text.slice(0,200)}`); }
+    catch (e) { throw new Error(\`Не могу распарсить JSON: \${url}\n\${e}\n\${text.slice(0,200)}\`); }
   }
 
   // UI refs
@@ -622,11 +646,11 @@
   const flStatus = document.getElementById('flStatus');
 
   const fvshCheckbox = document.getElementById('toggleFVSH');
-const fvshStatus = document.getElementById('fvshStatus');
+  const fvshStatus = document.getElementById('fvshStatus');
 
-let fvshData = null;
-let fvshLayer = null;             // GeoJSON слой
-let fvshCluster = null;           // отдельный кластер под ФвШ (чтобы можно было скрывать)
+  let fvshData = null;
+  let fvshLayer = null;
+  let fvshCluster = null;
 
   const regionSelect = document.getElementById('regionSelect');
   const clearRegionsBtn = document.getElementById('clearRegions');
@@ -644,8 +668,8 @@ let fvshCluster = null;           // отдельный кластер под Ф
   const ageChks = Array.from(document.querySelectorAll('.ageChk'));
   const compChks = Array.from(document.querySelectorAll('.compChk'));
 
-  document.getElementById('onlyGirlsYes')?.addEventListener('change', rerunAll);
-document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
+  const onlyGirlsYesEl = document.getElementById('onlyGirlsYes');
+  const onlyGirlsNoEl  = document.getElementById('onlyGirlsNo');
 
   const resetAllBtn = document.getElementById('resetAll');
   const fitRussiaBtn = document.getElementById('fitRussia');
@@ -681,7 +705,7 @@ document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
   let pointsGeoLayer = null;
   let currentFilteredPointFeatures = [];
 
-  // ===== NEW: compact legend control =====
+  // Legend
   function addCompactLegend(){
     const legend = L.control({ position: 'bottomleft' });
     legend.onAdd = function() {
@@ -713,49 +737,49 @@ document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
   }
 
   function haversineKm(lat1, lon1, lat2, lon2){
-  const R = 6371;
-  const toRad = (x) => x * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat/2)*Math.sin(dLat/2) +
-    Math.cos(toRad(lat1))*Math.cos(toRad(lat2)) *
-    Math.sin(dLon/2)*Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
+    const R = 6371;
+    const toRad = (x) => x * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat/2)*Math.sin(dLat/2) +
+      Math.cos(toRad(lat1))*Math.cos(toRad(lat2)) *
+      Math.sin(dLon/2)*Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
 
   function buildSportsIndex(points){
-  const arr = [];
-  for (const f of (points.features || [])){
-    const coords = f.geometry?.coordinates;
-    if (!coords || coords.length < 2) continue;
-    const p = f.properties || {};
-    arr.push({
-      lat: coords[1],
-      lon: coords[0],
-      name: p.name || "Спортшкола",
-      region: p.region || "",
-      city: p.city || "",
-      address: p.address || ""
-    });
+    const arr = [];
+    for (const f of (points.features || [])){
+      const coords = f.geometry?.coordinates;
+      if (!coords || coords.length < 2) continue;
+      const p = f.properties || {};
+      arr.push({
+        lat: coords[1],
+        lon: coords[0],
+        name: p.name || "Спортшкола",
+        region: p.region || "",
+        city: p.city || "",
+        address: p.address || ""
+      });
+    }
+    return arr;
   }
-  return arr;
-}
 
   function findNearestSportsSchool(lat, lon, sportsArr){
-  let best = null;
-  let bestD = Infinity;
-  for (const s of sportsArr){
-    const d = haversineKm(lat, lon, s.lat, s.lon);
-    if (d < bestD){
-      bestD = d;
-      best = s;
+    let best = null;
+    let bestD = Infinity;
+    for (const s of sportsArr){
+      const d = haversineKm(lat, lon, s.lat, s.lon);
+      if (d < bestD){
+        bestD = d;
+        best = s;
+      }
     }
+    if (!best) return null;
+    return { ...best, distanceKm: bestD };
   }
-  if (!best) return null;
-  return { ...best, distanceKm: bestD };
-}
 
   function buildRegionPopup(p) {
     const base = regionBaseHTML(p);
@@ -896,7 +920,7 @@ document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
     rebuildOutlines();
   }
 
-  // future-proof stubs (as in previous version)
+  // future-proof stubs
   function schoolHasAnySelectedAges(p, selectedAges){
     if (selectedAges.length === 0) return true;
     const keys = Object.keys(p || {});
@@ -915,17 +939,22 @@ document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
     }
     return true;
   }
+
   function schoolMatchesCompetitions(p, selectedComps){
     if (selectedComps.length === 0) return true;
+
     const mapNeedles = {
       school: /школьн/i,
       muni: /муницип/i,
       region: /регионал/i,
       inter: /межрегион/i
     };
+
     const keys = Object.keys(p || {});
     const anyCompKey = keys.some(k => /(школьн|муницип|регионал|межрегион)/i.test(k));
-    if (!anyCompKey) return false;
+
+    // ✅ ВАЖНО: если данных по соревнованиям пока нет — НЕ режем всё
+    if (!anyCompKey) return true;
 
     for (const c of selectedComps){
       const re = mapNeedles[c];
@@ -959,76 +988,69 @@ document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
     return { minGS, selectedAges, selectedComps, search };
   }
 
- function applySchoolsFilter(){
-  if (!pointsData || !pointsGeoLayer) return;
+  function applySchoolsFilter(){
+    // ✅ не блокируемся по pointsGeoLayer: мы его пересоздаём ниже
+    if (!pointsData) return;
 
-  const enabledRegions = getEnabledRegionSet();
-  const state = readUIState();
+    const enabledRegions = getEnabledRegionSet();
+    const state = readUIState();
 
-  // ✅ читаем UI один раз
-  const onlyYes = document.getElementById('onlyGirlsYes')?.checked;
-  const onlyNo  = document.getElementById('onlyGirlsNo')?.checked;
+    const onlyYes = !!onlyGirlsYesEl?.checked;
+    const onlyNo  = !!onlyGirlsNoEl?.checked;
 
-  const filtered = [];
+    const filtered = [];
 
-  for (const f of (pointsData.features || [])){
-    const p = f.properties || {};
+    for (const f of (pointsData.features || [])){
+      const p = f.properties || {};
 
-    const regionKey = normRegion(p.region || p.Region || p.name_region || p.subject || "");
-    const regionOK = enabledRegions.size === 0 ? true : enabledRegions.has(regionKey);
+      const regionKey = normRegion(p.region || p.Region || p.name_region || p.subject || "");
+      const regionOK = enabledRegions.size === 0 ? true : enabledRegions.has(regionKey);
 
-    const girls = Number(p.girls_total ?? p.girls ?? p["Численность занимающихся футболом девочек"] ?? 0);
-    const girlsOK = girls >= state.minGS;
+      const girls = Number(p.girls_total ?? p.girls ?? p["Численность занимающихся футболом девочек"] ?? 0);
+      const girlsOK = girls >= state.minGS;
 
-    const agesOK = schoolHasAnySelectedAges(p, state.selectedAges);
-    const compsOK = schoolMatchesCompetitions(p, state.selectedComps);
+      const agesOK = schoolHasAnySelectedAges(p, state.selectedAges);
+      const compsOK = schoolMatchesCompetitions(p, state.selectedComps);
 
-    // ✅ определяем "есть девочки" (приоритет: явный флаг -> число)
-    const hasGirls =
-      (p.has_girls === true) ||
-      (String(p.has_girls).toLowerCase() === "true") ||
-      (girls > 0);
+      const hasGirls =
+        (p.has_girls === true) ||
+        (String(p.has_girls).toLowerCase() === "true") ||
+        (girls > 0);
 
-    // ✅ фильтр "только есть/только нет"
-    // логика:
-    // - оба выключены -> показываем все
-    // - оба включены -> показываем все
-    // - включен только один -> фильтруем
-    let girlsPresenceOK = true;
-    if (onlyYes !== onlyNo) { // значит включен ровно один
-      if (onlyYes && !hasGirls) girlsPresenceOK = false;
-      if (onlyNo  &&  hasGirls) girlsPresenceOK = false;
+      let girlsPresenceOK = true;
+      if (onlyYes !== onlyNo) { // включен ровно один
+        if (onlyYes && !hasGirls) girlsPresenceOK = false;
+        if (onlyNo  &&  hasGirls) girlsPresenceOK = false;
+      }
+
+      if (regionOK && girlsOK && agesOK && compsOK && girlsPresenceOK) {
+        filtered.push(f);
+      }
     }
 
-    if (regionOK && girlsOK && agesOK && compsOK && girlsPresenceOK) {
-      filtered.push(f);
-    }
-  }
+    currentFilteredPointFeatures = filtered;
 
-  currentFilteredPointFeatures = filtered;
+    cluster.clearLayers();
 
-  cluster.clearLayers();
-  pointsGeoLayer = L.geoJSON({ type:"FeatureCollection", features: filtered }, {
-    pointToLayer: (feature, latlng) => L.circleMarker(latlng, styleSportsSchoolMarker(feature)),
-    onEachFeature: (feature, layer) => {
-      const p = feature.properties || {};
-      const girls = Number(p.girls_total ?? p.girls ?? 0);
+    pointsGeoLayer = L.geoJSON({ type:"FeatureCollection", features: filtered }, {
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, styleSportsSchoolMarker(feature)),
+      onEachFeature: (feature, layer) => {
+        const p = feature.properties || {};
+        const girls = Number(p.girls_total ?? p.girls ?? 0);
 
-      const html = `
-        <div class="popup">
-          <h3>${p.name ?? "Без названия"}</h3>
-          <div class="muted">${p.region ?? ""}${p.city ? ", " + p.city : ""}</div>
-          <div>${p.address ?? ""}</div>
-          <div style="margin-top:8px;"><b>Девочек:</b> ${fmt.format(girls)}</div>
-          ${p.phone ? `<div><b>Тел:</b> ${p.phone}</div>` : ""}
-          ${p.email ? `<div><b>Email:</b> ${p.email}</div>` : ""}
-        </div>
-      `;
-      layer.bindPopup(html, { maxWidth: 360 });
-    }
-  });
-
-
+        const html = `
+          <div class="popup">
+            <h3>${p.name ?? "Без названия"}</h3>
+            <div class="muted">${p.region ?? ""}${p.city ? ", " + p.city : ""}</div>
+            <div>${p.address ?? ""}</div>
+            <div style="margin-top:8px;"><b>Девочек:</b> ${fmt.format(girls)}</div>
+            ${p.phone ? `<div><b>Тел:</b> ${p.phone}</div>` : ""}
+            ${p.email ? `<div><b>Email:</b> ${p.email}</div>` : ""}
+          </div>
+        `;
+        layer.bindPopup(html, { maxWidth: 360 });
+      }
+    });
 
     cluster.addLayer(pointsGeoLayer);
     map.addLayer(cluster);
@@ -1039,6 +1061,7 @@ document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
   function renderSchoolsList(){
     const state = readUIState();
     let rows = currentFilteredPointFeatures.slice();
+
     if (state.search){
       rows = rows.filter(f => {
         const p = f.properties || {};
@@ -1046,6 +1069,7 @@ document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
         return hay.includes(state.search);
       });
     }
+
     rows.sort((a,b) => (Number(b.properties?.girls_total ?? 0) - Number(a.properties?.girls_total ?? 0)));
 
     listTitle.textContent = "Список школ (отфильтровано)";
@@ -1132,6 +1156,7 @@ document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
       minGirlsRegionVal.textContent = String(minGirlsRegion.value);
       minSchoolsWithGirlsVal.textContent = String(minSchoolsWithGirls.value);
     }
+
     const rerunAll = () => {
       refreshLabels();
       applyRegionFilterStyles();
@@ -1147,6 +1172,10 @@ document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
 
     ageChks.forEach(x => x.addEventListener('change', rerunAll));
     compChks.forEach(x => x.addEventListener('change', rerunAll));
+
+    // ✅ ВАЖНО: подписки на "есть/нет девочек" здесь, где rerunAll виден
+    onlyGirlsYesEl?.addEventListener('change', rerunAll);
+    onlyGirlsNoEl?.addEventListener('change', rerunAll);
 
     superCheckbox.addEventListener('change', rebuildOutlines);
     firstCheckbox.addEventListener('change', rebuildOutlines);
@@ -1166,8 +1195,8 @@ document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
       superCheckbox.checked = false;
       firstCheckbox.checked = false;
 
-      document.getElementById('onlyGirlsYes').checked = false;
-document.getElementById('onlyGirlsNo').checked = false;
+      onlyGirlsYesEl?.checked = false;
+      onlyGirlsNoEl?.checked = false;
 
       Array.from(regionSelect.options).forEach(o => o.selected = false);
 
@@ -1218,7 +1247,7 @@ document.getElementById('onlyGirlsNo').checked = false;
       }
     }).addTo(map);
 
-    // Points
+    // Points (initial)
     pointsGeoLayer = L.geoJSON(points, {
       pointToLayer: (feature, latlng) => L.circleMarker(latlng, styleSportsSchoolMarker(feature)),
       onEachFeature: (feature, layer) => {
@@ -1240,81 +1269,79 @@ document.getElementById('onlyGirlsNo').checked = false;
 
     const sportsArr = buildSportsIndex(points);
 
-// === FVSH layer load ===
-fetchJSON('./data/fvsh_schools.json')
-  .then(data => {
-    fvshData = data;
-    if (fvshStatus) fvshStatus.textContent = `(${fmt.format(data.features?.length || 0)})`;
+    // === FVSH layer load ===
+    fetchJSON('./data/fvsh_schools.json')
+      .then(data => {
+        fvshData = data;
+        if (fvshStatus) fvshStatus.textContent = `(${fmt.format(data.features?.length || 0)})`;
 
-    fvshCluster = L.markerClusterGroup({
-      chunkedLoading: true,
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: false
-    });
-
-    fvshLayer = L.geoJSON(fvshData, {
-      pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-        radius: 6,
-        weight: 2,
-        // другой цвет для ФвШ
-        color: '#ff4b00',
-        fillColor: '#ff4b00',
-        fillOpacity: 0.70
-      }),
-      onEachFeature: (feature, layer) => {
-        layer.on('click', () => {
-          const coords = feature.geometry?.coordinates;
-          if (!coords || coords.length < 2) return;
-          const lat = coords[1], lon = coords[0];
-          const p = feature.properties || {};
-
-          const nearest = findNearestSportsSchool(lat, lon, sportsArr);
-
-          const nearestHtml = nearest ? `
-            <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.10);">
-              <div style="font-weight:800;">Ближайшая спортшкола</div>
-              <div style="margin-top:6px;"><b>${nearest.name}</b></div>
-              <div style="color:#666; font-size:12px; margin-top:2px;">
-                ${[nearest.region, nearest.city].filter(Boolean).join(", ")}
-              </div>
-              <div style="margin-top:6px;">
-                <b>Расстояние:</b> ${fmt.format(Math.round(nearest.distanceKm * 10) / 10)} км
-              </div>
-            </div>
-          ` : `<div style="margin-top:10px; color:#666;">Не удалось найти ближайшую спортшколу.</div>`;
-
-          const html = `
-            <div class="popup">
-              <h3>${p.name || "Школа ФвШ"}</h3>
-              <div class="muted">${[p.region, p.city].filter(Boolean).join(", ")}</div>
-              ${p.address ? `<div>${p.address}</div>` : ""}
-              ${nearestHtml}
-            </div>
-          `;
-
-          layer.bindPopup(html, { maxWidth: 380 }).openPopup();
+        fvshCluster = L.markerClusterGroup({
+          chunkedLoading: true,
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false
         });
-      }
-    });
 
-    fvshCluster.addLayer(fvshLayer);
+        fvshLayer = L.geoJSON(fvshData, {
+          pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+            radius: 6,
+            weight: 2,
+            color: '#ff4b00',
+            fillColor: '#ff4b00',
+            fillOpacity: 0.70
+          }),
+          onEachFeature: (feature, layer) => {
+            layer.on('click', () => {
+              const coords = feature.geometry?.coordinates;
+              if (!coords || coords.length < 2) return;
+              const lat = coords[1], lon = coords[0];
+              const p = feature.properties || {};
 
-    // по умолчанию показываем, если чекбокс включен
-    if (!fvshCheckbox || fvshCheckbox.checked){
-      map.addLayer(fvshCluster);
-    }
+              const nearest = findNearestSportsSchool(lat, lon, sportsArr);
 
-    if (fvshCheckbox){
-      fvshCheckbox.addEventListener('change', () => {
-        if (fvshCheckbox.checked) map.addLayer(fvshCluster);
-        else map.removeLayer(fvshCluster);
+              const nearestHtml = nearest ? `
+                <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.10);">
+                  <div style="font-weight:800;">Ближайшая спортшкола</div>
+                  <div style="margin-top:6px;"><b>${nearest.name}</b></div>
+                  <div style="color:#666; font-size:12px; margin-top:2px;">
+                    ${[nearest.region, nearest.city].filter(Boolean).join(", ")}
+                  </div>
+                  <div style="margin-top:6px;">
+                    <b>Расстояние:</b> ${fmt.format(Math.round(nearest.distanceKm * 10) / 10)} км
+                  </div>
+                </div>
+              ` : `<div style="margin-top:10px; color:#666;">Не удалось найти ближайшую спортшколу.</div>`;
+
+              const html = `
+                <div class="popup">
+                  <h3>${p.name || "Школа ФвШ"}</h3>
+                  <div class="muted">${[p.region, p.city].filter(Boolean).join(", ")}</div>
+                  ${p.address ? `<div>${p.address}</div>` : ""}
+                  ${nearestHtml}
+                </div>
+              `;
+
+              layer.bindPopup(html, { maxWidth: 380 }).openPopup();
+            });
+          }
+        });
+
+        fvshCluster.addLayer(fvshLayer);
+
+        if (!fvshCheckbox || fvshCheckbox.checked){
+          map.addLayer(fvshCluster);
+        }
+
+        if (fvshCheckbox){
+          fvshCheckbox.addEventListener('change', () => {
+            if (fvshCheckbox.checked) map.addLayer(fvshCluster);
+            else map.removeLayer(fvshCluster);
+          });
+        }
+      })
+      .catch(e => {
+        console.error("FVSH overlay failed:", e);
+        if (fvshStatus) fvshStatus.textContent = '(ошибка)';
       });
-    }
-  })
-  .catch(e => {
-    console.error("FVSH overlay failed:", e);
-    if (fvshStatus) fvshStatus.textContent = '(ошибка)';
-  });
 
     cluster.addLayer(pointsGeoLayer);
     map.addLayer(cluster);
@@ -1368,6 +1395,3 @@ fetchJSON('./data/fvsh_schools.json')
 </script>
 </body>
 </html>
-
-
-
