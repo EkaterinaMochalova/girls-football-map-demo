@@ -632,12 +632,12 @@
   }
 
   async function fetchJSON(url) {
-    const res = await fetch(url + '?v=' + Date.now());
-    const text = await res.text();
-    if (!res.ok) throw new Error(\`HTTP \${res.status} при загрузке \${url}\n\${text.slice(0,200)}\`);
-    try { return JSON.parse(text); }
-    catch (e) { throw new Error(\`Не могу распарсить JSON: \${url}\n\${e}\n\${text.slice(0,200)}\`); }
-  }
+  const res = await fetch(url + '?v=' + Date.now());
+  const text = await res.text();
+  if (!res.ok) throw new Error(`HTTP ${res.status} при загрузке ${url}\n${text.slice(0,200)}`);
+  try { return JSON.parse(text); }
+  catch (e) { throw new Error(`Не могу распарсить JSON: ${url}\n${e}\n${text.slice(0,200)}`); }
+}
 
   // UI refs
   const superCheckbox = document.getElementById('toggleSuperleague');
@@ -1395,3 +1395,4 @@
 </script>
 </body>
 </html>
+
