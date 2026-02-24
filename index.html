@@ -1195,8 +1195,11 @@
       superCheckbox.checked = false;
       firstCheckbox.checked = false;
 
-      onlyGirlsYesEl?.checked = false;
-      onlyGirlsNoEl?.checked = false;
+      const yes = document.getElementById('onlyGirlsYes');
+if (yes) yes.checked = false;
+
+const no = document.getElementById('onlyGirlsNo');
+if (no) no.checked = false;
 
       Array.from(regionSelect.options).forEach(o => o.selected = false);
 
@@ -1395,4 +1398,5 @@
 </script>
 </body>
 </html>
+
 
