@@ -436,6 +436,22 @@
         <div class="hint">Пока данные неполные: фильтры работают там, где значения есть.</div>
       </div>
 
+      <div class="filterBlock">
+  <div class="filterTitle">Девочки в школе</div>
+
+  <label class="chipRow">
+    <input type="checkbox" id="onlyGirlsYes" />
+    <span>Только “есть девочки”</span>
+  </label>
+
+  <label class="chipRow">
+    <input type="checkbox" id="onlyGirlsNo" />
+    <span>Только “нет девочек”</span>
+  </label>
+
+  <div class="hint">Если оба выключены или оба включены, показываем все школы.</div>
+</div>
+
       <div class="section">
         <h4>Возрастные группы</h4>
         <div class="checks">
@@ -526,6 +542,15 @@
       .replace(/\s+/g, " ")
       .trim();
   }
+
+  function hasGirlsInProps(p) {
+  if (!p) return false;
+  if (p.has_girls === true) return true;
+  if (String(p.has_girls).toLowerCase() === "true") return true;
+
+  const girls = Number(p.girls_total ?? p.girls ?? 0);
+  return girls > 0;
+}
 
   function styleSportsSchoolMarker(feature) {
   const p = feature.properties || {};
@@ -618,6 +643,9 @@ let fvshCluster = null;           // отдельный кластер под Ф
 
   const ageChks = Array.from(document.querySelectorAll('.ageChk'));
   const compChks = Array.from(document.querySelectorAll('.compChk'));
+
+  document.getElementById('onlyGirlsYes')?.addEventListener('change', rerunAll);
+document.getElementById('onlyGirlsNo')?.addEventListener('change', rerunAll);
 
   const resetAllBtn = document.getElementById('resetAll');
   const fitRussiaBtn = document.getElementById('fitRussia');
@@ -931,47 +959,76 @@ let fvshCluster = null;           // отдельный кластер под Ф
     return { minGS, selectedAges, selectedComps, search };
   }
 
-  function applySchoolsFilter(){
-    if (!pointsData || !pointsGeoLayer) return;
-    const enabledRegions = getEnabledRegionSet();
-    const state = readUIState();
+ function applySchoolsFilter(){
+  if (!pointsData || !pointsGeoLayer) return;
 
-    const filtered = [];
-    for (const f of (pointsData.features || [])){
-      const p = f.properties || {};
-      const regionKey = normRegion(p.region || p.Region || p.name_region || p.subject || "");
-      const regionOK = enabledRegions.size === 0 ? true : enabledRegions.has(regionKey);
+  const enabledRegions = getEnabledRegionSet();
+  const state = readUIState();
 
-      const girls = Number(p.girls_total ?? p.girls ?? p["Численность занимающихся футболом девочек"] ?? 0);
-      const girlsOK = girls >= state.minGS;
+  // ✅ читаем UI один раз
+  const onlyYes = document.getElementById('onlyGirlsYes')?.checked;
+  const onlyNo  = document.getElementById('onlyGirlsNo')?.checked;
 
-      const agesOK = schoolHasAnySelectedAges(p, state.selectedAges);
-      const compsOK = schoolMatchesCompetitions(p, state.selectedComps);
+  const filtered = [];
 
-      if (regionOK && girlsOK && agesOK && compsOK) filtered.push(f);
+  for (const f of (pointsData.features || [])){
+    const p = f.properties || {};
+
+    const regionKey = normRegion(p.region || p.Region || p.name_region || p.subject || "");
+    const regionOK = enabledRegions.size === 0 ? true : enabledRegions.has(regionKey);
+
+    const girls = Number(p.girls_total ?? p.girls ?? p["Численность занимающихся футболом девочек"] ?? 0);
+    const girlsOK = girls >= state.minGS;
+
+    const agesOK = schoolHasAnySelectedAges(p, state.selectedAges);
+    const compsOK = schoolMatchesCompetitions(p, state.selectedComps);
+
+    // ✅ определяем "есть девочки" (приоритет: явный флаг -> число)
+    const hasGirls =
+      (p.has_girls === true) ||
+      (String(p.has_girls).toLowerCase() === "true") ||
+      (girls > 0);
+
+    // ✅ фильтр "только есть/только нет"
+    // логика:
+    // - оба выключены -> показываем все
+    // - оба включены -> показываем все
+    // - включен только один -> фильтруем
+    let girlsPresenceOK = true;
+    if (onlyYes !== onlyNo) { // значит включен ровно один
+      if (onlyYes && !hasGirls) girlsPresenceOK = false;
+      if (onlyNo  &&  hasGirls) girlsPresenceOK = false;
     }
 
-    currentFilteredPointFeatures = filtered;
+    if (regionOK && girlsOK && agesOK && compsOK && girlsPresenceOK) {
+      filtered.push(f);
+    }
+  }
 
-    cluster.clearLayers();
-    pointsGeoLayer = L.geoJSON({ type:"FeatureCollection", features: filtered }, {
-      pointToLayer: (feature, latlng) => L.circleMarker(latlng, styleSportsSchoolMarker(feature)),
-      onEachFeature: (feature, layer) => {
-        const p = feature.properties || {};
-        const girls = Number(p.girls_total ?? p.girls ?? 0);
-        const html = `
-          <div class="popup">
-            <h3>${p.name ?? "Без названия"}</h3>
-            <div class="muted">${p.region ?? ""}${p.city ? ", " + p.city : ""}</div>
-            <div>${p.address ?? ""}</div>
-            <div style="margin-top:8px;"><b>Девочек:</b> ${fmt.format(girls)}</div>
-            ${p.phone ? `<div><b>Тел:</b> ${p.phone}</div>` : ""}
-            ${p.email ? `<div><b>Email:</b> ${p.email}</div>` : ""}
-          </div>
-        `;
-        layer.bindPopup(html, { maxWidth: 360 });
-      }
-    });
+  currentFilteredPointFeatures = filtered;
+
+  cluster.clearLayers();
+  pointsGeoLayer = L.geoJSON({ type:"FeatureCollection", features: filtered }, {
+    pointToLayer: (feature, latlng) => L.circleMarker(latlng, styleSportsSchoolMarker(feature)),
+    onEachFeature: (feature, layer) => {
+      const p = feature.properties || {};
+      const girls = Number(p.girls_total ?? p.girls ?? 0);
+
+      const html = `
+        <div class="popup">
+          <h3>${p.name ?? "Без названия"}</h3>
+          <div class="muted">${p.region ?? ""}${p.city ? ", " + p.city : ""}</div>
+          <div>${p.address ?? ""}</div>
+          <div style="margin-top:8px;"><b>Девочек:</b> ${fmt.format(girls)}</div>
+          ${p.phone ? `<div><b>Тел:</b> ${p.phone}</div>` : ""}
+          ${p.email ? `<div><b>Email:</b> ${p.email}</div>` : ""}
+        </div>
+      `;
+      layer.bindPopup(html, { maxWidth: 360 });
+    }
+  });
+
+
 
     cluster.addLayer(pointsGeoLayer);
     map.addLayer(cluster);
@@ -1109,6 +1166,9 @@ let fvshCluster = null;           // отдельный кластер под Ф
       superCheckbox.checked = false;
       firstCheckbox.checked = false;
 
+      document.getElementById('onlyGirlsYes').checked = false;
+document.getElementById('onlyGirlsNo').checked = false;
+
       Array.from(regionSelect.options).forEach(o => o.selected = false);
 
       minGirlsSchool.value = "0";
@@ -1132,7 +1192,7 @@ let fvshCluster = null;           // отдельный кластер под Ф
   // Load base
   Promise.all([
     fetchJSON('./russia_subjects_with_sportschools2024.json'),
-    fetchJSON('./schools_points_master.json')
+    fetchJSON('https://ekaterinamochalova.github.io/girls-football-map-demo/schools_points_master.json')
   ])
   .then(([regions, points]) => {
     regionsData = regions;
@@ -1308,5 +1368,6 @@ fetchJSON('./data/fvsh_schools.json')
 </script>
 </body>
 </html>
+
 
 
