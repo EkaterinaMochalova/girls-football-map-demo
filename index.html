@@ -278,8 +278,8 @@
 
     @media (max-width: 1080px){
       #app{ grid-template-columns: 1fr; grid-template-rows: auto 1fr 260px; }
-      #sidebar{ grid-column: 1; grid-row: 1; }
-      #mapCard{ grid-column: 1; grid-row: 2; }
+      #sidebar{ grid-column: 1; grid-row: 1; max-height: 42vh; }
+      #mapCard{ grid-column: 1; grid-row: 2; min-height: 280px; }
       #listCard{ grid-column: 1; grid-row: 3; }
       #search{ width: 100%; max-width: none; }
       .row{ grid-template-columns: 1.4fr 1fr 90px; }
@@ -818,7 +818,9 @@
       `;
     }
 
-    return extra ? base.replace("</div>", extra + "</div>") : base;
+    if (!extra) return base;
+    const lastIdx = base.lastIndexOf("</div>");
+    return base.slice(0, lastIdx) + extra + base.slice(lastIdx);
   }
 
   function updateAllRegionPopups() {
