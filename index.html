@@ -135,6 +135,7 @@
     .chip img{ width: 24px; height: 24px; object-fit: contain; }
     .chip span{ font-weight: 700; font-size: 13px; }
     .chip small{ margin-left: auto; color: var(--muted); font-size: 12px; }
+    .chip .dot{ width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 
     .select{
       width: 100%;
@@ -233,21 +234,20 @@
       min-height: 0;
     }
     #listHeader{
-      padding: 12px 14px;
+      padding: 10px 14px;
       border-bottom: 1px solid var(--stroke);
       background: linear-gradient(to bottom, rgba(255,255,255,0.76), rgba(255,255,255,0.60));
       display:flex; align-items:center; justify-content: space-between; gap: 10px;
+      flex-shrink: 0;
     }
-    #listHeader .left{ display:flex; flex-direction: column; }
-    #listHeader .left b{ font-size: 13px; }
-    #listHeader .left span{ font-size: 12px; color: var(--muted); margin-top: 2px; }
+    #listHeader .left{ display:flex; align-items:center; gap:10px; flex-shrink: 0; }
     #search{
-      width: 260px;
-      max-width: 38vw;
+      width: 220px;
+      max-width: 30vw;
       border: 1px solid var(--stroke);
       background: rgba(255,255,255,0.62);
       border-radius: 14px;
-      padding: 10px 10px;
+      padding: 8px 10px;
       font-size: 13px;
       outline: none;
       box-shadow: var(--shadow-soft);
@@ -256,10 +256,11 @@
       padding: 10px 14px 14px 14px;
       overflow: auto;
       min-height: 0;
+      flex: 1;
     }
     .row{
       display:grid;
-      grid-template-columns: 1.2fr 1fr 100px 150px;
+      grid-template-columns: 1.2fr 1fr 90px 80px;
       gap: 10px;
       padding: 10px 10px;
       border: 1px solid var(--stroke);
@@ -276,20 +277,245 @@
     .row .girls{ font-weight: 900; text-align:right; font-variant-numeric: tabular-nums; }
     .row .addr{ font-size: 12px; color: var(--muted); line-height: 1.25; }
 
+    /* Tab buttons */
+    .tab-btns { display: flex; gap: 6px; }
+    .tab-btn {
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.62);
+      border-radius: 10px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease;
+      color: var(--muted);
+    }
+    .tab-btn:hover { background: rgba(255,255,255,0.85); }
+    .tab-btn.active {
+      background: rgba(59,130,246,0.12);
+      border-color: rgba(59,130,246,0.30);
+      color: #2563eb;
+    }
+
+    /* Regions table */
+    #regionsTableView {
+      padding: 0 14px 14px;
+      overflow: auto;
+      flex: 1;
+      display: none;
+    }
+    .rtable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .rtable th {
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 800;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      border-bottom: 2px solid var(--stroke);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.90);
+      backdrop-filter: blur(8px);
+    }
+    .rtable th:hover { color: var(--text); }
+    .rtable th .sort-arrow { margin-left: 4px; opacity: 0.4; }
+    .rtable th.active-sort .sort-arrow { opacity: 1; color: #2563eb; }
+    .rtable td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--stroke);
+      vertical-align: middle;
+    }
+    .rtable tr:hover td { background: rgba(255,255,255,0.5); }
+    .rtable .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .coverage-bar {
+      display: inline-block;
+      height: 5px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    /* Region detail panel */
+    #regionPanel {
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 340px;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(0,0,0,0.10);
+      box-shadow: -8px 0 32px rgba(0,0,0,0.14);
+      display: none;
+      flex-direction: column;
+      z-index: 500;
+      overflow: hidden;
+    }
+    #regionPanel.open { display: flex; }
+    #regionPanelHeader {
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid var(--stroke);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.80));
+      flex-shrink: 0;
+    }
+    #regionPanelName {
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+    }
+    #regionPanelSub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    #closeRegionPanel {
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.62);
+      border-radius: 10px;
+      width: 28px; height: 28px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    #closeRegionPanel:hover { background: rgba(255,255,255,0.95); }
+    #regionPanelKpis {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--stroke);
+      flex-shrink: 0;
+    }
+    #regionPanelContent {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 14px 14px;
+    }
+    .panel-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      margin: 14px 0 8px;
+    }
+    .panel-section-title:first-child { margin-top: 4px; }
+    .age-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .age-bar-label {
+      font-size: 12px;
+      font-weight: 700;
+      width: 42px;
+      flex-shrink: 0;
+    }
+    .age-bar-track {
+      flex: 1;
+      height: 10px;
+      background: rgba(0,0,0,0.06);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .age-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      border-radius: 5px;
+      transition: width 0.3s ease;
+    }
+    .age-bar-count {
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .panel-school-row {
+      padding: 8px 10px;
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.6);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background .15s ease;
+    }
+    .panel-school-row:hover { background: rgba(255,255,255,0.90); }
+    .panel-school-name { font-weight: 700; font-size: 12px; }
+    .panel-school-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* Есть/нет девочек */
+    .filterBlock{
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--stroke);
+    }
+    .filterTitle{
+      margin: 0 0 10px 0;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .chipRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding: 10px 10px;
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.6);
+      box-shadow: var(--shadow-soft);
+      cursor:pointer;
+      user-select:none;
+      margin-bottom: 10px;
+    }
+    .chipRow input{ transform: scale(1.05); }
+    .chipRow span{ font-weight: 650; font-size: 13px; }
+
     @media (max-width: 1080px){
       #app{ grid-template-columns: 1fr; grid-template-rows: auto 1fr 260px; }
       #sidebar{ grid-column: 1; grid-row: 1; }
       #mapCard{ grid-column: 1; grid-row: 2; }
       #listCard{ grid-column: 1; grid-row: 3; }
-      #search{ width: 100%; max-width: none; }
-      .row{ grid-template-columns: 1.4fr 1fr 90px; }
+      #search{ width: 140px; max-width: none; }
+      .row{ grid-template-columns: 1.4fr 1fr 80px; }
       .row .addr{ display:none; }
+      #regionPanel { width: min(320px, 90vw); }
     }
 
     /* Leaflet popup polish */
     .leaflet-popup-content-wrapper{
       border-radius: 14px;
       box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+    }
+    .popup h3 { margin: 0 0 4px; font-size: 14px; }
+    .popup .muted { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+    .popup .type-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 6px;
     }
 
     /* ===== Compact horizontal legend ===== */
@@ -332,41 +558,32 @@
       border-radius: 6px;
       border: 1px solid rgba(0,0,0,0.12);
     }
+    .legend-compact .dot-swatch{
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.12);
+    }
     .legend-compact .lbl{
       font-size: 12px;
       color: rgba(20,20,25,0.78);
       white-space: nowrap;
     }
 
-    /* ===== Added: styles for "Есть/нет девочек" block ===== */
-    .filterBlock{
-      margin-bottom: 14px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--stroke);
-    }
-    .filterTitle{
-      margin: 0 0 10px 0;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 800;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-    }
-    .chipRow{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      padding: 10px 10px;
+    /* Export CSV button */
+    .btn-small {
       border: 1px solid var(--stroke);
-      border-radius: 14px;
-      background: rgba(255,255,255,0.6);
-      box-shadow: var(--shadow-soft);
-      cursor:pointer;
-      user-select:none;
-      margin-bottom: 10px;
+      background: rgba(255,255,255,0.62);
+      border-radius: 10px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s ease;
+      color: var(--text);
+      white-space: nowrap;
     }
-    .chipRow input{ transform: scale(1.05); }
-    .chipRow span{ font-weight: 650; font-size: 13px; }
+    .btn-small:hover { background: rgba(255,255,255,0.90); }
 
     /* Error panel */
     #err{
@@ -395,7 +612,7 @@
   <aside id="sidebar">
     <div id="sidebarHeader">
       <div class="title">Girls Football Map · demo</div>
-      <div class="subtitle">Фильтры управляют регионами и школами. Данных по возрастам и соревнованиям пока может не быть, интерфейс уже готов.</div>
+      <div class="subtitle">Карта точек развития женского и девчачьего футбола в регионах РФ. Кликните на регион для подробной статистики.</div>
     </div>
 
     <div id="kpis">
@@ -406,38 +623,59 @@
     </div>
 
     <div id="filters">
+
+      <!-- Leagues -->
       <div class="section">
         <h4>Соревнования</h4>
 
-        <label class="chip" title="Подсветить регионы Суперлиги (клубы всегда видны в попапе региона)">
+        <label class="chip" title="Подсветить регионы Суперлиги">
           <input type="checkbox" id="toggleSuperleague" />
           <img src="./assets/superleague_logo.png" alt="Суперлига" />
           <span>Суперлига</span>
           <small id="slStatus">(…)</small>
         </label>
 
-        <label class="chip" title="Подсветить регионы Первой лиги (клубы всегда видны в попапе региона)">
+        <label class="chip" title="Подсветить регионы Первой лиги">
           <input type="checkbox" id="toggleFirstLeague" />
           <img src="./assets/firstleague_logo_orange.png" alt="Первая лига" />
           <span>Первая лига</span>
           <small id="flStatus">(…)</small>
         </label>
+      </div>
 
-        <label class="chip" title="Показать/скрыть общеобразовательные школы проекта ФвШ">
+      <!-- Layer visibility -->
+      <div class="section">
+        <h4>Слои карты</h4>
+
+        <label class="chip" title="Показать/скрыть спортивные школы">
+          <input type="checkbox" id="showSportsSchools" checked />
+          <span class="dot" style="background:#3b82f6;"></span>
+          <span>Спортшколы (СШ/СШОР)</span>
+          <small id="sportsStatus">(…)</small>
+        </label>
+
+        <label class="chip" title="Показать/скрыть общеобразовательные школы ФвШ">
           <input type="checkbox" id="toggleFVSH" checked />
+          <span class="dot" style="background:#16a34a;"></span>
           <span>Школы ФвШ</span>
           <small id="fvshStatus">(…)</small>
         </label>
 
-        <div class="hint">Клубы в попапе региона показываются всегда. Галочки управляют только подсветкой.</div>
+        <label class="chip" title="Показать/скрыть спортшколы без девочек (данные 5ФК 2023)">
+          <input type="checkbox" id="toggleNoGirls" checked />
+          <span class="dot" style="background:#ef4444;"></span>
+          <span>Без девочек (5ФК)</span>
+          <small id="noGirlsStatus">(…)</small>
+        </label>
       </div>
 
+      <!-- Regions -->
       <div class="section">
         <h4>Регионы</h4>
 
         <select id="regionSelect" class="select" multiple size="10" title="Можно выбрать несколько регионов"></select>
 
-        <div class="hint">Выбранные регионы остаются “цветными” (по девочкам), остальные приглушаются.</div>
+        <div class="hint">Выбранные регионы остаются "цветными", остальные приглушаются.</div>
 
         <div class="btnRow" style="margin-top:10px;">
           <button class="btn secondary" id="clearRegions">Очистить</button>
@@ -445,6 +683,7 @@
         </div>
       </div>
 
+      <!-- Thresholds -->
       <div class="section">
         <h4>Пороговые фильтры</h4>
 
@@ -462,27 +701,26 @@
           <div class="labelLine"><b>Школ с девочками в регионе</b><span>≥ <span id="minSchoolsWithGirlsVal">0</span></span></div>
           <input type="range" id="minSchoolsWithGirls" min="0" max="200" step="1" value="0"/>
         </div>
-
-        <div class="hint">Пока данные неполные: фильтры работают там, где значения есть.</div>
       </div>
 
-      <!-- Есть/нет девочек -->
+      <!-- Girls presence -->
       <div class="filterBlock">
         <div class="filterTitle">Девочки в школе</div>
 
         <label class="chipRow">
           <input type="checkbox" id="onlyGirlsYes" />
-          <span>Только “есть девочки”</span>
+          <span>Только "есть девочки"</span>
         </label>
 
         <label class="chipRow">
           <input type="checkbox" id="onlyGirlsNo" />
-          <span>Только “нет девочек”</span>
+          <span>Только "нет девочек"</span>
         </label>
 
         <div class="hint">Если оба выключены или оба включены, показываем все школы.</div>
       </div>
 
+      <!-- Age groups -->
       <div class="section">
         <h4>Возрастные группы</h4>
         <div class="checks">
@@ -493,9 +731,10 @@
           <label class="check"><input type="checkbox" class="ageChk" value="13-15"><span>13–15</span></label>
           <label class="check"><input type="checkbox" class="ageChk" value="16+"><span>16+</span></label>
         </div>
-        <div class="hint">Пока ищем поля по возрастам автоматически. Если полей нет, фильтр мягко игнорируется.</div>
+        <div class="hint">Если полей нет, фильтр мягко игнорируется.</div>
       </div>
 
+      <!-- Competition level -->
       <div class="section">
         <h4>Соревновательная практика</h4>
         <div class="checks">
@@ -504,9 +743,10 @@
           <label class="check"><input type="checkbox" class="compChk" value="region"><span>региональные</span></label>
           <label class="check"><input type="checkbox" class="compChk" value="inter"><span>межрегиональные</span></label>
         </div>
-        <div class="hint">Пока данные о соревнованиях добавим позже. Сейчас фильтр готов, будет работать автоматически.</div>
+        <div class="hint">Данные о соревнованиях будут добавлены позже.</div>
       </div>
 
+      <!-- Service -->
       <div class="section">
         <h4>Сервис</h4>
         <div class="btnRow">
@@ -520,20 +760,38 @@
   <!-- Map -->
   <main id="mapCard">
     <div id="map"></div>
+
+    <!-- Region detail panel (slide-in over map) -->
+    <div id="regionPanel">
+      <div id="regionPanelHeader">
+        <div>
+          <div id="regionPanelName">Регион</div>
+          <div id="regionPanelSub"></div>
+        </div>
+        <button id="closeRegionPanel" title="Закрыть">✕</button>
+      </div>
+      <div id="regionPanelKpis"></div>
+      <div id="regionPanelContent"></div>
+    </div>
   </main>
 
-  <!-- List -->
+  <!-- List / Table -->
   <section id="listCard">
     <div id="listHeader">
       <div class="left">
-        <b id="listTitle">Список школ</b>
-        <span id="listSub">—</span>
+        <div class="tab-btns">
+          <button class="tab-btn active" id="tabSchools">Школы</button>
+          <button class="tab-btn" id="tabRegions">Регионы</button>
+        </div>
+        <span id="listSub" style="font-size:12px; color:var(--muted);">—</span>
       </div>
-      <div class="right">
+      <div style="display:flex; gap:8px; align-items:center;">
         <input id="search" placeholder="Поиск по названию / городу / региону" />
+        <button class="btn-small" id="exportCSV" style="display:none;" title="Экспорт таблицы регионов в CSV">⬇ CSV</button>
       </div>
     </div>
     <div id="schoolsList"></div>
+    <div id="regionsTableView"></div>
   </section>
 
 </div>
@@ -569,11 +827,53 @@
       .replace(/[().,"]/g, " ")
       .replace(/\s+/g, " ")
       .trim()
-      .replace(/\b(республика|область|край|автономная область|автономный округ|округ|г\.|город)\b/g, "")
+      .replace(/\b(республика|респ|область|обл|край|кр|автономная область|автономный округ|округ|ао|г\.|город)\b/g, "")
+      .replace(/[-–]\s*$/, "")   // trailing dash (e.g. "Чувашская Республика -")
       .replace(/\s+/g, " ")
       .trim();
   }
 
+  function escapeHTML(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // ---- Age group helpers ----
+  // Birth year → age group (reference year 2024)
+  // 16+: born 2004–2008  |  13–15: 2009–2011  |  11–12: 2012–2013
+  // 9–10: 2014–2015      |  7–8: 2016–2017     |  5–6: 2018+
+  const AGE_GROUPS = [
+    { label: '16+',   min: 2004, max: 2008 },
+    { label: '13–15', min: 2009, max: 2011 },
+    { label: '11–12', min: 2012, max: 2013 },
+    { label: '9–10',  min: 2014, max: 2015 },
+    { label: '7–8',   min: 2016, max: 2017 },
+    { label: '5–6',   min: 2018, max: 2023 },
+  ];
+
+  function buildAgeGroups(props) {
+    const groups = AGE_GROUPS.map(g => ({ ...g, count: 0 }));
+    for (const [key, val] of Object.entries(props || {})) {
+      const num = Number(val);
+      if (!Number.isFinite(num) || num <= 0) continue;
+      const m = key.match(/\b(20\d{2})\b/);
+      if (!m) continue;
+      const year = parseInt(m[1]);
+      for (const g of groups) {
+        if (year >= g.min && year <= g.max) {
+          g.count += num;
+          break;
+        }
+      }
+    }
+    return groups;
+  }
+
+  // ---- Marker styles ----
   function styleSportsSchoolMarker(feature) {
     const p = feature.properties || {};
     const hasGirls =
@@ -581,14 +881,11 @@
       (String(p.has_girls).toLowerCase() === "true") ||
       (Number(p.girls_total ?? 0) > 0);
 
-    const stroke = hasGirls ? "#2563eb" : "#ef4444";
-    const fill   = hasGirls ? "#3b82f6" : "#f87171";
-
     return {
       radius: 6,
       weight: 1.5,
-      color: stroke,
-      fillColor: fill,
+      color: hasGirls ? "#2563eb" : "#ef4444",
+      fillColor: hasGirls ? "#3b82f6" : "#f87171",
       fillOpacity: 0.85
     };
   }
@@ -614,119 +911,38 @@
     };
   }
 
-  function regionBaseHTML(p) {
-    const schools = p.total_schools ?? 0;
-    const schoolsWithGirls = p.schools_with_girls ?? 0;
-    const girls = p.total_girls ?? 0;
-    const avg = p.avg_girls_per_school ?? 0;
+  // ---- School popup ----
+  function buildSchoolPopupHTML(feature) {
+    const p = feature.properties || {};
+    const girls = Number(p.girls_total ?? p.girls ?? 0);
+    const hasGirls = girls > 0 || p.has_girls === true;
+    const phone = p.phone;
+    const email = p.email;
+    const geoQ = p.geo_quality || p.geo_kind;
     return `
       <div class="popup">
-        <h3>${p.name ?? 'Регион'}</h3>
-        <div class="muted">Сводка по спортшколам 2024</div>
-        <div><b>Школ:</b> ${fmt.format(schools)}</div>
-        <div><b>Школ с девочками:</b> ${fmt.format(schoolsWithGirls)}</div>
-        <div><b>Девочек:</b> ${fmt.format(girls)}</div>
-        <div><b>Среднее на школу:</b> ${fmt.format(Math.round(avg*10)/10)}</div>
+        <h3>${escapeHTML(p.name ?? "Без названия")}</h3>
+        <span class="type-badge" style="background:rgba(59,130,246,0.12);color:#2563eb;">Спортшкола</span>
+        <div class="muted">${escapeHTML([p.region, p.city].filter(Boolean).join(", "))}</div>
+        ${p.address ? `<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${escapeHTML(p.address)}</div>` : ''}
+        <div style="margin-top:4px;"><b>Девочек:</b> <span style="color:${hasGirls?'#2563eb':'#9ca3af'};font-weight:800;">${fmt.format(girls)}</span></div>
+        ${phone ? `<div style="margin-top:4px;font-size:12px;"><b>Тел:</b> <a href="tel:${escapeHTML(phone)}" style="color:#2563eb;">${escapeHTML(phone)}</a></div>` : ''}
+        ${email ? `<div style="font-size:12px;"><b>Email:</b> <a href="mailto:${escapeHTML(email)}" style="color:#2563eb;">${escapeHTML(email)}</a></div>` : ''}
+        ${geoQ ? `<div style="margin-top:6px;"><span style="background:rgba(0,0,0,0.06);border-radius:6px;padding:2px 6px;font-size:10px;color:var(--muted);">geo: ${escapeHTML(String(geoQ))}</span></div>` : ''}
       </div>
     `;
   }
 
+  // ---- fetch helper ----
   async function fetchJSON(url) {
-  const res = await fetch(url + '?v=' + Date.now());
-  const text = await res.text();
-  if (!res.ok) throw new Error(`HTTP ${res.status} при загрузке ${url}\n${text.slice(0,200)}`);
-  try { return JSON.parse(text); }
-  catch (e) { throw new Error(`Не могу распарсить JSON: ${url}\n${e}\n${text.slice(0,200)}`); }
-}
-
-  // UI refs
-  const superCheckbox = document.getElementById('toggleSuperleague');
-  const firstCheckbox = document.getElementById('toggleFirstLeague');
-  const slStatus = document.getElementById('slStatus');
-  const flStatus = document.getElementById('flStatus');
-
-  const fvshCheckbox = document.getElementById('toggleFVSH');
-  const fvshStatus = document.getElementById('fvshStatus');
-
-  let fvshData = null;
-  let fvshLayer = null;
-  let fvshCluster = null;
-
-  const regionSelect = document.getElementById('regionSelect');
-  const clearRegionsBtn = document.getElementById('clearRegions');
-  const selectAllRegionsBtn = document.getElementById('selectAllRegions');
-
-  const minGirlsSchool = document.getElementById('minGirlsSchool');
-  const minGirlsSchoolVal = document.getElementById('minGirlsSchoolVal');
-
-  const minGirlsRegion = document.getElementById('minGirlsRegion');
-  const minGirlsRegionVal = document.getElementById('minGirlsRegionVal');
-
-  const minSchoolsWithGirls = document.getElementById('minSchoolsWithGirls');
-  const minSchoolsWithGirlsVal = document.getElementById('minSchoolsWithGirlsVal');
-
-  const ageChks = Array.from(document.querySelectorAll('.ageChk'));
-  const compChks = Array.from(document.querySelectorAll('.compChk'));
-
-  const onlyGirlsYesEl = document.getElementById('onlyGirlsYes');
-  const onlyGirlsNoEl  = document.getElementById('onlyGirlsNo');
-
-  const resetAllBtn = document.getElementById('resetAll');
-  const fitRussiaBtn = document.getElementById('fitRussia');
-
-  const listTitle = document.getElementById('listTitle');
-  const listSub = document.getElementById('listSub');
-  const searchInput = document.getElementById('search');
-  const schoolsList = document.getElementById('schoolsList');
-
-  // Map init
-  const map = L.map('map', { preferCanvas: true }).setView([61.5, 96.5], 3);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
-
-  const cluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
-
-  // Data holders
-  let regionsData = null;
-  let pointsData = null;
-
-  let regionsFillLayer = null;
-  let superOutlineLayer = null;
-  let firstOutlineLayer = null;
-
-  let superBrand = { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
-  let firstBrand = { color: "#ff4b00", colorDark: "#111111", logo: "./assets/firstleague_logo_orange.png" };
-
-  let superByRegion = {};
-  let firstByRegion = {};
-
-  let pointsGeoLayer = null;
-  let currentFilteredPointFeatures = [];
-
-  // Legend
-  function addCompactLegend(){
-    const legend = L.control({ position: 'bottomleft' });
-    legend.onAdd = function() {
-      const div = L.DomUtil.create('div', 'legend-compact');
-      div.innerHTML = `
-        <div class="title">Заливка: девочек в регионе</div>
-        <div class="items">
-          <div class="item"><span class="swatch" style="background:#eff6ff"></span><span class="lbl">0</span></div>
-          <div class="item"><span class="swatch" style="background:#dbeafe"></span><span class="lbl">1–50</span></div>
-          <div class="item"><span class="swatch" style="background:#bfdbfe"></span><span class="lbl">51–150</span></div>
-          <div class="item"><span class="swatch" style="background:#93c5fd"></span><span class="lbl">151–300</span></div>
-          <div class="item"><span class="swatch" style="background:#60a5fa"></span><span class="lbl">301–700</span></div>
-          <div class="item"><span class="swatch" style="background:#3b82f6"></span><span class="lbl">701+</span></div>
-        </div>
-      `;
-      return div;
-    };
-    legend.addTo(map);
+    const res = await fetch(url + '?v=' + Date.now());
+    const text = await res.text();
+    if (!res.ok) throw new Error(`HTTP ${res.status} при загрузке ${url}\n${text.slice(0,200)}`);
+    try { return JSON.parse(text); }
+    catch (e) { throw new Error(`Не могу распарсить JSON: ${url}\n${e}\n${text.slice(0,200)}`); }
   }
-  addCompactLegend();
 
+  // ---- Club rendering ----
   function renderClubLines(items) {
     return (items || []).map(x => {
       if (typeof x === "string") return `• ${x}`;
@@ -736,6 +952,7 @@
     }).join("<br>");
   }
 
+  // ---- Nearest sports school (for FVSH popup) ----
   function haversineKm(lat1, lon1, lat2, lon2){
     const R = 6371;
     const toRad = (x) => x * Math.PI / 180;
@@ -755,92 +972,210 @@
       const coords = f.geometry?.coordinates;
       if (!coords || coords.length < 2) continue;
       const p = f.properties || {};
-      arr.push({
-        lat: coords[1],
-        lon: coords[0],
-        name: p.name || "Спортшкола",
-        region: p.region || "",
-        city: p.city || "",
-        address: p.address || ""
-      });
+      arr.push({ lat: coords[1], lon: coords[0], name: p.name || "Спортшкола", region: p.region || "", city: p.city || "" });
     }
     return arr;
   }
 
   function findNearestSportsSchool(lat, lon, sportsArr){
-    let best = null;
-    let bestD = Infinity;
+    let best = null, bestD = Infinity;
     for (const s of sportsArr){
       const d = haversineKm(lat, lon, s.lat, s.lon);
-      if (d < bestD){
-        bestD = d;
-        best = s;
+      if (d < bestD){ bestD = d; best = s; }
+    }
+    return best ? { ...best, distanceKm: bestD } : null;
+  }
+
+  // ---- UI refs ----
+  const superCheckbox  = document.getElementById('toggleSuperleague');
+  const firstCheckbox  = document.getElementById('toggleFirstLeague');
+  const slStatus       = document.getElementById('slStatus');
+  const flStatus       = document.getElementById('flStatus');
+  const fvshCheckbox   = document.getElementById('toggleFVSH');
+  const fvshStatus     = document.getElementById('fvshStatus');
+  const sportsCheckbox   = document.getElementById('showSportsSchools');
+  const sportsStatus     = document.getElementById('sportsStatus');
+  const noGirlsCheckbox  = document.getElementById('toggleNoGirls');
+  const noGirlsStatus    = document.getElementById('noGirlsStatus');
+
+  let fvshData = null, fvshLayer = null, fvshCluster = null;
+  let noGirlsData = null, noGirlsLayer = null, noGirlsCluster = null;
+
+  const regionSelect         = document.getElementById('regionSelect');
+  const clearRegionsBtn      = document.getElementById('clearRegions');
+  const selectAllRegionsBtn  = document.getElementById('selectAllRegions');
+  const minGirlsSchool       = document.getElementById('minGirlsSchool');
+  const minGirlsSchoolVal    = document.getElementById('minGirlsSchoolVal');
+  const minGirlsRegion       = document.getElementById('minGirlsRegion');
+  const minGirlsRegionVal    = document.getElementById('minGirlsRegionVal');
+  const minSchoolsWithGirls  = document.getElementById('minSchoolsWithGirls');
+  const minSchoolsWithGirlsVal = document.getElementById('minSchoolsWithGirlsVal');
+  const ageChks              = Array.from(document.querySelectorAll('.ageChk'));
+  const compChks             = Array.from(document.querySelectorAll('.compChk'));
+  const onlyGirlsYesEl       = document.getElementById('onlyGirlsYes');
+  const onlyGirlsNoEl        = document.getElementById('onlyGirlsNo');
+  const resetAllBtn          = document.getElementById('resetAll');
+  const fitRussiaBtn         = document.getElementById('fitRussia');
+
+  const listSub           = document.getElementById('listSub');
+  const searchInput       = document.getElementById('search');
+  const schoolsList       = document.getElementById('schoolsList');
+  const regionsTableView  = document.getElementById('regionsTableView');
+  const tabSchoolsBtn     = document.getElementById('tabSchools');
+  const tabRegionsBtn     = document.getElementById('tabRegions');
+  const exportCSVBtn      = document.getElementById('exportCSV');
+
+  // Region panel
+  const regionPanel        = document.getElementById('regionPanel');
+  const regionPanelName    = document.getElementById('regionPanelName');
+  const regionPanelSub     = document.getElementById('regionPanelSub');
+  const regionPanelKpis    = document.getElementById('regionPanelKpis');
+  const regionPanelContent = document.getElementById('regionPanelContent');
+  const closeRegionPanelBtn = document.getElementById('closeRegionPanel');
+
+  let activeView     = 'schools'; // 'schools' | 'regions'
+  let tableSortCol   = 'total_girls';
+  let tableSortDir   = 'desc';
+
+  // ---- Map init ----
+  const map = L.map('map', { preferCanvas: true }).setView([61.5, 96.5], 3);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  const cluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
+
+  // ---- Data holders ----
+  let regionsData = null, pointsData = null;
+  let regionsFillLayer = null, superOutlineLayer = null, firstOutlineLayer = null;
+  let superBrand = { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
+  let firstBrand = { color: "#ff4b00", colorDark: "#111111", logo: "./assets/firstleague_logo_orange.png" };
+  let superByRegion = {}, firstByRegion = {};
+  let pointsGeoLayer = null;
+  let currentFilteredPointFeatures = [];
+
+  // ---- Legend ----
+  function addCompactLegend(){
+    const legend = L.control({ position: 'bottomleft' });
+    legend.onAdd = function() {
+      const div = L.DomUtil.create('div', 'legend-compact');
+      div.innerHTML = `
+        <div class="title">Девочек в регионе</div>
+        <div class="items">
+          <div class="item"><span class="swatch" style="background:#eff6ff"></span><span class="lbl">0</span></div>
+          <div class="item"><span class="swatch" style="background:#dbeafe"></span><span class="lbl">1–50</span></div>
+          <div class="item"><span class="swatch" style="background:#bfdbfe"></span><span class="lbl">51–150</span></div>
+          <div class="item"><span class="swatch" style="background:#93c5fd"></span><span class="lbl">151–300</span></div>
+          <div class="item"><span class="swatch" style="background:#60a5fa"></span><span class="lbl">301–700</span></div>
+          <div class="item"><span class="swatch" style="background:#3b82f6"></span><span class="lbl">701+</span></div>
+          <div class="item"><span class="dot-swatch" style="background:#3b82f6"></span><span class="lbl">Спортшкола</span></div>
+          <div class="item"><span class="dot-swatch" style="background:#16a34a"></span><span class="lbl">Школа ФвШ</span></div>
+          <div class="item"><span class="dot-swatch" style="background:#ef4444"></span><span class="lbl">Без девочек (5ФК)</span></div>
+        </div>
+      `;
+      return div;
+    };
+    legend.addTo(map);
+  }
+  addCompactLegend();
+
+  // ---- Region panel ----
+  function openRegionPanel(props) {
+    const regionKey = normRegion(props.name);
+    const schools        = Number(props.total_schools ?? 0);
+    const schoolsWithGirls = Number(props.schools_with_girls ?? 0);
+    const girls          = Number(props.total_girls ?? 0);
+    const avg            = Number(props.avg_girls_per_school ?? 0);
+    const coverage       = schools > 0 ? Math.round(schoolsWithGirls / schools * 100) : 0;
+
+    regionPanelName.textContent = props.name ?? 'Регион';
+    regionPanelSub.textContent  = 'Сводка по спортшколам 2024';
+
+    regionPanelKpis.innerHTML = `
+      <div class="kpi"><div class="v">${fmt.format(schools)}</div><div class="t">объектов</div></div>
+      <div class="kpi"><div class="v">${fmt.format(schoolsWithGirls)}</div><div class="t">с девочками</div></div>
+      <div class="kpi"><div class="v">${fmt.format(girls)}</div><div class="t">девочек</div></div>
+      <div class="kpi"><div class="v">${coverage}%</div><div class="t">охват</div></div>
+    `;
+
+    let html = '';
+
+    // Age groups
+    const ageGroups = buildAgeGroups(props);
+    const maxAge = Math.max(1, ...ageGroups.map(g => g.count));
+    if (ageGroups.some(g => g.count > 0)) {
+      html += `<div class="panel-section-title">Возрастные группы</div>`;
+      for (const g of ageGroups) {
+        const pct = Math.round(g.count / maxAge * 100);
+        html += `
+          <div class="age-bar-row">
+            <div class="age-bar-label">${g.label}</div>
+            <div class="age-bar-track"><div class="age-bar-fill" style="width:${pct}%"></div></div>
+            <div class="age-bar-count">${g.count > 0 ? fmt.format(g.count) : '—'}</div>
+          </div>`;
       }
     }
-    if (!best) return null;
-    return { ...best, distanceKm: bestD };
-  }
 
-  function buildRegionPopup(p) {
-    const base = regionBaseHTML(p);
-    const key = normRegion(p.name);
-
-    const sl = superByRegion[key] || [];
-    const fl = firstByRegion[key] || [];
-
-    let extra = "";
-
-    if (sl.length > 0) {
-      extra += `
-        <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.08);">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-            <img src="${superBrand.logo}" alt="Суперлига" style="width:18px; height:18px; object-fit:contain;">
-            <b style="color:${superBrand.color}">Суперлига</b>
-          </div>
-          <div style="margin-top:4px; line-height:1.35;">
-            ${renderClubLines(sl)}
-          </div>
-        </div>
-      `;
+    // Clubs
+    const sl = superByRegion[regionKey] || [];
+    const fl = firstByRegion[regionKey] || [];
+    if (sl.length > 0 || fl.length > 0) {
+      html += `<div class="panel-section-title">Клубы</div>`;
+      if (sl.length > 0) {
+        html += `<div style="margin-bottom:8px;font-size:12px;line-height:1.4;">
+          <b style="color:${superBrand.color};">Суперлига:</b><br>${renderClubLines(sl)}
+        </div>`;
+      }
+      if (fl.length > 0) {
+        html += `<div style="margin-bottom:8px;font-size:12px;line-height:1.4;">
+          <b style="color:${firstBrand.color};">Первая лига:</b><br>${renderClubLines(fl)}
+        </div>`;
+      }
     }
 
-    if (fl.length > 0) {
-      extra += `
-        <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.08);">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-            <img src="${firstBrand.logo}" alt="Первая лига" style="width:18px; height:18px; object-fit:contain;">
-            <b style="color:${firstBrand.color}">Первая лига</b>
-          </div>
-          <div style="margin-top:4px; line-height:1.35;">
-            ${renderClubLines(fl)}
-          </div>
-        </div>
-      `;
+    // Schools in region (master + no-girls layer)
+    const regionSchools = [
+      ...(pointsData?.features || []),
+      ...(noGirlsData?.features || [])
+    ].filter(f => normRegion(f.properties?.region || '') === regionKey);
+
+    if (regionSchools.length > 0) {
+      html += `<div class="panel-section-title">Школы (${regionSchools.length})</div>`;
+      regionSchools
+        .sort((a, b) => Number(b.properties?.girls_total ?? 0) - Number(a.properties?.girls_total ?? 0))
+        .slice(0, 40)
+        .forEach(f => {
+          const p = f.properties || {};
+          const g = Number(p.girls_total ?? 0);
+          const coords = f.geometry?.coordinates;
+          html += `
+            <div class="panel-school-row" data-lon="${coords?.[0] ?? ''}" data-lat="${coords?.[1] ?? ''}">
+              <div class="panel-school-name">${escapeHTML(p.name ?? 'Без названия')}</div>
+              <div class="panel-school-meta">${escapeHTML([p.city, g > 0 ? g + ' дев.' : ''].filter(Boolean).join(' · '))}</div>
+            </div>`;
+        });
     }
 
-    return extra ? base.replace("</div>", extra + "</div>") : base;
-  }
+    regionPanelContent.innerHTML = html;
 
-  function updateAllRegionPopups() {
-    if (!regionsFillLayer) return;
-    regionsFillLayer.eachLayer(layer => {
-      const p = layer.feature?.properties || {};
-      layer.bindPopup(buildRegionPopup(p), { maxWidth: 380 });
+    // Click school row → fly to it
+    regionPanelContent.querySelectorAll('.panel-school-row').forEach(el => {
+      const lat = parseFloat(el.dataset.lat);
+      const lon = parseFloat(el.dataset.lon);
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        el.addEventListener('click', () => map.setView([lat, lon], Math.max(map.getZoom(), 11), { animate: true }));
+      }
     });
+
+    regionPanel.classList.add('open');
   }
 
-  function computeMatchedStatus(byRegionObj, statusEl) {
-    if (!statusEl || !regionsFillLayer) return;
-    const geoRegions = new Set();
-    regionsFillLayer.eachLayer(l => {
-      const p = l.feature?.properties || {};
-      geoRegions.add(normRegion(p.name));
-    });
-    const keys = Object.keys(byRegionObj);
-    const matched = keys.filter(k => geoRegions.has(k)).length;
-    statusEl.textContent = `(регионов: ${keys.length}, совпало: ${matched})`;
+  function closeRegionPanel() {
+    regionPanel.classList.remove('open');
   }
 
+  // ---- Region filter helpers ----
   function getSelectedRegionNormSetFromUI(){
     const selected = Array.from(regionSelect.selectedOptions || []).map(o => o.value);
     if (selected.length === 0) return null;
@@ -850,18 +1185,13 @@
   function getEnabledRegionSet(){
     const selectedSet = getSelectedRegionNormSetFromUI();
     const minGirlsR = Number(minGirlsRegion.value || 0);
-    const minSWG = Number(minSchoolsWithGirls.value || 0);
-
-    const enabled = new Set();
+    const minSWG    = Number(minSchoolsWithGirls.value || 0);
+    const enabled   = new Set();
     (regionsData?.features || []).forEach(f => {
-      const p = f.properties || {};
+      const p   = f.properties || {};
       const key = normRegion(p.name);
       const inSelected = !selectedSet || selectedSet.has(key);
-
-      const girls = Number(p.total_girls ?? 0);
-      const swg = Number(p.schools_with_girls ?? 0);
-
-      const pass = inSelected && (girls >= minGirlsR) && (swg >= minSWG);
+      const pass = inSelected && (Number(p.total_girls ?? 0) >= minGirlsR) && (Number(p.schools_with_girls ?? 0) >= minSWG);
       if (pass) enabled.add(key);
     });
     return enabled;
@@ -869,12 +1199,10 @@
 
   function rebuildOutlines() {
     if (!regionsData) return;
-
     if (superOutlineLayer) map.removeLayer(superOutlineLayer);
     if (firstOutlineLayer) map.removeLayer(firstOutlineLayer);
     superOutlineLayer = null;
     firstOutlineLayer = null;
-
     const enabled = getEnabledRegionSet();
 
     if (superCheckbox?.checked) {
@@ -882,9 +1210,7 @@
         interactive: false,
         style: (feature) => {
           const key = normRegion(feature?.properties?.name);
-          if (!enabled.has(key)) return { opacity: 0, fillOpacity: 0 };
-          const has = (superByRegion[key] || []).length > 0;
-          if (!has) return { opacity: 0, fillOpacity: 0 };
+          if (!enabled.has(key) || !(superByRegion[key] || []).length) return { opacity: 0, fillOpacity: 0 };
           return { color: superBrand.color, weight: 3, opacity: 1, fillOpacity: 0 };
         }
       }).addTo(map);
@@ -896,9 +1222,7 @@
         interactive: false,
         style: (feature) => {
           const key = normRegion(feature?.properties?.name);
-          if (!enabled.has(key)) return { opacity: 0, fillOpacity: 0 };
-          const has = (firstByRegion[key] || []).length > 0;
-          if (!has) return { opacity: 0, fillOpacity: 0 };
+          if (!enabled.has(key) || !(firstByRegion[key] || []).length) return { opacity: 0, fillOpacity: 0 };
           return { color: firstBrand.color, weight: 3, opacity: 1, dashArray: "7 5", lineCap: "round", lineJoin: "round", fillOpacity: 0 };
         }
       }).addTo(map);
@@ -912,29 +1236,21 @@
     if (!regionsFillLayer) return;
     const enabled = getEnabledRegionSet();
     regionsFillLayer.eachLayer(layer => {
-      const p = layer.feature?.properties || {};
-      const key = normRegion(p.name);
-      const on = enabled.has(key);
-      layer.setStyle(styleFill(layer.feature, on));
+      const key = normRegion(layer.feature?.properties?.name);
+      layer.setStyle(styleFill(layer.feature, enabled.has(key)));
     });
     rebuildOutlines();
   }
 
-  // future-proof stubs
+  // ---- School filter helpers ----
   function schoolHasAnySelectedAges(p, selectedAges){
     if (selectedAges.length === 0) return true;
     const keys = Object.keys(p || {});
     for (const age of selectedAges){
-      const needle = age.replace('+','\\+');
-      const re = new RegExp(needle, 'i');
+      const re = new RegExp(age.replace('+','\\+'), 'i');
       const matching = keys.filter(k => re.test(k));
       if (matching.length === 0) return false;
-      const ok = matching.some(k => {
-        const v = p[k];
-        if (v === true) return true;
-        const num = Number(v);
-        return Number.isFinite(num) && num > 0;
-      });
+      const ok = matching.some(k => { const v = p[k]; if (v === true) return true; const n = Number(v); return Number.isFinite(n) && n > 0; });
       if (!ok) return false;
     }
     return true;
@@ -942,214 +1258,259 @@
 
   function schoolMatchesCompetitions(p, selectedComps){
     if (selectedComps.length === 0) return true;
-
-    const mapNeedles = {
-      school: /школьн/i,
-      muni: /муницип/i,
-      region: /регионал/i,
-      inter: /межрегион/i
-    };
-
+    const mapNeedles = { school: /школьн/i, muni: /муницип/i, region: /регионал/i, inter: /межрегион/i };
     const keys = Object.keys(p || {});
-    const anyCompKey = keys.some(k => /(школьн|муницип|регионал|межрегион)/i.test(k));
-
-    // ✅ ВАЖНО: если данных по соревнованиям пока нет — НЕ режем всё
-    if (!anyCompKey) return true;
-
+    if (!keys.some(k => /(школьн|муницип|регионал|межрегион)/i.test(k))) return true;
     for (const c of selectedComps){
-      const re = mapNeedles[c];
-      const matching = keys.filter(k => re.test(k));
+      const matching = keys.filter(k => mapNeedles[c].test(k));
       if (matching.length === 0) return false;
-      const ok = matching.some(k => {
-        const v = p[k];
-        if (v === true) return true;
-        const num = Number(v);
-        return Number.isFinite(num) && num > 0;
-      });
+      const ok = matching.some(k => { const v = p[k]; if (v === true) return true; const n = Number(v); return Number.isFinite(n) && n > 0; });
       if (!ok) return false;
     }
     return true;
   }
 
-  function escapeHTML(s){
-    return String(s ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
   function readUIState(){
-    const minGS = Number(minGirlsSchool.value || 0);
-    const selectedAges = ageChks.filter(x => x.checked).map(x => x.value);
-    const selectedComps = compChks.filter(x => x.checked).map(x => x.value);
-    const search = (searchInput.value || "").trim().toLowerCase();
-    return { minGS, selectedAges, selectedComps, search };
+    return {
+      minGS: Number(minGirlsSchool.value || 0),
+      selectedAges: ageChks.filter(x => x.checked).map(x => x.value),
+      selectedComps: compChks.filter(x => x.checked).map(x => x.value),
+      search: (searchInput.value || "").trim().toLowerCase()
+    };
   }
 
   function applySchoolsFilter(){
-    // ✅ не блокируемся по pointsGeoLayer: мы его пересоздаём ниже
     if (!pointsData) return;
-
     const enabledRegions = getEnabledRegionSet();
-    const state = readUIState();
-
+    const state   = readUIState();
     const onlyYes = !!onlyGirlsYesEl?.checked;
     const onlyNo  = !!onlyGirlsNoEl?.checked;
 
     const filtered = [];
-
     for (const f of (pointsData.features || [])){
       const p = f.properties || {};
-
       const regionKey = normRegion(p.region || p.Region || p.name_region || p.subject || "");
-      const regionOK = enabledRegions.size === 0 ? true : enabledRegions.has(regionKey);
-
-      const girls = Number(p.girls_total ?? p.girls ?? p["Численность занимающихся футболом девочек"] ?? 0);
-      const girlsOK = girls >= state.minGS;
-
-      const agesOK = schoolHasAnySelectedAges(p, state.selectedAges);
-      const compsOK = schoolMatchesCompetitions(p, state.selectedComps);
-
-      const hasGirls =
-        (p.has_girls === true) ||
-        (String(p.has_girls).toLowerCase() === "true") ||
-        (girls > 0);
-
-      let girlsPresenceOK = true;
-      if (onlyYes !== onlyNo) { // включен ровно один
-        if (onlyYes && !hasGirls) girlsPresenceOK = false;
-        if (onlyNo  &&  hasGirls) girlsPresenceOK = false;
+      const regionOK  = enabledRegions.size === 0 ? true : enabledRegions.has(regionKey);
+      const girls     = Number(p.girls_total ?? p.girls ?? p["Численность занимающихся футболом девочек"] ?? 0);
+      const girlsOK   = girls >= state.minGS;
+      const agesOK    = schoolHasAnySelectedAges(p, state.selectedAges);
+      const compsOK   = schoolMatchesCompetitions(p, state.selectedComps);
+      const hasGirls  = p.has_girls === true || String(p.has_girls).toLowerCase() === "true" || girls > 0;
+      let presenceOK  = true;
+      if (onlyYes !== onlyNo) {
+        if (onlyYes && !hasGirls) presenceOK = false;
+        if (onlyNo  &&  hasGirls) presenceOK = false;
       }
-
-      if (regionOK && girlsOK && agesOK && compsOK && girlsPresenceOK) {
-        filtered.push(f);
-      }
+      if (regionOK && girlsOK && agesOK && compsOK && presenceOK) filtered.push(f);
     }
 
     currentFilteredPointFeatures = filtered;
 
+    // Rebuild cluster
     cluster.clearLayers();
-
     pointsGeoLayer = L.geoJSON({ type:"FeatureCollection", features: filtered }, {
       pointToLayer: (feature, latlng) => L.circleMarker(latlng, styleSportsSchoolMarker(feature)),
-      onEachFeature: (feature, layer) => {
-        const p = feature.properties || {};
-        const girls = Number(p.girls_total ?? p.girls ?? 0);
-
-        const html = `
-          <div class="popup">
-            <h3>${p.name ?? "Без названия"}</h3>
-            <div class="muted">${p.region ?? ""}${p.city ? ", " + p.city : ""}</div>
-            <div>${p.address ?? ""}</div>
-            <div style="margin-top:8px;"><b>Девочек:</b> ${fmt.format(girls)}</div>
-            ${p.phone ? `<div><b>Тел:</b> ${p.phone}</div>` : ""}
-            ${p.email ? `<div><b>Email:</b> ${p.email}</div>` : ""}
-          </div>
-        `;
-        layer.bindPopup(html, { maxWidth: 360 });
-      }
+      onEachFeature: (feature, layer) => layer.bindPopup(buildSchoolPopupHTML(feature), { maxWidth: 360 })
     });
 
-    cluster.addLayer(pointsGeoLayer);
-    map.addLayer(cluster);
+    if (sportsCheckbox?.checked !== false) {
+      cluster.addLayer(pointsGeoLayer);
+      if (!map.hasLayer(cluster)) map.addLayer(cluster);
+    }
 
-    renderSchoolsList();
+    if (activeView === 'schools') renderSchoolsList();
+    else renderRegionsTable();
   }
 
+  // ---- Schools list ----
   function renderSchoolsList(){
-    const state = readUIState();
+    const search = (searchInput.value || "").trim().toLowerCase();
     let rows = currentFilteredPointFeatures.slice();
+    if (search) rows = rows.filter(f => {
+      const p = f.properties || {};
+      return [p.name, p.region, p.city, p.address].filter(Boolean).join(" ").toLowerCase().includes(search);
+    });
+    rows.sort((a,b) => Number(b.properties?.girls_total ?? 0) - Number(a.properties?.girls_total ?? 0));
 
-    if (state.search){
-      rows = rows.filter(f => {
-        const p = f.properties || {};
-        const hay = [p.name, p.region, p.city, p.address].filter(Boolean).join(" ").toLowerCase();
-        return hay.includes(state.search);
-      });
-    }
-
-    rows.sort((a,b) => (Number(b.properties?.girls_total ?? 0) - Number(a.properties?.girls_total ?? 0)));
-
-    listTitle.textContent = "Список школ (отфильтровано)";
     listSub.textContent = `${fmt.format(rows.length)} школ`;
-
     schoolsList.innerHTML = "";
-    if (rows.length === 0){
-      schoolsList.innerHTML = `<div style="padding:12px; color:rgba(20,20,25,0.55);">Ничего не найдено по текущим фильтрам.</div>`;
+    if (!rows.length){
+      schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено по текущим фильтрам.</div>`;
       return;
     }
-
     for (const f of rows.slice(0, 400)) {
       const p = f.properties || {};
-      const girls = Number(p.girls_total ?? 0);
-      const name = p.name ?? "Без названия";
-      const region = p.region ?? "";
-      const city = p.city ?? "";
-      const addr = p.address ?? "";
-
       const el = document.createElement('div');
       el.className = 'row';
       el.innerHTML = `
         <div>
-          <div class="name">${escapeHTML(name)}</div>
-          <div class="meta">${escapeHTML([region, city].filter(Boolean).join(", "))}</div>
+          <div class="name">${escapeHTML(p.name ?? "Без названия")}</div>
+          <div class="meta">${escapeHTML([p.region, p.city].filter(Boolean).join(", "))}</div>
         </div>
-        <div class="addr">${escapeHTML(addr)}</div>
-        <div class="girls">${fmt.format(girls)}</div>
-        <div style="text-align:right; font-size:12px; color:rgba(20,20,25,0.55); align-self:center;">девочек</div>
+        <div class="addr">${escapeHTML(p.address ?? "")}</div>
+        <div class="girls">${fmt.format(Number(p.girls_total ?? 0))}</div>
+        <div style="font-size:12px;color:var(--muted);align-self:center;text-align:right;">дев.</div>
       `;
-
       el.addEventListener('click', () => {
-        const coords = f.geometry?.coordinates;
-        if (coords && coords.length >= 2){
-          const latlng = [coords[1], coords[0]];
-          map.setView(latlng, Math.max(map.getZoom(), 10), { animate: true });
-        }
+        const c = f.geometry?.coordinates;
+        if (c?.length >= 2) map.setView([c[1], c[0]], Math.max(map.getZoom(), 10), { animate: true });
       });
-
       schoolsList.appendChild(el);
+    }
+  }
+
+  // ---- Regions table ----
+  const TABLE_COLS = [
+    { key: 'name',               label: 'Регион',        numeric: false },
+    { key: 'total_schools',      label: 'Объектов',      numeric: true  },
+    { key: 'schools_with_girls', label: 'С девочками',   numeric: true  },
+    { key: 'total_girls',        label: 'Девочек',       numeric: true  },
+    { key: 'avg',                label: 'Ср. на объект', numeric: true  },
+    { key: 'coverage',           label: 'Охват %',       numeric: true  },
+  ];
+
+  function renderRegionsTable() {
+    if (!regionsData) return;
+    const search = (searchInput.value || '').trim().toLowerCase();
+
+    let rows = (regionsData.features || []).map(f => {
+      const p  = f.properties || {};
+      const ts = Number(p.total_schools ?? 0);
+      const sg = Number(p.schools_with_girls ?? 0);
+      return {
+        name:               p.name ?? '—',
+        total_schools:      ts,
+        schools_with_girls: sg,
+        total_girls:        Number(p.total_girls ?? 0),
+        avg:                Math.round(Number(p.avg_girls_per_school ?? 0) * 10) / 10,
+        coverage:           ts > 0 ? Math.round(sg / ts * 100) : 0,
+      };
+    });
+
+    if (search) rows = rows.filter(r => r.name.toLowerCase().includes(search));
+
+    rows.sort((a, b) => {
+      const va = a[tableSortCol], vb = b[tableSortCol];
+      if (typeof va === 'string') {
+        const cmp = String(va).localeCompare(String(vb), 'ru');
+        return tableSortDir === 'asc' ? cmp : -cmp;
+      }
+      return tableSortDir === 'asc' ? va - vb : vb - va;
+    });
+
+    listSub.textContent = `${fmt.format(rows.length)} регионов`;
+
+    let html = `<table class="rtable"><thead><tr>`;
+    for (const col of TABLE_COLS) {
+      const isActive = tableSortCol === col.key;
+      const arrow = isActive ? (tableSortDir === 'asc' ? '↑' : '↓') : '↕';
+      html += `<th class="${isActive ? 'active-sort' : ''}" data-col="${col.key}">${escapeHTML(col.label)}<span class="sort-arrow">${arrow}</span></th>`;
+    }
+    html += `</tr></thead><tbody>`;
+    for (const r of rows) {
+      const barW = Math.round(Math.min(100, r.coverage) * 0.5);
+      html += `<tr>
+        <td>${escapeHTML(r.name)}</td>
+        <td class="num">${fmt.format(r.total_schools)}</td>
+        <td class="num">${fmt.format(r.schools_with_girls)}</td>
+        <td class="num">${fmt.format(r.total_girls)}</td>
+        <td class="num">${r.avg > 0 ? fmt.format(r.avg) : '—'}</td>
+        <td class="num"><span class="coverage-bar" style="width:${barW}px;"></span>${r.coverage}%</td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+
+    regionsTableView.innerHTML = html;
+
+    regionsTableView.querySelectorAll('th[data-col]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        if (tableSortCol === col) { tableSortDir = tableSortDir === 'asc' ? 'desc' : 'asc'; }
+        else { tableSortCol = col; tableSortDir = TABLE_COLS.find(c => c.key === col)?.numeric ? 'desc' : 'asc'; }
+        renderRegionsTable();
+      });
+    });
+  }
+
+  function exportRegionsCSV() {
+    if (!regionsData) return;
+    const header = ['Регион','Объектов всего','С девочками','Девочек всего','Ср. на объект','Охват %'];
+    const dataRows = (regionsData.features || []).map(f => {
+      const p  = f.properties || {};
+      const ts = Number(p.total_schools ?? 0);
+      const sg = Number(p.schools_with_girls ?? 0);
+      return [p.name ?? '', ts, sg, Number(p.total_girls ?? 0), Math.round(Number(p.avg_girls_per_school ?? 0) * 10) / 10, ts > 0 ? Math.round(sg / ts * 100) : 0];
+    });
+    const csv = [header, ...dataRows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'girls_football_regions.csv';
+    a.click();
+  }
+
+  // ---- Tab switch ----
+  function switchView(view) {
+    activeView = view;
+    if (view === 'schools') {
+      tabSchoolsBtn.classList.add('active');
+      tabRegionsBtn.classList.remove('active');
+      schoolsList.style.display = '';
+      regionsTableView.style.display = 'none';
+      searchInput.placeholder = 'Поиск по названию / городу / региону';
+      exportCSVBtn.style.display = 'none';
+      renderSchoolsList();
+    } else {
+      tabSchoolsBtn.classList.remove('active');
+      tabRegionsBtn.classList.add('active');
+      schoolsList.style.display = 'none';
+      regionsTableView.style.display = '';
+      searchInput.placeholder = 'Поиск по региону';
+      exportCSVBtn.style.display = '';
+      renderRegionsTable();
     }
   }
 
   function fillRegionSelectFromGeoJSON(){
     const regions = (regionsData?.features || [])
-      .map(f => f.properties?.name)
-      .filter(Boolean)
+      .map(f => f.properties?.name).filter(Boolean)
       .sort((a,b) => String(a).localeCompare(String(b), 'ru'));
-
     regionSelect.innerHTML = "";
     for (const r of regions){
       const opt = document.createElement('option');
-      opt.value = r;
-      opt.textContent = r;
+      opt.value = r; opt.textContent = r;
       regionSelect.appendChild(opt);
     }
   }
 
   function setRangesFromData(){
-    const maxGirlsSchool = Math.max(0, ...(pointsData?.features || []).map(f => Number(f.properties?.girls_total ?? 0) || 0));
-    minGirlsSchool.max = String(Math.max(50, Math.ceil(maxGirlsSchool/10)*10));
-    minGirlsSchool.value = "0";
-    minGirlsSchoolVal.textContent = "0";
+    const maxGS = Math.max(0, ...(pointsData?.features || []).map(f => Number(f.properties?.girls_total ?? 0) || 0));
+    minGirlsSchool.max = String(Math.max(50, Math.ceil(maxGS/10)*10));
+    minGirlsSchool.value = "0"; minGirlsSchoolVal.textContent = "0";
 
-    const maxGirlsRegion = Math.max(0, ...(regionsData?.features || []).map(f => Number(f.properties?.total_girls ?? 0) || 0));
-    minGirlsRegion.max = String(Math.max(100, Math.ceil(maxGirlsRegion/50)*50));
-    minGirlsRegion.step = String(maxGirlsRegion > 500 ? 25 : 10);
-    minGirlsRegion.value = "0";
-    minGirlsRegionVal.textContent = "0";
+    const maxGR = Math.max(0, ...(regionsData?.features || []).map(f => Number(f.properties?.total_girls ?? 0) || 0));
+    minGirlsRegion.max = String(Math.max(100, Math.ceil(maxGR/50)*50));
+    minGirlsRegion.step = String(maxGR > 500 ? 25 : 10);
+    minGirlsRegion.value = "0"; minGirlsRegionVal.textContent = "0";
 
     const maxSWG = Math.max(0, ...(regionsData?.features || []).map(f => Number(f.properties?.schools_with_girls ?? 0) || 0));
     minSchoolsWithGirls.max = String(Math.max(20, maxSWG));
-    minSchoolsWithGirls.value = "0";
-    minSchoolsWithGirlsVal.textContent = "0";
+    minSchoolsWithGirls.value = "0"; minSchoolsWithGirlsVal.textContent = "0";
+  }
+
+  function computeMatchedStatus(byRegionObj, statusEl) {
+    if (!statusEl || !regionsFillLayer) return;
+    const geoRegions = new Set();
+    regionsFillLayer.eachLayer(l => geoRegions.add(normRegion(l.feature?.properties?.name)));
+    const keys = Object.keys(byRegionObj);
+    statusEl.textContent = `(${keys.filter(k => geoRegions.has(k)).length}/${keys.length} рег.)`;
   }
 
   function fitToRussia(){
     if (regionsFillLayer) map.fitBounds(regionsFillLayer.getBounds().pad(0.1));
   }
 
+  // ---- Wire events ----
   function wireEvents(){
     function refreshLabels(){
       minGirlsSchoolVal.textContent = String(minGirlsSchool.value);
@@ -1157,28 +1518,28 @@
       minSchoolsWithGirlsVal.textContent = String(minSchoolsWithGirls.value);
     }
 
-    const rerunAll = () => {
-      refreshLabels();
-      applyRegionFilterStyles();
-      applySchoolsFilter();
-      updateAllRegionPopups();
-    };
+    const rerunAll = () => { refreshLabels(); applyRegionFilterStyles(); applySchoolsFilter(); };
 
     regionSelect.addEventListener('change', rerunAll);
-
     minGirlsSchool.addEventListener('input', rerunAll);
     minGirlsRegion.addEventListener('input', rerunAll);
     minSchoolsWithGirls.addEventListener('input', rerunAll);
-
     ageChks.forEach(x => x.addEventListener('change', rerunAll));
     compChks.forEach(x => x.addEventListener('change', rerunAll));
-
-    // ✅ ВАЖНО: подписки на "есть/нет девочек" здесь, где rerunAll виден
     onlyGirlsYesEl?.addEventListener('change', rerunAll);
     onlyGirlsNoEl?.addEventListener('change', rerunAll);
 
     superCheckbox.addEventListener('change', rebuildOutlines);
     firstCheckbox.addEventListener('change', rebuildOutlines);
+
+    sportsCheckbox?.addEventListener('change', () => {
+      if (sportsCheckbox.checked) {
+        if (pointsGeoLayer) cluster.addLayer(pointsGeoLayer);
+        map.addLayer(cluster);
+      } else {
+        map.removeLayer(cluster);
+      }
+    });
 
     clearRegionsBtn.addEventListener('click', () => {
       Array.from(regionSelect.options).forEach(o => o.selected = false);
@@ -1189,178 +1550,183 @@
       rerunAll();
     });
 
-    searchInput.addEventListener('input', renderSchoolsList);
+    searchInput.addEventListener('input', () => {
+      if (activeView === 'schools') renderSchoolsList();
+      else renderRegionsTable();
+    });
+
+    tabSchoolsBtn.addEventListener('click', () => switchView('schools'));
+    tabRegionsBtn.addEventListener('click', () => switchView('regions'));
+    exportCSVBtn.addEventListener('click', exportRegionsCSV);
+
+    closeRegionPanelBtn.addEventListener('click', closeRegionPanel);
 
     resetAllBtn.addEventListener('click', () => {
       superCheckbox.checked = false;
       firstCheckbox.checked = false;
-
-      const yes = document.getElementById('onlyGirlsYes');
-if (yes) yes.checked = false;
-
-const no = document.getElementById('onlyGirlsNo');
-if (no) no.checked = false;
-
+      if (sportsCheckbox) sportsCheckbox.checked = true;
+      if (fvshCheckbox) fvshCheckbox.checked = true;
+      if (noGirlsCheckbox) noGirlsCheckbox.checked = true;
+      document.getElementById('onlyGirlsYes').checked = false;
+      document.getElementById('onlyGirlsNo').checked = false;
       Array.from(regionSelect.options).forEach(o => o.selected = false);
-
       minGirlsSchool.value = "0";
       minGirlsRegion.value = "0";
       minSchoolsWithGirls.value = "0";
-
       ageChks.forEach(x => x.checked = false);
       compChks.forEach(x => x.checked = false);
-
       searchInput.value = "";
-
+      closeRegionPanel();
       rerunAll();
       fitToRussia();
     });
 
     fitRussiaBtn.addEventListener('click', fitToRussia);
-
     refreshLabels();
   }
 
-  // Load base
+  // ---- Load data ----
   Promise.all([
     fetchJSON('./russia_subjects_with_sportschools2024.json'),
     fetchJSON('https://ekaterinamochalova.github.io/girls-football-map-demo/schools_points_master.json')
   ])
   .then(([regions, points]) => {
     regionsData = regions;
-    pointsData = points;
+    pointsData  = points;
 
-    // KPIs
-    const totalRegions = regions.features?.length ?? 0;
-    const sumGirls = (regions.features || []).reduce((a,f)=>a + (f.properties?.total_girls ?? 0), 0);
-    const sumSchools = (regions.features || []).reduce((a,f)=>a + (f.properties?.total_schools ?? 0), 0);
-    const sumSchoolsWithGirls = (regions.features || []).reduce((a,f)=>a + (f.properties?.schools_with_girls ?? 0), 0);
+    // Global KPIs
+    const totalRegions     = regions.features?.length ?? 0;
+    const sumGirls         = (regions.features || []).reduce((a,f) => a + (f.properties?.total_girls ?? 0), 0);
+    const sumSchools       = (regions.features || []).reduce((a,f) => a + (f.properties?.total_schools ?? 0), 0);
+    const sumWithGirls     = (regions.features || []).reduce((a,f) => a + (f.properties?.schools_with_girls ?? 0), 0);
 
-    document.getElementById('kpiRegions').textContent = fmt.format(totalRegions);
-    document.getElementById('kpiGirls').textContent = fmt.format(sumGirls);
-    document.getElementById('kpiSchools').textContent = fmt.format(points.features?.length ?? sumSchools);
-    document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(sumSchoolsWithGirls);
+    if (sportsStatus) sportsStatus.textContent = `(${fmt.format(points.features?.length ?? 0)})`;
+    document.getElementById('kpiRegions').textContent        = fmt.format(totalRegions);
+    document.getElementById('kpiGirls').textContent          = fmt.format(sumGirls);
+    document.getElementById('kpiSchools').textContent        = fmt.format(points.features?.length ?? sumSchools);
+    document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(sumWithGirls);
 
-    // Regions
+    // Regions layer — click opens detail panel
     regionsFillLayer = L.geoJSON(regions, {
       style: (feature) => styleFill(feature, true),
       onEachFeature: (feature, layer) => {
-        const p = feature.properties || {};
-        layer.bindPopup(regionBaseHTML(p), { maxWidth: 380 });
+        layer.on('click', () => openRegionPanel(feature.properties || {}));
+        layer.on('mouseover', () => layer.setStyle({ weight: 2, color: 'rgba(0,0,0,0.40)' }));
+        layer.on('mouseout',  () => {
+          const key = normRegion(feature.properties?.name);
+          layer.setStyle(styleFill(feature, getEnabledRegionSet().has(key)));
+        });
       }
     }).addTo(map);
 
-    // Points (initial)
+    // Points layer (initial)
     pointsGeoLayer = L.geoJSON(points, {
       pointToLayer: (feature, latlng) => L.circleMarker(latlng, styleSportsSchoolMarker(feature)),
-      onEachFeature: (feature, layer) => {
-        const p = feature.properties || {};
-        const girls = Number(p.girls_total ?? 0);
-        const html = `
-          <div class="popup">
-            <h3>${p.name ?? "Без названия"}</h3>
-            <div class="muted">${p.region ?? ""}${p.city ? ", " + p.city : ""}</div>
-            <div>${p.address ?? ""}</div>
-            <div style="margin-top:8px;"><b>Девочек:</b> ${fmt.format(girls)}</div>
-            ${p.phone ? `<div><b>Тел:</b> ${p.phone}</div>` : ""}
-            ${p.email ? `<div><b>Email:</b> ${p.email}</div>` : ""}
-          </div>
-        `;
-        layer.bindPopup(html, { maxWidth: 360 });
-      }
+      onEachFeature: (feature, layer) => layer.bindPopup(buildSchoolPopupHTML(feature), { maxWidth: 360 })
     });
 
     const sportsArr = buildSportsIndex(points);
 
-    // === FVSH layer load ===
+    // FVSH layer
     fetchJSON('./data/fvsh_schools.json')
       .then(data => {
         fvshData = data;
         if (fvshStatus) fvshStatus.textContent = `(${fmt.format(data.features?.length || 0)})`;
 
-        fvshCluster = L.markerClusterGroup({
-          chunkedLoading: true,
-          spiderfyOnMaxZoom: true,
-          showCoverageOnHover: false
-        });
+        fvshCluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
 
         fvshLayer = L.geoJSON(fvshData, {
           pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-            radius: 6,
-            weight: 2,
-            color: '#ff4b00',
-            fillColor: '#ff4b00',
-            fillOpacity: 0.70
+            radius: 6, weight: 2,
+            color: '#15803d', fillColor: '#16a34a', fillOpacity: 0.75
           }),
           onEachFeature: (feature, layer) => {
             layer.on('click', () => {
               const coords = feature.geometry?.coordinates;
               if (!coords || coords.length < 2) return;
-              const lat = coords[1], lon = coords[0];
+              const [lon, lat] = coords;
               const p = feature.properties || {};
-
               const nearest = findNearestSportsSchool(lat, lon, sportsArr);
-
               const nearestHtml = nearest ? `
-                <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.10);">
-                  <div style="font-weight:800;">Ближайшая спортшкола</div>
-                  <div style="margin-top:6px;"><b>${nearest.name}</b></div>
-                  <div style="color:#666; font-size:12px; margin-top:2px;">
-                    ${[nearest.region, nearest.city].filter(Boolean).join(", ")}
-                  </div>
-                  <div style="margin-top:6px;">
-                    <b>Расстояние:</b> ${fmt.format(Math.round(nearest.distanceKm * 10) / 10)} км
-                  </div>
-                </div>
-              ` : `<div style="margin-top:10px; color:#666;">Не удалось найти ближайшую спортшколу.</div>`;
-
+                <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
+                  <div style="font-weight:800;font-size:12px;">Ближайшая спортшкола</div>
+                  <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(nearest.name)}</div>
+                  <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearest.region, nearest.city].filter(Boolean).join(", "))}</div>
+                  <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearest.distanceKm * 10) / 10)} км</div>
+                </div>` : '';
               const html = `
                 <div class="popup">
-                  <h3>${p.name || "Школа ФвШ"}</h3>
-                  <div class="muted">${[p.region, p.city].filter(Boolean).join(", ")}</div>
-                  ${p.address ? `<div>${p.address}</div>` : ""}
+                  <h3>${escapeHTML(p.name || "Школа ФвШ")}</h3>
+                  <span class="type-badge" style="background:rgba(22,163,74,0.12);color:#15803d;">Школа ФвШ</span>
+                  <div class="muted">${escapeHTML([p.region, p.CITY || p.city].filter(Boolean).join(", "))}</div>
+                  ${p.Address || p.address ? `<div style="font-size:12px;color:var(--muted);">${escapeHTML(p.Address || p.address)}</div>` : ""}
                   ${nearestHtml}
-                </div>
-              `;
-
+                </div>`;
               layer.bindPopup(html, { maxWidth: 380 }).openPopup();
             });
           }
         });
 
         fvshCluster.addLayer(fvshLayer);
-
-        if (!fvshCheckbox || fvshCheckbox.checked){
-          map.addLayer(fvshCluster);
-        }
-
-        if (fvshCheckbox){
-          fvshCheckbox.addEventListener('change', () => {
-            if (fvshCheckbox.checked) map.addLayer(fvshCluster);
-            else map.removeLayer(fvshCluster);
-          });
-        }
+        if (!fvshCheckbox || fvshCheckbox.checked) map.addLayer(fvshCluster);
+        fvshCheckbox?.addEventListener('change', () => {
+          if (fvshCheckbox.checked) map.addLayer(fvshCluster);
+          else map.removeLayer(fvshCluster);
+        });
       })
-      .catch(e => {
-        console.error("FVSH overlay failed:", e);
-        if (fvshStatus) fvshStatus.textContent = '(ошибка)';
-      });
+      .catch(e => { console.error("FVSH overlay failed:", e); if (fvshStatus) fvshStatus.textContent = '(ошибка)'; });
+
+    // No-girls layer (5ФК 2023)
+    fetchJSON('./data/no_girls_schools.json')
+      .then(data => {
+        noGirlsData = data;
+        const cnt = data.features?.length || 0;
+        if (noGirlsStatus) noGirlsStatus.textContent = `(${fmt.format(cnt)})`;
+
+        noGirlsCluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
+
+        noGirlsLayer = L.geoJSON(noGirlsData, {
+          pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+            radius: 6, weight: 1.5,
+            color: '#ef4444', fillColor: '#f87171', fillOpacity: 0.85
+          }),
+          onEachFeature: (feature, layer) => {
+            const p = feature.properties || {};
+            const geoQ = p.geo_quality || p.geo_kind;
+            const html = `
+              <div class="popup">
+                <h3>${escapeHTML(p.name ?? 'Без названия')}</h3>
+                <span class="type-badge" style="background:rgba(239,68,68,0.12);color:#dc2626;">Без девочек</span>
+                <div class="muted">${escapeHTML([p.region, p.city].filter(Boolean).join(', '))}</div>
+                ${p.address ? `<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${escapeHTML(p.address)}</div>` : ''}
+                <div style="margin-top:4px;font-size:12px;color:var(--muted);">Источник: 5ФК 2023</div>
+                ${geoQ ? `<div style="margin-top:4px;"><span style="background:rgba(0,0,0,0.06);border-radius:6px;padding:2px 6px;font-size:10px;color:var(--muted);">geo: ${escapeHTML(String(geoQ))}</span></div>` : ''}
+              </div>`;
+            layer.bindPopup(html, { maxWidth: 340 });
+          }
+        });
+
+        noGirlsCluster.addLayer(noGirlsLayer);
+        if (!noGirlsCheckbox || noGirlsCheckbox.checked) map.addLayer(noGirlsCluster);
+        noGirlsCheckbox?.addEventListener('change', () => {
+          if (noGirlsCheckbox.checked) map.addLayer(noGirlsCluster);
+          else map.removeLayer(noGirlsCluster);
+        });
+      })
+      .catch(e => { console.error("No-girls layer failed:", e); if (noGirlsStatus) noGirlsStatus.textContent = '(ошибка)'; });
 
     cluster.addLayer(pointsGeoLayer);
     map.addLayer(cluster);
-
     map.fitBounds(regionsFillLayer.getBounds().pad(0.1));
-
     fillRegionSelectFromGeoJSON();
     setRangesFromData();
-
     currentFilteredPointFeatures = (pointsData.features || []);
     wireEvents();
     renderSchoolsList();
 
     return Promise.all([
-      fetchJSON('./data/superleague_clubs.json').catch(e => { console.error("Superleague data failed:", e); if (slStatus) slStatus.textContent = "(ошибка)"; return null; }),
-      fetchJSON('./data/firstleague_clubs_v1.json').catch(e => { console.error("First league data failed:", e); if (flStatus) flStatus.textContent = "(ошибка)"; return null; })
+      fetchJSON('./data/superleague_clubs.json').catch(e => { console.error(e); if (slStatus) slStatus.textContent = "(ошибка)"; return null; }),
+      fetchJSON('./data/firstleague_clubs_v1.json').catch(e => { console.error(e); if (flStatus) flStatus.textContent = "(ошибка)"; return null; })
     ]);
   })
   .then(([sl, fl]) => {
@@ -1371,9 +1737,7 @@ if (no) no.checked = false;
         superByRegion[normRegion(rName)] = (clubs || []).filter(Boolean);
       }
       computeMatchedStatus(superByRegion, slStatus);
-    } else {
-      if (slStatus) slStatus.textContent = "(нет данных)";
-    }
+    } else if (slStatus) slStatus.textContent = "(нет данных)";
 
     if (fl) {
       firstBrand = fl.brand || firstBrand;
@@ -1382,11 +1746,8 @@ if (no) no.checked = false;
         firstByRegion[normRegion(rName)] = (clubs || []).filter(Boolean);
       }
       computeMatchedStatus(firstByRegion, flStatus);
-    } else {
-      if (flStatus) flStatus.textContent = "(нет данных)";
-    }
+    } else if (flStatus) flStatus.textContent = "(нет данных)";
 
-    updateAllRegionPopups();
     applyRegionFilterStyles();
     applySchoolsFilter();
     rebuildOutlines();
@@ -1398,5 +1759,3 @@ if (no) no.checked = false;
 </script>
 </body>
 </html>
-
-
