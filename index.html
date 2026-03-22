@@ -491,11 +491,24 @@
     .chipRow input{ transform: scale(1.05); }
     .chipRow span{ font-weight: 650; font-size: 13px; }
 
+    /* Mobile tabs */
+    #mobileTabs { display: none; }
+    .mobileTab {
+      flex: 1; padding: 12px; border: none;
+      background: rgba(255,255,255,0.5);
+      font-size: 14px; font-weight: 700; color: var(--muted);
+      cursor: pointer; border-bottom: 3px solid transparent;
+      transition: color .15s, border-color .15s, background .15s;
+    }
+    .mobileTab.active { color: var(--text); border-bottom-color: #e4002b; background: rgba(255,255,255,0.75); }
+
     @media (max-width: 1080px){
-      #app{ grid-template-columns: 1fr; grid-template-rows: auto 1fr 260px; }
-      #sidebar{ grid-column: 1; grid-row: 1; }
-      #mapCard{ grid-column: 1; grid-row: 2; }
-      #listCard{ grid-column: 1; grid-row: 3; }
+      #app{ grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; }
+      #sidebar{ grid-column: 1; grid-row: 1; max-height: 42vh; }
+      #mobileTabs{ display: flex; grid-column: 1; grid-row: 2; background: var(--card); border: 1px solid var(--stroke); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); overflow: hidden; }
+      #mapCard{ grid-column: 1; grid-row: 3; min-height: 0; }
+      #listCard{ grid-column: 1; grid-row: 3; min-height: 0; }
+      #mapCard.tab-hidden, #listCard.tab-hidden{ display: none; }
       #search{ width: 140px; max-width: none; }
       .row{ grid-template-columns: 1.4fr 1fr 80px; }
       .row .addr{ display:none; }
@@ -774,6 +787,12 @@
       <div id="regionPanelContent"></div>
     </div>
   </main>
+
+  <!-- Mobile tabs (hidden on desktop) -->
+  <div id="mobileTabs">
+    <button id="tabMap" class="mobileTab active">Карта</button>
+    <button id="tabList" class="mobileTab">Список</button>
+  </div>
 
   <!-- List / Table -->
   <section id="listCard">
@@ -1582,6 +1601,28 @@
     });
 
     fitRussiaBtn.addEventListener('click', fitToRussia);
+
+    // Mobile tabs (Карта / Список)
+    const tabMapBtn  = document.getElementById('tabMap');
+    const tabListBtn2 = document.getElementById('tabList');
+    const mapCardEl  = document.getElementById('mapCard');
+    const listCardEl = document.getElementById('listCard');
+    if (tabMapBtn && tabListBtn2) {
+      tabMapBtn.addEventListener('click', () => {
+        tabMapBtn.classList.add('active');
+        tabListBtn2.classList.remove('active');
+        mapCardEl.classList.remove('tab-hidden');
+        listCardEl.classList.add('tab-hidden');
+        map.invalidateSize();
+      });
+      tabListBtn2.addEventListener('click', () => {
+        tabListBtn2.classList.add('active');
+        tabMapBtn.classList.remove('active');
+        listCardEl.classList.remove('tab-hidden');
+        mapCardEl.classList.add('tab-hidden');
+      });
+    }
+
     refreshLabels();
   }
 
