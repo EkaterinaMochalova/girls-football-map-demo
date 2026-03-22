@@ -1723,6 +1723,9 @@
         noGirlsData = data;
         const cnt = data.features?.length || 0;
         if (noGirlsStatus) noGirlsStatus.textContent = `(${fmt.format(cnt)})`;
+        const kpiEl = document.getElementById('kpiSchools');
+        const prev = parseInt((kpiEl.textContent || '0').replace(/\D/g, '')) || 0;
+        kpiEl.textContent = fmt.format(prev + cnt);
 
         noGirlsCluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
 
