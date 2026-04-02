@@ -663,7 +663,7 @@
         <label class="chip" title="Показать/скрыть спортивные школы">
           <input type="checkbox" id="showSportsSchools" checked />
           <span class="dot" style="background:#3b82f6;"></span>
-          <span>Спортшколы (СШ/СШОР)</span>
+          <span>Спортшколы с девочками</span>
           <small id="sportsStatus">(…)</small>
         </label>
 
@@ -677,7 +677,7 @@
         <label class="chip" title="Показать/скрыть спортшколы без девочек (данные 5ФК 2023)">
           <input type="checkbox" id="toggleNoGirls" checked />
           <span class="dot" style="background:#ef4444;"></span>
-          <span>Без девочек (5ФК)</span>
+          <span>Спортшколы без девочек</span>
           <small id="noGirlsStatus">(…)</small>
         </label>
       </div>
@@ -1088,9 +1088,9 @@
           <div class="item"><span class="swatch" style="background:#93c5fd"></span><span class="lbl">151–300</span></div>
           <div class="item"><span class="swatch" style="background:#60a5fa"></span><span class="lbl">301–700</span></div>
           <div class="item"><span class="swatch" style="background:#3b82f6"></span><span class="lbl">701+</span></div>
-          <div class="item"><span class="dot-swatch" style="background:#3b82f6"></span><span class="lbl">Спортшкола</span></div>
+          <div class="item"><span class="dot-swatch" style="background:#3b82f6"></span><span class="lbl">Спортшколы с девочками</span></div>
           <div class="item"><span class="dot-swatch" style="background:#16a34a"></span><span class="lbl">Школа ФвШ</span></div>
-          <div class="item"><span class="dot-swatch" style="background:#ef4444"></span><span class="lbl">Без девочек (5ФК)</span></div>
+          <div class="item"><span class="dot-swatch" style="background:#ef4444"></span><span class="lbl">Спортшколы без девочек</span></div>
         </div>
       `;
       return div;
@@ -1695,6 +1695,15 @@
                   <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearest.region, nearest.city].filter(Boolean).join(", "))}</div>
                   <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearest.distanceKm * 10) / 10)} км</div>
                 </div>` : '';
+              const noGirlsArr = noGirlsData ? buildSportsIndex(noGirlsData) : [];
+              const nearestNoGirls = noGirlsArr.length ? findNearestSportsSchool(lat, lon, noGirlsArr) : null;
+              const nearestNoGirlsHtml = nearestNoGirls ? `
+                <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
+                  <div style="font-weight:800;font-size:12px;">Ближайшая школа без девочек (5ФК)</div>
+                  <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(nearestNoGirls.name)}</div>
+                  <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearestNoGirls.region, nearestNoGirls.city].filter(Boolean).join(", "))}</div>
+                  <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearestNoGirls.distanceKm * 10) / 10)} км</div>
+                </div>` : '';
               const html = `
                 <div class="popup">
                   <h3>${escapeHTML(p.name || "Школа ФвШ")}</h3>
@@ -1702,6 +1711,7 @@
                   <div class="muted">${escapeHTML([p.region, p.CITY || p.city].filter(Boolean).join(", "))}</div>
                   ${p.Address || p.address ? `<div style="font-size:12px;color:var(--muted);">${escapeHTML(p.Address || p.address)}</div>` : ""}
                   ${nearestHtml}
+                  ${nearestNoGirlsHtml}
                 </div>`;
               layer.bindPopup(html, { maxWidth: 380 }).openPopup();
             });
@@ -1740,7 +1750,7 @@
             const html = `
               <div class="popup">
                 <h3>${escapeHTML(p.name ?? 'Без названия')}</h3>
-                <span class="type-badge" style="background:rgba(239,68,68,0.12);color:#dc2626;">Без девочек</span>
+                <span class="type-badge" style="background:rgba(239,68,68,0.12);color:#dc2626;">Спортшкола без девочек</span>
                 <div class="muted">${escapeHTML([p.region, p.city].filter(Boolean).join(', '))}</div>
                 ${p.address ? `<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${escapeHTML(p.address)}</div>` : ''}
                 <div style="margin-top:4px;font-size:12px;color:var(--muted);">Источник: 5ФК 2023</div>
