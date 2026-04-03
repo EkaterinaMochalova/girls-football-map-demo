@@ -564,14 +564,42 @@
       -webkit-backdrop-filter: blur(14px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.10);
       max-width: min(680px, calc(100vw - 420px));
-      pointer-events: none;
+      pointer-events: auto;
+    }
+    .legend-compact .legend-header{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
     }
     .legend-compact .title{
       font-size: 12px;
       font-weight: 800;
       color: rgba(20,20,25,0.72);
-      margin: 0 0 6px 0;
+      margin: 0;
       letter-spacing: -0.01em;
+    }
+    .legend-compact .legend-toggle{
+      font-size: 13px;
+      color: rgba(20,20,25,0.45);
+      line-height: 1;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    .legend-compact.collapsed .legend-toggle{ transform: rotate(180deg); }
+    .legend-compact .legend-body{
+      margin-top: 6px;
+      overflow: hidden;
+      transition: max-height 0.25s ease, opacity 0.2s;
+      max-height: 200px;
+      opacity: 1;
+    }
+    .legend-compact.collapsed .legend-body{
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
     }
     .legend-compact .items{
       display:flex;
@@ -1102,19 +1130,26 @@
     legend.onAdd = function() {
       const div = L.DomUtil.create('div', 'legend-compact');
       div.innerHTML = `
-        <div class="title">Девочек в регионе</div>
-        <div class="items">
-          <div class="item"><span class="swatch" style="background:#eff6ff"></span><span class="lbl">0</span></div>
-          <div class="item"><span class="swatch" style="background:#dbeafe"></span><span class="lbl">1–50</span></div>
-          <div class="item"><span class="swatch" style="background:#bfdbfe"></span><span class="lbl">51–150</span></div>
-          <div class="item"><span class="swatch" style="background:#93c5fd"></span><span class="lbl">151–300</span></div>
-          <div class="item"><span class="swatch" style="background:#60a5fa"></span><span class="lbl">301–700</span></div>
-          <div class="item"><span class="swatch" style="background:#3b82f6"></span><span class="lbl">701+</span></div>
-          <div class="item"><span class="dot-swatch" style="background:#3b82f6"></span><span class="lbl">Спортшколы с девочками</span></div>
-          <div class="item"><span class="dot-swatch" style="background:#16a34a"></span><span class="lbl">Школа ФвШ</span></div>
-          <div class="item"><span class="dot-swatch" style="background:#ef4444"></span><span class="lbl">Спортшколы без девочек</span></div>
+        <div class="legend-header">
+          <div class="title">Девочек в регионе</div>
+          <span class="legend-toggle">▲</span>
+        </div>
+        <div class="legend-body">
+          <div class="items">
+            <div class="item"><span class="swatch" style="background:#eff6ff"></span><span class="lbl">0</span></div>
+            <div class="item"><span class="swatch" style="background:#dbeafe"></span><span class="lbl">1–50</span></div>
+            <div class="item"><span class="swatch" style="background:#bfdbfe"></span><span class="lbl">51–150</span></div>
+            <div class="item"><span class="swatch" style="background:#93c5fd"></span><span class="lbl">151–300</span></div>
+            <div class="item"><span class="swatch" style="background:#60a5fa"></span><span class="lbl">301–700</span></div>
+            <div class="item"><span class="swatch" style="background:#3b82f6"></span><span class="lbl">701+</span></div>
+            <div class="item"><span class="dot-swatch" style="background:#3b82f6"></span><span class="lbl">Спортшколы с девочками</span></div>
+            <div class="item"><span class="dot-swatch" style="background:#16a34a"></span><span class="lbl">Школа ФвШ</span></div>
+            <div class="item"><span class="dot-swatch" style="background:#ef4444"></span><span class="lbl">Спортшколы без девочек</span></div>
+          </div>
         </div>
       `;
+      div.querySelector('.legend-header').addEventListener('click', () => div.classList.toggle('collapsed'));
+      L.DomEvent.disableClickPropagation(div);
       return div;
     };
     legend.addTo(map);
@@ -1346,6 +1381,7 @@
     }
 
     currentFilteredPointFeatures = filtered;
+    document.getElementById('kpiSchools').textContent = fmt.format(filtered.length);
 
     // Rebuild cluster
     cluster.clearLayers();
@@ -1372,11 +1408,9 @@
       : features.filter(f => enabledSet.has(normRegion(f.properties?.name || "")));
     const nRegions   = inScope.length;
     const nGirls     = inScope.reduce((s,f) => s + Number(f.properties?.total_girls ?? 0), 0);
-    const nSchools   = inScope.reduce((s,f) => s + Number(f.properties?.total_schools ?? 0), 0);
     const nWithGirls = inScope.reduce((s,f) => s + Number(f.properties?.schools_with_girls ?? 0), 0);
     document.getElementById('kpiRegions').textContent          = fmt.format(nRegions);
     document.getElementById('kpiGirls').textContent            = fmt.format(nGirls);
-    document.getElementById('kpiSchools').textContent          = fmt.format(nSchools);
     document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(nWithGirls);
   }
 
