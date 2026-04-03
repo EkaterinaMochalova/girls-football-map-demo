@@ -1391,6 +1391,7 @@
     }
 
     currentFilteredPointFeatures = filtered;
+    document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(filtered.length);
 
     // Rebuild cluster
     cluster.clearLayers();
