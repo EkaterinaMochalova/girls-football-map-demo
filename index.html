@@ -1132,7 +1132,7 @@
       div.innerHTML = `
         <div class="legend-header">
           <div class="title">Девочек в регионе</div>
-          <span class="legend-toggle">▲</span>
+          <span class="legend-toggle">▼</span>
         </div>
         <div class="legend-body">
           <div class="items">
@@ -1148,7 +1148,10 @@
           </div>
         </div>
       `;
-      div.querySelector('.legend-header').addEventListener('click', () => div.classList.toggle('collapsed'));
+      div.querySelector('.legend-header').addEventListener('click', () => {
+        div.classList.toggle('collapsed');
+        div.querySelector('.title').textContent = div.classList.contains('collapsed') ? 'Легенда' : 'Девочек в регионе';
+      });
       L.DomEvent.disableClickPropagation(div);
       return div;
     };
