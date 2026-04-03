@@ -1324,15 +1324,25 @@
   }
 
   // ---- School filter helpers ----
+  // Maps age-range labels (checkbox values) to birth-year columns in the JSON
+  const AGE_TO_COLS = {
+    '5-6':   ['birth_2019_minus', 'birth_2018'],
+    '7-8':   ['birth_2017', 'birth_2016'],
+    '9-10':  ['birth_2015', 'birth_2014'],
+    '11-12': ['birth_2013', 'birth_2012'],
+    '13-15': ['birth_2011', 'birth_2010', 'birth_2009'],
+    '16+':   ['birth_2008', 'birth_2007', 'birth_2006', 'birth_2005_plus'],
+  };
+
   function schoolHasAnySelectedAges(p, selectedAges){
     if (selectedAges.length === 0) return true;
-    const keys = Object.keys(p || {});
     for (const age of selectedAges){
-      const re = new RegExp(age.replace('+','\\+'), 'i');
-      const matching = keys.filter(k => re.test(k));
-      if (matching.length === 0) return false;
-      const ok = matching.some(k => { const v = p[k]; if (v === true) return true; const n = Number(v); return Number.isFinite(n) && n > 0; });
-      if (!ok) return false;
+      const cols = AGE_TO_COLS[age];
+      if (!cols) continue; // unknown label → soft ignore
+      const hasCols = cols.some(col => col in (p || {}));
+      if (!hasCols) continue; // school has no birth data → soft ignore
+      const hasKids = cols.some(col => { const v = (p || {})[col]; const n = Number(v); return Number.isFinite(n) && n > 0; });
+      if (!hasKids) return false;
     }
     return true;
   }
@@ -1392,6 +1402,7 @@
 
     currentFilteredPointFeatures = filtered;
     document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(filtered.length);
+    document.getElementById('kpiSchools').textContent = fmt.format(filtered.length + currentFilteredNoGirlsCount);
 
     // Rebuild cluster
     cluster.clearLayers();
