@@ -676,7 +676,7 @@
   <aside id="sidebar">
     <div id="sidebarHeader">
       <div class="title">Girls Football Map · demo</div>
-      <div class="subtitle">Карта точек развития женского и девчачьего футбола в регионах РФ. Кликните на регион для подробной статистики.</div>
+      <div class="subtitle">Карта женского футбола в регионах РФ. Кликните на регион для просмотра подробной статистики.</div>
     </div>
 
     <div id="kpis">
@@ -1122,6 +1122,7 @@
   let superByRegion = {}, firstByRegion = {};
   let pointsGeoLayer = null;
   let currentFilteredPointFeatures = [];
+  let currentFilteredNoGirlsCount = 0;
   let sportsArr = [];
 
   // ---- Legend ----
@@ -1384,7 +1385,6 @@
     }
 
     currentFilteredPointFeatures = filtered;
-    document.getElementById('kpiSchools').textContent = fmt.format(filtered.length);
 
     // Rebuild cluster
     cluster.clearLayers();
@@ -1472,6 +1472,7 @@
       const features = enabledSet.size === 0
         ? noGirlsData.features || []
         : (noGirlsData.features || []).filter(f => enabledSet.has(normRegion(f.properties?.region || "")));
+      currentFilteredNoGirlsCount = features.length;
       const filtered = { type: "FeatureCollection", features };
       noGirlsCluster.addLayer(L.geoJSON(filtered, {
         pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
@@ -1701,6 +1702,7 @@
       applySchoolsFilter();
       applyOverlayRegionFilter(enabled);
       updateKPIs(enabled);
+      document.getElementById('kpiSchools').textContent = fmt.format(currentFilteredPointFeatures.length + currentFilteredNoGirlsCount);
     };
 
     regionSelect.addEventListener('change', rerunAll);
@@ -1888,6 +1890,8 @@
         noGirlsData = data;
         const cnt = data.features?.length || 0;
         if (noGirlsStatus) noGirlsStatus.textContent = `(${fmt.format(cnt)})`;
+        currentFilteredNoGirlsCount = cnt;
+        document.getElementById('kpiSchools').textContent = fmt.format(currentFilteredPointFeatures.length + cnt);
 
         noGirlsCluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
 
