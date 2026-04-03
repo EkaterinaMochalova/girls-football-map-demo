@@ -1367,11 +1367,16 @@
     const onlyYes = !!onlyGirlsYesEl?.checked;
     const onlyNo  = !!onlyGirlsNoEl?.checked;
 
+    const anyRegionChecked = regionSelect.querySelectorAll('input:checked').length > 0;
+    const minGirlsR = Number(minGirlsRegion.value || 0);
+    const minSWG    = Number(minSchoolsWithGirls.value || 0);
+    const regionFilterActive = anyRegionChecked || minGirlsR > 0 || minSWG > 0;
+
     const filtered = [];
     for (const f of (pointsData.features || [])){
       const p = f.properties || {};
       const regionKey = normRegion(p.region || p.Region || p.name_region || p.subject || "");
-      const regionOK  = enabledRegions.size === 0 ? true : enabledRegions.has(regionKey);
+      const regionOK  = !regionFilterActive || enabledRegions.has(regionKey);
       const girls     = Number(p.girls_total ?? p.girls ?? p["Численность занимающихся футболом девочек"] ?? 0);
       const girlsOK   = girls >= state.minGS;
       const agesOK    = schoolHasAnySelectedAges(p, state.selectedAges);
@@ -1704,6 +1709,7 @@
       applyOverlayRegionFilter(enabled);
       updateKPIs(enabled);
       document.getElementById('kpiSchools').textContent = fmt.format(currentFilteredPointFeatures.length + currentFilteredNoGirlsCount);
+      document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(currentFilteredPointFeatures.length);
     };
 
     regionSelect.addEventListener('change', rerunAll);
