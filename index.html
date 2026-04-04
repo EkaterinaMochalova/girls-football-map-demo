@@ -755,6 +755,13 @@
       <div class="section">
         <h4>Регионы</h4>
 
+        <div style="position:relative;margin-bottom:6px;">
+          <input id="regionSearch" type="text" placeholder="Поиск региона…" autocomplete="off"
+            style="width:100%;box-sizing:border-box;padding:6px 28px 6px 10px;border:1px solid var(--stroke);border-radius:10px;font-size:12px;background:rgba(255,255,255,0.7);outline:none;color:var(--text);" />
+          <button id="regionSearchClear" title="Очистить поиск"
+            style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);padding:0;display:none;line-height:1;">✕</button>
+        </div>
+
         <div id="regionSelect" class="region-checkbox-list"></div>
 
         <div class="btnRow" style="margin-top:10px;">
@@ -2178,6 +2185,27 @@
     };
 
     regionSelect.addEventListener('change', rerunAll);
+
+    // ---- Region search ----
+    const regionSearch      = document.getElementById('regionSearch');
+    const regionSearchClear = document.getElementById('regionSearchClear');
+
+    function applyRegionSearch() {
+      const q = regionSearch.value.trim().toLowerCase().replace(/ё/g, 'е');
+      regionSearchClear.style.display = q ? 'block' : 'none';
+      regionSelect.querySelectorAll('label').forEach(lbl => {
+        const name = lbl.textContent.trim().toLowerCase().replace(/ё/g, 'е');
+        lbl.style.display = !q || name.includes(q) ? '' : 'none';
+      });
+    }
+
+    regionSearch.addEventListener('input', applyRegionSearch);
+    regionSearchClear.addEventListener('click', () => {
+      regionSearch.value = '';
+      applyRegionSearch();
+      regionSearch.focus();
+    });
+
     minGirlsSchool.addEventListener('input', rerunAll);
     minGirlsRegion.addEventListener('input', rerunAll);
     minSchoolsWithGirls.addEventListener('input', rerunAll);
