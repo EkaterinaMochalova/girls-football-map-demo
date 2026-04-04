@@ -1523,9 +1523,14 @@
 
   // ---- Overlay region filter (ФвШ + 5ФК) ----
   function applyOverlayRegionFilter(enabledSet){
+    const anyRegionChecked = regionSelect.querySelectorAll('input:checked').length > 0;
+    const minGirlsR = Number(minGirlsRegion.value || 0);
+    const minSWG    = Number(minSchoolsWithGirls.value || 0);
+    const filterActive = anyRegionChecked || minGirlsR > 0 || minSWG > 0;
+
     if (fvshData && fvshCluster) {
       fvshCluster.clearLayers();
-      const features = enabledSet.size === 0
+      const features = !filterActive
         ? fvshData.features || []
         : (fvshData.features || []).filter(f => enabledSet.has(normRegion(f.properties?.region || "")));
       const filtered = { type: "FeatureCollection", features };
@@ -1573,7 +1578,7 @@
 
     if (noGirlsData && noGirlsCluster) {
       noGirlsCluster.clearLayers();
-      const features = enabledSet.size === 0
+      const features = !filterActive
         ? noGirlsData.features || []
         : (noGirlsData.features || []).filter(f => enabledSet.has(normRegion(f.properties?.region || "")));
       currentFilteredNoGirlsCount = features.length;
