@@ -556,44 +556,45 @@
 
     /* ===== Compact horizontal legend ===== */
     .legend-compact{
-      background: rgba(255,255,255,0.60);
+      background: rgba(255,255,255,0.72);
       border: 1px solid rgba(0,0,0,0.10);
-      border-radius: 14px;
-      padding: 8px 10px;
+      border-radius: 12px;
+      padding: 5px 9px;
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.10);
-      max-width: min(680px, calc(100vw - 420px));
+      box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+      max-width: min(620px, calc(100vw - 420px));
       pointer-events: auto;
     }
     .legend-compact .legend-header{
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       cursor: pointer;
       user-select: none;
+      padding: 2px 0;
     }
     .legend-compact .title{
-      font-size: 12px;
-      font-weight: 800;
-      color: rgba(20,20,25,0.72);
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(20,20,25,0.60);
       margin: 0;
-      letter-spacing: -0.01em;
+      letter-spacing: 0.01em;
     }
     .legend-compact .legend-toggle{
-      font-size: 13px;
-      color: rgba(20,20,25,0.45);
+      font-size: 11px;
+      color: rgba(20,20,25,0.35);
       line-height: 1;
       flex-shrink: 0;
       transition: transform 0.2s;
     }
     .legend-compact.collapsed .legend-toggle{ transform: rotate(180deg); }
     .legend-compact .legend-body{
-      margin-top: 6px;
+      margin-top: 5px;
       overflow: hidden;
-      transition: max-height 0.25s ease, opacity 0.2s;
-      max-height: 200px;
+      transition: max-height 0.22s ease, opacity 0.18s;
+      max-height: 180px;
       opacity: 1;
     }
     .legend-compact.collapsed .legend-body{
@@ -601,36 +602,55 @@
       opacity: 0;
       margin-top: 0;
     }
-    .legend-compact .items{
-      display:flex;
-      gap: 10px;
+    .legend-compact .legend-section{
+      display: flex;
+      gap: 4px;
       flex-wrap: wrap;
       align-items: center;
+      margin-bottom: 4px;
+    }
+    .legend-compact .legend-section:last-child{ margin-bottom: 0; }
+    .legend-compact .section-sep{
+      width: 100%;
+      height: 1px;
+      background: rgba(0,0,0,0.07);
+      margin: 3px 0;
     }
     .legend-compact .item{
-      display:flex;
-      gap: 8px;
+      display: flex;
+      gap: 5px;
       align-items: center;
-      padding: 6px 8px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.45);
+      padding: 3px 7px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.5);
       border: 1px solid rgba(0,0,0,0.06);
+      transition: opacity 0.18s, background 0.18s;
+    }
+    .legend-compact .item.clickable{
+      cursor: pointer;
+    }
+    .legend-compact .item.clickable:hover{
+      background: rgba(255,255,255,0.85);
+    }
+    .legend-compact .item.inactive{
+      opacity: 0.35;
     }
     .legend-compact .swatch{
-      width: 22px;
-      height: 12px;
-      border-radius: 6px;
+      width: 16px;
+      height: 9px;
+      border-radius: 4px;
       border: 1px solid rgba(0,0,0,0.12);
     }
     .legend-compact .dot-swatch{
-      width: 12px;
-      height: 12px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
-      border: 1px solid rgba(0,0,0,0.12);
+      border: 1px solid rgba(0,0,0,0.15);
+      flex-shrink: 0;
     }
     .legend-compact .lbl{
-      font-size: 12px;
-      color: rgba(20,20,25,0.78);
+      font-size: 10.5px;
+      color: rgba(20,20,25,0.72);
       white-space: nowrap;
     }
 
@@ -1147,33 +1167,79 @@
   let sportsArr = [];
 
   // ---- Legend ----
+  let regionFillVisible = true;
   function addCompactLegend(){
     const legend = L.control({ position: 'bottomleft' });
     legend.onAdd = function() {
-      const div = L.DomUtil.create('div', 'legend-compact');
+      const div = L.DomUtil.create('div', 'legend-compact collapsed');
       div.innerHTML = `
         <div class="legend-header">
-          <div class="title">Девочек в регионе</div>
+          <div class="title">Легенда</div>
           <span class="legend-toggle">▼</span>
         </div>
         <div class="legend-body">
-          <div class="items">
+          <div class="legend-section">
+            <div class="item clickable" id="leg-fill" title="Нажмите, чтобы скрыть/показать подсветку регионов">
+              <span class="lbl" style="font-size:10px;color:#64748b;font-weight:600;">ПОДСВЕТКА РЕГИОНОВ</span>
+            </div>
+          </div>
+          <div class="legend-section">
             <div class="item"><span class="swatch" style="background:#eff6ff"></span><span class="lbl">0</span></div>
             <div class="item"><span class="swatch" style="background:#dbeafe"></span><span class="lbl">1–50</span></div>
             <div class="item"><span class="swatch" style="background:#bfdbfe"></span><span class="lbl">51–150</span></div>
             <div class="item"><span class="swatch" style="background:#93c5fd"></span><span class="lbl">151–300</span></div>
             <div class="item"><span class="swatch" style="background:#60a5fa"></span><span class="lbl">301–700</span></div>
             <div class="item"><span class="swatch" style="background:#3b82f6"></span><span class="lbl">701+</span></div>
-            <div class="item"><span class="dot-swatch" style="background:#3b82f6"></span><span class="lbl">Спортшколы с девочками</span></div>
-            <div class="item"><span class="dot-swatch" style="background:#16a34a"></span><span class="lbl">Школа ФвШ</span></div>
-            <div class="item"><span class="dot-swatch" style="background:#ef4444"></span><span class="lbl">Спортшколы без девочек</span></div>
+          </div>
+          <div class="section-sep"></div>
+          <div class="legend-section">
+            <div class="item clickable" id="leg-sports" title="Нажмите, чтобы скрыть/показать слой">
+              <span class="dot-swatch" style="background:#3b82f6"></span><span class="lbl">С девочками</span>
+            </div>
+            <div class="item clickable" id="leg-fvsh" title="Нажмите, чтобы скрыть/показать слой">
+              <span class="dot-swatch" style="background:#16a34a"></span><span class="lbl">ФвШ</span>
+            </div>
+            <div class="item clickable" id="leg-nogirls" title="Нажмите, чтобы скрыть/показать слой">
+              <span class="dot-swatch" style="background:#ef4444"></span><span class="lbl">Без девочек</span>
+            </div>
           </div>
         </div>
       `;
+
+      // Collapse toggle
       div.querySelector('.legend-header').addEventListener('click', () => {
         div.classList.toggle('collapsed');
-        div.querySelector('.title').textContent = div.classList.contains('collapsed') ? 'Легенда' : 'Девочек в регионе';
+        div.querySelector('.title').textContent = div.classList.contains('collapsed') ? 'Легенда' : 'Легенда';
       });
+
+      // Region fill toggle
+      div.querySelector('#leg-fill').addEventListener('click', e => {
+        e.stopPropagation();
+        regionFillVisible = !regionFillVisible;
+        if (regionsFillLayer) {
+          regionsFillLayer.eachLayer(l => l.setStyle({ fillOpacity: regionFillVisible ? 0.55 : 0, opacity: regionFillVisible ? 1 : 0.15 }));
+        }
+        div.querySelector('#leg-fill').classList.toggle('inactive', !regionFillVisible);
+      });
+
+      // Layer dot toggles — mirrors the sidebar checkboxes
+      function wireLayerItem(itemId, checkboxId) {
+        const item = div.querySelector(itemId);
+        if (!item) return;
+        const cb = document.getElementById(checkboxId);
+        if (cb) item.classList.toggle('inactive', !cb.checked);
+        item.addEventListener('click', e => {
+          e.stopPropagation();
+          if (cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
+          item.classList.toggle('inactive', cb ? !cb.checked : false);
+        });
+        // Keep in sync when sidebar checkbox changes
+        if (cb) cb.addEventListener('change', () => item.classList.toggle('inactive', !cb.checked));
+      }
+      wireLayerItem('#leg-sports',  'showSportsSchools');
+      wireLayerItem('#leg-fvsh',    'toggleFVSH');
+      wireLayerItem('#leg-nogirls', 'toggleNoGirls');
+
       L.DomEvent.disableClickPropagation(div);
       return div;
     };
