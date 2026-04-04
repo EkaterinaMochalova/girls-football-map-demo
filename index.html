@@ -1255,6 +1255,8 @@
     const girls          = Number(props.total_girls ?? 0);
     const avg            = Number(props.avg_girls_per_school ?? 0);
     const coverage       = schools > 0 ? Math.round(schoolsWithGirls / schools * 100) : 0;
+    const coverageIndex  = Number(props.coverage_index ?? 0);
+    const pop            = Number(props.population_thousands ?? 0);
 
     regionPanelName.textContent = props.name ?? 'Регион';
     regionPanelSub.textContent  = 'Сводка по спортшколам 2024';
@@ -1263,7 +1265,12 @@
       <div class="kpi"><div class="v">${fmt.format(schools)}</div><div class="t">объектов</div></div>
       <div class="kpi"><div class="v">${fmt.format(schoolsWithGirls)}</div><div class="t">с девочками</div></div>
       <div class="kpi"><div class="v">${fmt.format(girls)}</div><div class="t">девочек</div></div>
-      <div class="kpi"><div class="v">${coverage}%</div><div class="t">охват</div></div>
+      <div class="kpi" title="Девочек на 100 000 жителей региона (Росстат 2023)">
+        <div class="v" style="color:${coverageIndex>=50?'#15803d':coverageIndex>=25?'#ca8a04':'#dc2626'};">
+          ${coverageIndex > 0 ? coverageIndex.toFixed(1) : '—'}
+        </div>
+        <div class="t">на 100 тыс. жит.</div>
+      </div>
     `;
 
     let html = '';
@@ -1649,7 +1656,7 @@
     { key: 'schools_with_girls', label: 'С девочками',   numeric: true  },
     { key: 'total_girls',        label: 'Девочек',       numeric: true  },
     { key: 'avg',                label: 'Ср. на объект', numeric: true  },
-    { key: 'coverage',           label: 'Охват %',       numeric: true  },
+    { key: 'coverage_index',     label: 'На 100 тыс.',   numeric: true  },
   ];
 
   function renderRegionsTable() {
@@ -1666,7 +1673,7 @@
         schools_with_girls: sg,
         total_girls:        Number(p.total_girls ?? 0),
         avg:                Math.round(Number(p.avg_girls_per_school ?? 0) * 10) / 10,
-        coverage:           ts > 0 ? Math.round(sg / ts * 100) : 0,
+        coverage_index:     Number(p.coverage_index ?? 0),
       };
     });
 
@@ -1691,14 +1698,16 @@
     }
     html += `</tr></thead><tbody>`;
     for (const r of rows) {
-      const barW = Math.round(Math.min(100, r.coverage) * 0.5);
+      const ci = r.coverage_index;
+      const ciColor = ci >= 50 ? '#15803d' : ci >= 25 ? '#ca8a04' : ci > 0 ? '#dc2626' : '#9ca3af';
+      const barW = Math.round(Math.min(100, ci) * 0.7);
       html += `<tr>
         <td>${escapeHTML(r.name)}</td>
         <td class="num">${fmt.format(r.total_schools)}</td>
         <td class="num">${fmt.format(r.schools_with_girls)}</td>
         <td class="num">${fmt.format(r.total_girls)}</td>
         <td class="num">${r.avg > 0 ? fmt.format(r.avg) : '—'}</td>
-        <td class="num"><span class="coverage-bar" style="width:${barW}px;"></span>${r.coverage}%</td>
+        <td class="num"><span class="coverage-bar" style="width:${barW}px;background:${ciColor};"></span><span style="color:${ciColor};font-weight:700;">${ci > 0 ? ci.toFixed(1) : '—'}</span></td>
       </tr>`;
     }
     html += '</tbody></table>';
@@ -1717,12 +1726,12 @@
 
   function exportRegionsCSV() {
     if (!regionsData) return;
-    const header = ['Регион','Объектов всего','С девочками','Девочек всего','Ср. на объект','Охват %'];
+    const header = ['Регион','Объектов всего','С девочками','Девочек всего','Ср. на объект','На 100 тыс. жит.'];
     const dataRows = (regionsData.features || []).map(f => {
       const p  = f.properties || {};
       const ts = Number(p.total_schools ?? 0);
       const sg = Number(p.schools_with_girls ?? 0);
-      return [p.name ?? '', ts, sg, Number(p.total_girls ?? 0), Math.round(Number(p.avg_girls_per_school ?? 0) * 10) / 10, ts > 0 ? Math.round(sg / ts * 100) : 0];
+      return [p.name ?? '', ts, sg, Number(p.total_girls ?? 0), Math.round(Number(p.avg_girls_per_school ?? 0) * 10) / 10, Number(p.coverage_index ?? 0)];
     });
     const csv = [header, ...dataRows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
