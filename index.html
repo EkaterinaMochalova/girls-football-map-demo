@@ -320,13 +320,6 @@
       color: #2563eb;
     }
 
-    /* Regions table */
-    #regionsTableView {
-      padding: 0 14px 14px;
-      overflow: auto;
-      flex: 1;
-      display: none;
-    }
     .rtable {
       width: 100%;
       border-collapse: collapse;
@@ -872,20 +865,14 @@
   <section id="listCard">
     <div id="listHeader">
       <div class="left">
-        <div class="tab-btns">
-          <button class="tab-btn active" id="tabSchools">Школы</button>
-          <button class="tab-btn" id="tabRegions">Регионы</button>
-        </div>
         <span id="listSub" style="font-size:12px; color:var(--muted);">—</span>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <input id="search" placeholder="Поиск по названию / городу / региону" />
         <button class="btn-small" id="exportXLSX" title="Экспорт школ в Excel (по текущему фильтру)">⬇ XLSX</button>
-        <button class="btn-small" id="exportCSV" style="display:none;" title="Экспорт таблицы регионов в CSV">⬇ CSV</button>
       </div>
     </div>
     <div id="schoolsList"></div>
-    <div id="regionsTableView"></div>
   </section>
 
 </div>
@@ -1137,10 +1124,7 @@
   const listSub           = document.getElementById('listSub');
   const searchInput       = document.getElementById('search');
   const schoolsList       = document.getElementById('schoolsList');
-  const regionsTableView  = document.getElementById('regionsTableView');
   const tabSchoolsBtn     = document.getElementById('tabSchools');
-  const tabRegionsBtn     = document.getElementById('tabRegions');
-  const exportCSVBtn      = document.getElementById('exportCSV');
   const exportXLSXBtn     = document.getElementById('exportXLSX');
 
   // Region panel
@@ -1151,9 +1135,6 @@
   const regionPanelContent = document.getElementById('regionPanelContent');
   const closeRegionPanelBtn = document.getElementById('closeRegionPanel');
 
-  let activeView     = 'schools'; // 'schools' | 'regions'
-  let tableSortCol   = 'total_girls';
-  let tableSortDir   = 'desc';
 
   // ---- Map init ----
   const map = L.map('map', { preferCanvas: true }).setView([61.5, 96.5], 3);
@@ -1642,8 +1623,7 @@
       if (!map.hasLayer(cluster)) map.addLayer(cluster);
     }
 
-    if (activeView === 'schools') renderSchoolsList();
-    else renderRegionsTable();
+    renderSchoolsList();
   }
 
   // ---- KPI update ----
@@ -1782,84 +1762,6 @@
       });
       schoolsList.appendChild(el);
     }
-  }
-
-  // ---- Regions table ----
-  const TABLE_COLS = [
-    { key: 'name',               label: 'Регион',        numeric: false },
-    { key: 'total_schools',      label: 'Объектов',      numeric: true  },
-    { key: 'schools_with_girls', label: 'С девочками',  numeric: true  },
-    { key: 'pct_with_girls',     label: '% с дев.',     numeric: true  },
-    { key: 'total_girls',        label: 'Девочек',      numeric: true  },
-    { key: 'avg',                label: 'Ср./объект',   numeric: true  },
-    { key: 'coverage_index',     label: 'На 100 тыс.',  numeric: true  },
-  ];
-
-  function renderRegionsTable() {
-    if (!regionsData) return;
-    const search = (searchInput.value || '').trim().toLowerCase();
-
-    let rows = (regionsData.features || []).map(f => {
-      const p  = f.properties || {};
-      const ts = Number(p.total_schools ?? 0);
-      const sg = Number(p.schools_with_girls ?? 0);
-      return {
-        name:               p.name ?? '—',
-        total_schools:      ts,
-        schools_with_girls: sg,
-        total_girls:        Number(p.total_girls ?? 0),
-        avg:                Math.round(Number(p.avg_girls_per_school ?? 0) * 10) / 10,
-        pct_with_girls:     Number(p.pct_with_girls ?? 0),
-        coverage_index:     Number(p.coverage_index ?? 0),
-      };
-    });
-
-    if (search) rows = rows.filter(r => r.name.toLowerCase().includes(search));
-
-    rows.sort((a, b) => {
-      const va = a[tableSortCol], vb = b[tableSortCol];
-      if (typeof va === 'string') {
-        const cmp = String(va).localeCompare(String(vb), 'ru');
-        return tableSortDir === 'asc' ? cmp : -cmp;
-      }
-      return tableSortDir === 'asc' ? va - vb : vb - va;
-    });
-
-    listSub.textContent = `${fmt.format(rows.length)} регионов`;
-
-    let html = `<table class="rtable"><thead><tr>`;
-    for (const col of TABLE_COLS) {
-      const isActive = tableSortCol === col.key;
-      const arrow = isActive ? (tableSortDir === 'asc' ? '↑' : '↓') : '↕';
-      html += `<th class="${isActive ? 'active-sort' : ''}" data-col="${col.key}">${escapeHTML(col.label)}<span class="sort-arrow">${arrow}</span></th>`;
-    }
-    html += `</tr></thead><tbody>`;
-    for (const r of rows) {
-      const ci = r.coverage_index;
-      const ciColor = ci >= 50 ? '#15803d' : ci >= 25 ? '#ca8a04' : ci > 0 ? '#dc2626' : '#9ca3af';
-      const barW = Math.round(Math.min(100, ci) * 0.7);
-      html += `<tr>
-        <td>${escapeHTML(r.name)}</td>
-        <td class="num">${fmt.format(r.total_schools)}</td>
-        <td class="num">${fmt.format(r.schools_with_girls)}</td>
-        <td class="num"><span style="color:${r.pct_with_girls>=60?'#15803d':r.pct_with_girls>=30?'#ca8a04':'#dc2626'};font-weight:700;">${r.pct_with_girls > 0 ? r.pct_with_girls.toFixed(1)+'%' : '—'}</span></td>
-        <td class="num">${fmt.format(r.total_girls)}</td>
-        <td class="num">${r.avg > 0 ? fmt.format(r.avg) : '—'}</td>
-        <td class="num"><span class="coverage-bar" style="width:${barW}px;background:${ciColor};"></span><span style="color:${ciColor};font-weight:700;">${ci > 0 ? ci.toFixed(1) : '—'}</span></td>
-      </tr>`;
-    }
-    html += '</tbody></table>';
-
-    regionsTableView.innerHTML = html;
-
-    regionsTableView.querySelectorAll('th[data-col]').forEach(th => {
-      th.addEventListener('click', () => {
-        const col = th.dataset.col;
-        if (tableSortCol === col) { tableSortDir = tableSortDir === 'asc' ? 'desc' : 'asc'; }
-        else { tableSortCol = col; tableSortDir = TABLE_COLS.find(c => c.key === col)?.numeric ? 'desc' : 'asc'; }
-        renderRegionsTable();
-      });
-    });
   }
 
   function exportSchoolsXLSX() {
@@ -2084,45 +1986,6 @@
     XLSX.writeFile(wb, `girls_football_${ts}.xlsx`);
   }
 
-  function exportRegionsCSV() {
-    if (!regionsData) return;
-    const header = ['Регион','Объектов всего','С девочками','Девочек всего','Ср. на объект','На 100 тыс. жит.'];
-    const dataRows = (regionsData.features || []).map(f => {
-      const p  = f.properties || {};
-      const ts = Number(p.total_schools ?? 0);
-      const sg = Number(p.schools_with_girls ?? 0);
-      return [p.name ?? '', ts, sg, Number(p.total_girls ?? 0), Math.round(Number(p.avg_girls_per_school ?? 0) * 10) / 10, Number(p.coverage_index ?? 0)];
-    });
-    const csv = [header, ...dataRows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'girls_football_regions.csv';
-    a.click();
-  }
-
-  // ---- Tab switch ----
-  function switchView(view) {
-    activeView = view;
-    if (view === 'schools') {
-      tabSchoolsBtn.classList.add('active');
-      tabRegionsBtn.classList.remove('active');
-      schoolsList.style.display = '';
-      regionsTableView.style.display = 'none';
-      searchInput.placeholder = 'Поиск по названию / городу / региону';
-      exportCSVBtn.style.display = 'none';
-      renderSchoolsList();
-    } else {
-      tabSchoolsBtn.classList.remove('active');
-      tabRegionsBtn.classList.add('active');
-      schoolsList.style.display = 'none';
-      regionsTableView.style.display = '';
-      searchInput.placeholder = 'Поиск по региону';
-      exportCSVBtn.style.display = '';
-      renderRegionsTable();
-    }
-  }
-
   function fillRegionSelectFromGeoJSON(){
     const regions = (regionsData?.features || [])
       .map(f => f.properties?.name).filter(Boolean)
@@ -2236,13 +2099,9 @@
     });
 
     searchInput.addEventListener('input', () => {
-      if (activeView === 'schools') renderSchoolsList();
-      else renderRegionsTable();
+      renderSchoolsList();
     });
 
-    tabSchoolsBtn.addEventListener('click', () => switchView('schools'));
-    tabRegionsBtn.addEventListener('click', () => switchView('regions'));
-    exportCSVBtn.addEventListener('click', exportRegionsCSV);
     exportXLSXBtn.addEventListener('click', exportSchoolsXLSX);
 
     closeRegionPanelBtn.addEventListener('click', closeRegionPanel);
