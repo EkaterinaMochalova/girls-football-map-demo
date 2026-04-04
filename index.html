@@ -470,35 +470,6 @@
     .panel-school-name { font-weight: 700; font-size: 12px; }
     .panel-school-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-    /* Есть/нет девочек */
-    .filterBlock{
-      margin-bottom: 14px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--stroke);
-    }
-    .filterTitle{
-      margin: 0 0 10px 0;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 800;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-    }
-    .chipRow{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      padding: 10px 10px;
-      border: 1px solid var(--stroke);
-      border-radius: 14px;
-      background: rgba(255,255,255,0.6);
-      box-shadow: var(--shadow-soft);
-      cursor:pointer;
-      user-select:none;
-      margin-bottom: 10px;
-    }
-    .chipRow input{ transform: scale(1.05); }
-    .chipRow span{ font-weight: 650; font-size: 13px; }
 
     /* Mobile tabs */
     #mobileTabs { display: none; }
@@ -776,22 +747,6 @@
         </div>
       </div>
 
-      <!-- Girls presence -->
-      <div class="filterBlock">
-        <div class="filterTitle">Девочки в школе</div>
-
-        <label class="chipRow">
-          <input type="checkbox" id="onlyGirlsYes" />
-          <span>Только "есть девочки"</span>
-        </label>
-
-        <label class="chipRow">
-          <input type="checkbox" id="onlyGirlsNo" />
-          <span>Только "нет девочек"</span>
-        </label>
-
-        <div class="hint">Если оба выключены или оба включены, показываем все школы.</div>
-      </div>
 
       <!-- Age groups -->
       <div class="section">
@@ -1561,9 +1516,6 @@
     if (!pointsData) return;
     const enabledRegions = getEnabledRegionSet();
     const state   = readUIState();
-    const onlyYes = !!onlyGirlsYesEl?.checked;
-    const onlyNo  = !!onlyGirlsNoEl?.checked;
-
     const anyRegionChecked = regionSelect.querySelectorAll('input:checked').length > 0;
     const minGirlsR = Number(minGirlsRegion.value || 0);
     const minSWG    = Number(minSchoolsWithGirls.value || 0);
@@ -1578,13 +1530,7 @@
       const girlsOK   = girls >= state.minGS;
       const agesOK    = schoolHasAnySelectedAges(p, state.selectedAges);
       const compsOK   = schoolMatchesCompetitions(p, state.selectedComps);
-      const hasGirls  = p.has_girls === true || String(p.has_girls).toLowerCase() === "true" || girls > 0;
-      let presenceOK  = true;
-      if (onlyYes !== onlyNo) {
-        if (onlyYes && !hasGirls) presenceOK = false;
-        if (onlyNo  &&  hasGirls) presenceOK = false;
-      }
-      if (regionOK && girlsOK && agesOK && compsOK && presenceOK) filtered.push(f);
+      if (regionOK && girlsOK && agesOK && compsOK) filtered.push(f);
     }
 
     currentFilteredPointFeatures = filtered;
@@ -2055,8 +2001,6 @@
     minSchoolsWithGirls.addEventListener('input', rerunAll);
     ageChks.forEach(x => x.addEventListener('change', rerunAll));
     compChks.forEach(x => x.addEventListener('change', rerunAll));
-    onlyGirlsYesEl?.addEventListener('change', rerunAll);
-    onlyGirlsNoEl?.addEventListener('change', rerunAll);
 
     superCheckbox.addEventListener('change', rebuildOutlines);
     firstCheckbox.addEventListener('change', rebuildOutlines);
@@ -2098,8 +2042,6 @@
       if (sportsCheckbox) sportsCheckbox.checked = true;
       if (fvshCheckbox) fvshCheckbox.checked = true;
       if (noGirlsCheckbox) noGirlsCheckbox.checked = true;
-      document.getElementById('onlyGirlsYes').checked = false;
-      document.getElementById('onlyGirlsNo').checked = false;
       regionSelect.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
       minGirlsSchool.value = "0";
       minGirlsRegion.value = "0";
