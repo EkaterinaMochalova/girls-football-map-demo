@@ -25,7 +25,7 @@
       --blur: 18px;
     }
 
-    html, body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: var(--text); background: var(--bg); }
+    html, body { height: 100%; overflow: hidden; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: var(--text); background: var(--bg); }
 
     body:before{
       content:"";
@@ -1621,6 +1621,7 @@
     currentFilteredPointFeatures = filtered;
     document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(filtered.length);
     document.getElementById('kpiSchools').textContent = fmt.format(filtered.length + currentFilteredNoGirlsCount);
+    if (sportsStatus) sportsStatus.textContent = `(${fmt.format(filtered.length)})`;
 
     // Rebuild cluster
     cluster.clearLayers();
@@ -1665,6 +1666,7 @@
       const features = !filterActive
         ? fvshData.features || []
         : (fvshData.features || []).filter(f => enabledSet.has(normRegion(f.properties?.region || "")));
+      if (fvshStatus) fvshStatus.textContent = `(${fmt.format(features.length)})`;
       const filtered = { type: "FeatureCollection", features };
       fvshCluster.addLayer(L.geoJSON(filtered, {
         pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
@@ -1714,6 +1716,7 @@
         ? noGirlsData.features || []
         : (noGirlsData.features || []).filter(f => enabledSet.has(normRegion(f.properties?.region || "")));
       currentFilteredNoGirlsCount = features.length;
+      if (noGirlsStatus) noGirlsStatus.textContent = `(${fmt.format(features.length)})`;
       const filtered = { type: "FeatureCollection", features };
       noGirlsCluster.addLayer(L.geoJSON(filtered, {
         pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
