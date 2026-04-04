@@ -873,6 +873,7 @@
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <input id="search" placeholder="Поиск по названию / городу / региону" />
+        <button class="btn-small" id="exportXLSX" title="Экспорт школ в Excel (по текущему фильтру)">⬇ XLSX</button>
         <button class="btn-small" id="exportCSV" style="display:none;" title="Экспорт таблицы регионов в CSV">⬇ CSV</button>
       </div>
     </div>
@@ -886,6 +887,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
 <script>
 (function () {
@@ -1132,6 +1134,7 @@
   const tabSchoolsBtn     = document.getElementById('tabSchools');
   const tabRegionsBtn     = document.getElementById('tabRegions');
   const exportCSVBtn      = document.getElementById('exportCSV');
+  const exportXLSXBtn     = document.getElementById('exportXLSX');
 
   // Region panel
   const regionPanel        = document.getElementById('regionPanel');
@@ -1734,6 +1737,70 @@
     });
   }
 
+  function exportSchoolsXLSX() {
+    if (!currentFilteredPointFeatures.length) return;
+    const bool = v => v === true || String(v).toLowerCase() === 'true' ? 'Да' : v === false || String(v).toLowerCase() === 'false' ? 'Нет' : '';
+    const num  = v => (v != null && v !== '') ? Number(v) : null;
+
+    const COLS = [
+      { h: 'Название',            fn: p => p.name ?? '' },
+      { h: 'МРО',                 fn: p => p.mro ?? '' },
+      { h: 'Регион',              fn: p => p.region ?? '' },
+      { h: 'Город',               fn: p => p.city ?? '' },
+      { h: 'Адрес',               fn: p => p.address ?? '' },
+      { h: 'Телефон',             fn: p => p.phone ?? '' },
+      { h: 'Email',               fn: p => p.email ?? '' },
+      { h: 'Девочек всего',       fn: p => num(p.girls_total) },
+      { h: 'Смеш. группы',        fn: p => p.mixed_train != null ? bool(p.mixed_train) : '' },
+      { h: 'Смеш. соревн.',       fn: p => p.mixed_comp  != null ? bool(p.mixed_comp)  : '' },
+      { h: 'Тренеров всего',      fn: p => num(p.coaches_total) },
+      { h: 'Тренеров-женщин',     fn: p => num(p.coaches_female) },
+      { h: '2005 и ст.',          fn: p => num(p.birth_2005_plus) },
+      { h: '2006', fn: p => num(p.birth_2006) },
+      { h: '2007', fn: p => num(p.birth_2007) },
+      { h: '2008', fn: p => num(p.birth_2008) },
+      { h: '2009', fn: p => num(p.birth_2009) },
+      { h: '2010', fn: p => num(p.birth_2010) },
+      { h: '2011', fn: p => num(p.birth_2011) },
+      { h: '2012', fn: p => num(p.birth_2012) },
+      { h: '2013', fn: p => num(p.birth_2013) },
+      { h: '2014', fn: p => num(p.birth_2014) },
+      { h: '2015', fn: p => num(p.birth_2015) },
+      { h: '2016', fn: p => num(p.birth_2016) },
+      { h: '2017', fn: p => num(p.birth_2017) },
+      { h: '2018', fn: p => num(p.birth_2018) },
+      { h: '2019 и мл.',          fn: p => num(p.birth_2019_minus) },
+      { h: 'Долгота',             fn: (p, f) => f.geometry?.coordinates?.[0] ?? null },
+      { h: 'Широта',              fn: (p, f) => f.geometry?.coordinates?.[1] ?? null },
+    ];
+
+    const rows = currentFilteredPointFeatures.map(f => {
+      const p = f.properties || {};
+      return COLS.map(c => c.fn(p, f));
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([COLS.map(c => c.h), ...rows]);
+
+    // Column widths
+    ws['!cols'] = COLS.map(c => ({ wch: Math.max(c.h.length + 2, 12) }));
+    ws['!cols'][0].wch = 42; // Название
+    ws['!cols'][4].wch = 36; // Адрес
+    ws['!cols'][5].wch = 20; // Телефон
+    ws['!cols'][6].wch = 28; // Email
+
+    // Bold header row
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
+      if (cell) cell.s = { font: { bold: true }, fill: { fgColor: { rgb: 'EFF6FF' } } };
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Школы с девочками');
+    const ts = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `girls_football_schools_${ts}.xlsx`);
+  }
+
   function exportRegionsCSV() {
     if (!regionsData) return;
     const header = ['Регион','Объектов всего','С девочками','Девочек всего','Ср. на объект','На 100 тыс. жит.'];
@@ -1872,6 +1939,7 @@
     tabSchoolsBtn.addEventListener('click', () => switchView('schools'));
     tabRegionsBtn.addEventListener('click', () => switchView('regions'));
     exportCSVBtn.addEventListener('click', exportRegionsCSV);
+    exportXLSXBtn.addEventListener('click', exportSchoolsXLSX);
 
     closeRegionPanelBtn.addEventListener('click', closeRegionPanel);
 
