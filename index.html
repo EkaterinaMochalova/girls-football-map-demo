@@ -995,7 +995,26 @@
         <div class="muted">${escapeHTML([p.region, p.city].filter(Boolean).join(", "))}</div>
         ${p.address ? `<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${escapeHTML(p.address)}</div>` : ''}
         <div style="margin-top:4px;"><b>Девочек:</b> <span style="color:${hasGirls?'#2563eb':'#9ca3af'};font-weight:800;">${fmt.format(girls)}</span></div>
-        ${phone ? `<div style="margin-top:4px;font-size:12px;"><b>Тел:</b> <a href="tel:${escapeHTML(phone)}" style="color:#2563eb;">${escapeHTML(phone)}</a></div>` : ''}
+
+        ${(p.coaches_total != null || p.mixed_train != null) ? `
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.07);display:flex;flex-wrap:wrap;gap:6px;">
+          ${p.coaches_total != null ? `
+            <div style="flex:1;min-width:110px;background:#f0f7ff;border-radius:10px;padding:7px 10px;">
+              <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;">Тренеры</div>
+              <div style="font-size:18px;font-weight:800;color:#1d4ed8;line-height:1;">${p.coaches_total}</div>
+              ${p.coaches_female != null ? `<div style="font-size:11px;color:#64748b;margin-top:2px;">из них женщин: <b style="color:#7c3aed;">${p.coaches_female}</b></div>` : ''}
+            </div>
+          ` : ''}
+          ${p.mixed_train != null ? `
+            <div style="flex:1;min-width:110px;background:${p.mixed_train?'#f0fdf4':'#fafafa'};border-radius:10px;padding:7px 10px;border:1px solid ${p.mixed_train?'rgba(22,163,74,0.2)':'rgba(0,0,0,0.08)'};">
+              <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;">Смешанные группы</div>
+              <div style="font-size:13px;font-weight:700;color:${p.mixed_train?'#15803d':'#9ca3af'};">${p.mixed_train?'✓ Да':'✗ Нет'}</div>
+              ${p.mixed_comp != null ? `<div style="font-size:11px;color:#64748b;margin-top:2px;">соревнования: <b style="color:${p.mixed_comp?'#15803d':'#9ca3af'};">${p.mixed_comp?'Да':'Нет'}</b></div>` : ''}
+            </div>
+          ` : ''}
+        </div>` : ''}
+
+        ${phone ? `<div style="margin-top:8px;font-size:12px;"><b>Тел:</b> <a href="tel:${escapeHTML(phone)}" style="color:#2563eb;">${escapeHTML(phone)}</a></div>` : ''}
         ${email ? `<div style="font-size:12px;"><b>Email:</b> <a href="mailto:${escapeHTML(email)}" style="color:#2563eb;">${escapeHTML(email)}</a></div>` : ''}
         ${geoQ ? `<div style="margin-top:6px;"><span style="background:rgba(0,0,0,0.06);border-radius:6px;padding:2px 6px;font-size:10px;color:var(--muted);">geo: ${escapeHTML(String(geoQ))}</span></div>` : ''}
       </div>
