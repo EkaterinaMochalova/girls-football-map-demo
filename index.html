@@ -1006,20 +1006,13 @@
         ${p.address ? `<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${escapeHTML(p.address)}</div>` : ''}
         <div style="margin-top:4px;"><b>Девочек:</b> <span style="color:${hasGirls?'#2563eb':'#9ca3af'};font-weight:800;">${fmt.format(girls)}</span></div>
 
-        ${(p.coaches_total != null || p.mixed_train != null) ? `
+        ${(p.coaches_total != null) ? `
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.07);display:flex;flex-wrap:wrap;gap:6px;">
           ${p.coaches_total != null ? `
             <div style="flex:1;min-width:110px;background:#f0f7ff;border-radius:10px;padding:7px 10px;">
               <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;">Тренеры</div>
               <div style="font-size:18px;font-weight:800;color:#1d4ed8;line-height:1;">${p.coaches_total}</div>
               ${p.coaches_female != null ? `<div style="font-size:11px;color:#64748b;margin-top:2px;">из них женщин: <b style="color:#7c3aed;">${p.coaches_female}</b></div>` : ''}
-            </div>
-          ` : ''}
-          ${p.mixed_train != null ? `
-            <div style="flex:1;min-width:110px;background:${p.mixed_train?'#f0fdf4':'#fafafa'};border-radius:10px;padding:7px 10px;border:1px solid ${p.mixed_train?'rgba(22,163,74,0.2)':'rgba(0,0,0,0.08)'};">
-              <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;">Смешанные группы</div>
-              <div style="font-size:13px;font-weight:700;color:${p.mixed_train?'#15803d':'#9ca3af'};">${p.mixed_train?'✓ Да':'✗ Нет'}</div>
-              ${p.mixed_comp != null ? `<div style="font-size:11px;color:#64748b;margin-top:2px;">соревнования: <b style="color:${p.mixed_comp?'#15803d':'#9ca3af'};">${p.mixed_comp?'Да':'Нет'}</b></div>` : ''}
             </div>
           ` : ''}
         </div>` : ''}
@@ -1358,8 +1351,8 @@
         </div>` : ''}`;
     }
 
-    // ── Mixed teams ────────────────────────────────────────────────────
-    if (schoolsWithMixedData.length > 0) {
+    // ── Mixed teams — hidden for now ───────────────────────────────────
+    if (false && schoolsWithMixedData.length > 0) {
       const pctMixedTrain = Math.round(mixedTrainCount / schoolsWithMixedData.length * 100);
       const pctMixedComp  = Math.round(mixedCompCount  / schoolsWithMixedData.length * 100);
       html += `
@@ -1863,8 +1856,6 @@
       { h: 'Тренеров-женщин',        w: 14, fn: (p, agg) => agg?.coachSchools ? agg.coachFemale : null },
       { h: '% тренеров-женщин',      w: 14, fn: (p, agg) => agg?.coachTotal   ? Math.round(agg.coachFemale / agg.coachTotal * 100) : null, s: v => v != null ? pctStyle(v) : {} },
       { h: 'Шк. ответили (опрос)',   w: 14, fn: (p, agg) => agg?.coachSchools || null },
-      { h: 'Шк. смеш. тренировки',  w: 16, fn: (p, agg) => agg?.mixSchools   ? agg.mixTrain  : null },
-      { h: 'Шк. смеш. соревнования', w: 18, fn: (p, agg) => agg?.mixSchools  ? agg.mixComp   : null },
     ];
 
     const rRows = regionsInScope.map(f => {
@@ -1907,8 +1898,6 @@
       { h: 'Телефон',               w: 18, fn: p     => p.phone    ?? '' },
       { h: 'Email',                 w: 26, fn: p     => p.email    ?? '' },
       { h: 'Девочек всего',         w: 13, fn: p     => num(p.girls_total) },
-      { h: 'Смеш. тренировки',      w: 15, fn: p     => p.mixed_train != null ? bool(p.mixed_train) : '' },
-      { h: 'Смеш. соревнования',    w: 16, fn: p     => p.mixed_comp  != null ? bool(p.mixed_comp)  : '' },
       { h: 'Тренеров всего',        w: 13, fn: p     => num(p.coaches_total) },
       { h: 'Тренеров-женщин',       w: 14, fn: p     => num(p.coaches_female) },
       { h: '2005 и ст.',            w: 10, fn: p     => num(p.birth_2005_plus) },
