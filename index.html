@@ -1853,56 +1853,179 @@
   }
 
   function exportSchoolsXLSX() {
-    if (!currentFilteredPointFeatures.length && !(noGirlsData?.features?.length)) return;
-    const bool = v => v === true || String(v).toLowerCase() === 'true' ? 'Да' : v === false || String(v).toLowerCase() === 'false' ? 'Нет' : '';
-    const num  = v => (v != null && v !== '') ? Number(v) : null;
+    const bool  = v => v === true || String(v).toLowerCase() === 'true' ? 'Да'
+                     : v === false || String(v).toLowerCase() === 'false' ? 'Нет' : '';
+    const num   = v => (v != null && v !== '') ? Number(v) : null;
+    const pct1  = v => (v != null && v !== '') ? Math.round(Number(v) * 10) / 10 : null;
 
-    // ── helper: style header row ──────────────────────────────────────
-    function styleHeader(ws, color) {
-      const range = XLSX.utils.decode_range(ws['!ref']);
-      for (let C = range.s.c; C <= range.e.c; C++) {
-        const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
-        if (cell) cell.s = { font: { bold: true }, fill: { fgColor: { rgb: color } } };
+    // ── region filter state ───────────────────────────────────────────
+    const enabledRegions   = getEnabledRegionSet();
+    const anyRegionChecked = regionSelect.querySelectorAll('input:checked').length > 0;
+    const minGirlsR        = Number(minGirlsRegion?.value   || 0);
+    const minSWG           = Number(minSchoolsWithGirls?.value || 0);
+    const filterActive     = anyRegionChecked || minGirlsR > 0 || minSWG > 0;
+
+    // ── cell style helpers ────────────────────────────────────────────
+    const S = {
+      hdr:    (rgb) => ({ font: { bold: true, color: { rgb: 'FFFFFF' } }, fill: { patternType: 'solid', fgColor: { rgb } }, alignment: { wrapText: true, vertical: 'center' } }),
+      hdrGrey:      { font: { bold: true, color: { rgb: '374151' } }, fill: { patternType: 'solid', fgColor: { rgb: 'F3F4F6' } }, alignment: { wrapText: true, vertical: 'center' } },
+      total:  (rgb) => ({ font: { bold: true, color: { rgb } }, fill: { patternType: 'solid', fgColor: { rgb: 'F9FAFB' } } }),
+      numFmt: (fmt) => ({ numFmt: fmt }),
+      even:         { fill: { patternType: 'solid', fgColor: { rgb: 'F8FAFF' } } },
+      pctGreen:     { font: { bold: true, color: { rgb: '15803D' } } },
+      pctYellow:    { font: { bold: true, color: { rgb: 'CA8A04' } } },
+      pctRed:       { font: { bold: true, color: { rgb: 'DC2626' } } },
+    };
+    function pctStyle(v) { return v >= 60 ? S.pctGreen : v >= 30 ? S.pctYellow : S.pctRed; }
+
+    function applyStyles(ws, cols, dataRows, hdrRgb, totalsRow) {
+      const nCols = cols.length;
+      const nRows = dataRows.length;
+      // header
+      for (let C = 0; C < nCols; C++) {
+        const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+        if (ws[addr]) ws[addr].s = S.hdr(hdrRgb);
+      }
+      // data rows
+      for (let R = 0; R < nRows; R++) {
+        const isEven = R % 2 === 1;
+        for (let C = 0; C < nCols; C++) {
+          const addr = XLSX.utils.encode_cell({ r: R + 1, c: C });
+          if (!ws[addr]) continue;
+          const base = isEven ? { ...S.even } : {};
+          const colStyle = cols[C].s ? (typeof cols[C].s === 'function' ? cols[C].s(dataRows[R][C]) : cols[C].s) : null;
+          ws[addr].s = colStyle ? { ...base, ...colStyle } : (isEven ? S.even : {});
+        }
+      }
+      // totals row
+      if (totalsRow) {
+        const R = nRows + 1;
+        for (let C = 0; C < nCols; C++) {
+          const addr = XLSX.utils.encode_cell({ r: R, c: C });
+          if (ws[addr]) ws[addr].s = S.total(hdrRgb);
+        }
       }
     }
+
+    function freezeRow(ws) { ws['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activeCell: 'A2', sqref: 'A2' }; }
 
     const wb = XLSX.utils.book_new();
     const ts = new Date().toISOString().slice(0, 10);
 
-    // ── Sheet 1: schools with girls ───────────────────────────────────
+    // ════════════════════════════════════════════════════════════════════
+    // SHEET 1 — Regional summary
+    // ════════════════════════════════════════════════════════════════════
+
+    // Build per-region aggregates from schools data
+    const regionAgg = {};
+    for (const f of (pointsData?.features || [])) {
+      const rk = normRegion(f.properties?.region || '');
+      if (!regionAgg[rk]) regionAgg[rk] = { mro: null, coachTotal: 0, coachFemale: 0, coachSchools: 0, mixTrain: 0, mixComp: 0, mixSchools: 0 };
+      const agg = regionAgg[rk];
+      const p = f.properties || {};
+      if (p.mro && !agg.mro) agg.mro = p.mro;
+      if (p.coaches_total != null) {
+        agg.coachTotal  += Number(p.coaches_total  ?? 0);
+        agg.coachFemale += Number(p.coaches_female ?? 0);
+        agg.coachSchools++;
+      }
+      if (p.mixed_train != null) {
+        if (p.mixed_train === true) agg.mixTrain++;
+        if (p.mixed_comp  === true) agg.mixComp++;
+        agg.mixSchools++;
+      }
+    }
+
+    const regionsInScope = (regionsData?.features || []).filter(f =>
+      !filterActive || enabledRegions.has(normRegion(f.properties?.name || ''))
+    ).sort((a, b) => {
+      const mroA = regionAgg[normRegion(a.properties?.name||'')]?.mro || 'Я';
+      const mroB = regionAgg[normRegion(b.properties?.name||'')]?.mro || 'Я';
+      return mroA.localeCompare(mroB, 'ru') || (a.properties?.name||'').localeCompare(b.properties?.name||'', 'ru');
+    });
+
+    const RCOLS = [
+      { h: 'Регион',                 w: 26, fn: (p)      => p.name ?? '' },
+      { h: 'МРО',                    w: 18, fn: (p, agg) => agg?.mro ?? '' },
+      { h: 'Население, тыс.',        w: 14, fn: (p)      => num(p.population_thousands) },
+      { h: 'Школ с девочками',       w: 14, fn: (p)      => num(p.schools_with_girls) },
+      { h: 'Школ 5ФК без дев.',      w: 14, fn: (p)      => num(p.no_girls_schools) },
+      { h: 'Всего школ',             w: 12, fn: (p)      => Number(p.schools_with_girls ?? 0) + Number(p.no_girls_schools ?? 0) || null },
+      { h: '% школ с дев.',          w: 12, fn: (p)      => pct1(p.pct_with_girls), s: v => v != null ? pctStyle(v) : {} },
+      { h: 'Девочек всего',          w: 13, fn: (p)      => num(p.total_girls) },
+      { h: 'Ср. дев. на шк.',        w: 12, fn: (p)      => pct1(p.avg_girls_per_school) },
+      { h: 'На 100 тыс. жит.',       w: 13, fn: (p)      => pct1(p.coverage_index), s: v => v != null ? pctStyle(v) : {} },
+      { h: 'Тренеров всего',         w: 13, fn: (p, agg) => agg?.coachSchools ? agg.coachTotal  : null },
+      { h: 'Тренеров-женщин',        w: 14, fn: (p, agg) => agg?.coachSchools ? agg.coachFemale : null },
+      { h: '% тренеров-женщин',      w: 14, fn: (p, agg) => agg?.coachTotal   ? Math.round(agg.coachFemale / agg.coachTotal * 100) : null, s: v => v != null ? pctStyle(v) : {} },
+      { h: 'Шк. ответили (опрос)',   w: 14, fn: (p, agg) => agg?.coachSchools || null },
+      { h: 'Шк. смеш. тренировки',  w: 16, fn: (p, agg) => agg?.mixSchools   ? agg.mixTrain  : null },
+      { h: 'Шк. смеш. соревнования', w: 18, fn: (p, agg) => agg?.mixSchools  ? agg.mixComp   : null },
+    ];
+
+    const rRows = regionsInScope.map(f => {
+      const p   = f.properties || {};
+      const agg = regionAgg[normRegion(p.name || '')];
+      return RCOLS.map(c => c.fn(p, agg));
+    });
+
+    // Totals row
+    const sumCol = (idx) => rRows.reduce((s, r) => s + (Number(r[idx]) || 0), 0);
+    const totals = RCOLS.map((c, i) => {
+      if (i === 0) return `ИТОГО (${rRows.length} регионов)`;
+      if (i === 1 || i === 6 || i === 8 || i === 9 || i === 12) return null; // skip text/pct derived
+      const v = sumCol(i);
+      return v > 0 ? v : null;
+    });
+    // Derived totals for pct columns
+    const totSWG = totals[3] || 0, totNG = totals[4] || 0, totAll = totSWG + totNG;
+    totals[6] = totAll > 0 ? Math.round(totSWG / totAll * 1000) / 10 : null;
+    const totCT = totals[10] || 0, totCF = totals[11] || 0;
+    totals[12] = totCT > 0 ? Math.round(totCF / totCT * 100) : null;
+
+    const ws0 = XLSX.utils.aoa_to_sheet([RCOLS.map(c => c.h), ...rRows, totals]);
+    ws0['!cols'] = RCOLS.map(c => ({ wch: c.w }));
+    ws0['!rows'] = [{ hpt: 32 }]; // taller header
+    applyStyles(ws0, RCOLS, rRows, '1D4ED8', true);
+    freezeRow(ws0);
+    XLSX.utils.book_append_sheet(wb, ws0, 'Сводка по регионам');
+
+    // ════════════════════════════════════════════════════════════════════
+    // SHEET 2 — Schools with girls
+    // ════════════════════════════════════════════════════════════════════
     const COLS1 = [
-      { h: 'Название',            w: 44, fn: p     => p.name ?? '' },
-      { h: 'Альт. название',      w: 30, fn: p     => p.name_alt ?? '' },
-      { h: 'МРО',                 w: 18, fn: p     => p.mro ?? '' },
-      { h: 'Регион',              w: 22, fn: p     => p.region ?? '' },
-      { h: 'Город',               w: 18, fn: p     => p.city ?? '' },
-      { h: 'Адрес',               w: 36, fn: p     => p.address ?? '' },
-      { h: 'Телефон',             w: 20, fn: p     => p.phone ?? '' },
-      { h: 'Email',               w: 28, fn: p     => p.email ?? '' },
-      { h: 'Девочек всего',       w: 14, fn: p     => num(p.girls_total) },
-      { h: 'Смеш. тренировки',    w: 16, fn: p     => p.mixed_train != null ? bool(p.mixed_train) : '' },
-      { h: 'Смеш. соревнования',  w: 18, fn: p     => p.mixed_comp  != null ? bool(p.mixed_comp)  : '' },
-      { h: 'Тренеров всего',      w: 14, fn: p     => num(p.coaches_total) },
-      { h: 'Тренеров-женщин',     w: 15, fn: p     => num(p.coaches_female) },
-      { h: '2005 и ст.',          w: 11, fn: p     => num(p.birth_2005_plus) },
-      { h: '2006',                w:  8, fn: p     => num(p.birth_2006) },
-      { h: '2007',                w:  8, fn: p     => num(p.birth_2007) },
-      { h: '2008',                w:  8, fn: p     => num(p.birth_2008) },
-      { h: '2009',                w:  8, fn: p     => num(p.birth_2009) },
-      { h: '2010',                w:  8, fn: p     => num(p.birth_2010) },
-      { h: '2011',                w:  8, fn: p     => num(p.birth_2011) },
-      { h: '2012',                w:  8, fn: p     => num(p.birth_2012) },
-      { h: '2013',                w:  8, fn: p     => num(p.birth_2013) },
-      { h: '2014',                w:  8, fn: p     => num(p.birth_2014) },
-      { h: '2015',                w:  8, fn: p     => num(p.birth_2015) },
-      { h: '2016',                w:  8, fn: p     => num(p.birth_2016) },
-      { h: '2017',                w:  8, fn: p     => num(p.birth_2017) },
-      { h: '2018',                w:  8, fn: p     => num(p.birth_2018) },
-      { h: '2019 и мл.',          w: 11, fn: p     => num(p.birth_2019_minus) },
-      { h: 'Качество геокода',    w: 16, fn: p     => p.geo_quality ?? '' },
-      { h: 'Тип геокода',         w: 14, fn: p     => p.geo_kind    ?? '' },
-      { h: 'Долгота',             w: 12, fn: (p,f) => f.geometry?.coordinates?.[0] ?? null },
-      { h: 'Широта',              w: 12, fn: (p,f) => f.geometry?.coordinates?.[1] ?? null },
+      { h: 'Название',              w: 44, fn: p     => p.name     ?? '' },
+      { h: 'Альт. название',        w: 28, fn: p     => p.name_alt ?? '' },
+      { h: 'МРО',                   w: 18, fn: p     => p.mro      ?? '' },
+      { h: 'Регион',                w: 22, fn: p     => p.region   ?? '' },
+      { h: 'Город',                 w: 18, fn: p     => p.city     ?? '' },
+      { h: 'Адрес',                 w: 36, fn: p     => p.address  ?? '' },
+      { h: 'Телефон',               w: 18, fn: p     => p.phone    ?? '' },
+      { h: 'Email',                 w: 26, fn: p     => p.email    ?? '' },
+      { h: 'Девочек всего',         w: 13, fn: p     => num(p.girls_total) },
+      { h: 'Смеш. тренировки',      w: 15, fn: p     => p.mixed_train != null ? bool(p.mixed_train) : '' },
+      { h: 'Смеш. соревнования',    w: 16, fn: p     => p.mixed_comp  != null ? bool(p.mixed_comp)  : '' },
+      { h: 'Тренеров всего',        w: 13, fn: p     => num(p.coaches_total) },
+      { h: 'Тренеров-женщин',       w: 14, fn: p     => num(p.coaches_female) },
+      { h: '2005 и ст.',            w: 10, fn: p     => num(p.birth_2005_plus) },
+      { h: '2006',                  w:  7, fn: p     => num(p.birth_2006) },
+      { h: '2007',                  w:  7, fn: p     => num(p.birth_2007) },
+      { h: '2008',                  w:  7, fn: p     => num(p.birth_2008) },
+      { h: '2009',                  w:  7, fn: p     => num(p.birth_2009) },
+      { h: '2010',                  w:  7, fn: p     => num(p.birth_2010) },
+      { h: '2011',                  w:  7, fn: p     => num(p.birth_2011) },
+      { h: '2012',                  w:  7, fn: p     => num(p.birth_2012) },
+      { h: '2013',                  w:  7, fn: p     => num(p.birth_2013) },
+      { h: '2014',                  w:  7, fn: p     => num(p.birth_2014) },
+      { h: '2015',                  w:  7, fn: p     => num(p.birth_2015) },
+      { h: '2016',                  w:  7, fn: p     => num(p.birth_2016) },
+      { h: '2017',                  w:  7, fn: p     => num(p.birth_2017) },
+      { h: '2018',                  w:  7, fn: p     => num(p.birth_2018) },
+      { h: '2019 и мл.',            w: 10, fn: p     => num(p.birth_2019_minus) },
+      { h: 'Качество геокода',      w: 14, fn: p     => p.geo_quality ?? '' },
+      { h: 'Тип геокода',           w: 12, fn: p     => p.geo_kind    ?? '' },
+      { h: 'Долгота',               w: 11, fn: (p,f) => f.geometry?.coordinates?.[0] ?? null },
+      { h: 'Широта',                w: 11, fn: (p,f) => f.geometry?.coordinates?.[1] ?? null },
     ];
 
     const rows1 = currentFilteredPointFeatures.map(f => {
@@ -1911,32 +2034,29 @@
     });
     const ws1 = XLSX.utils.aoa_to_sheet([COLS1.map(c => c.h), ...rows1]);
     ws1['!cols'] = COLS1.map(c => ({ wch: c.w }));
-    styleHeader(ws1, 'DBEAFE'); // blue-100
+    ws1['!rows'] = [{ hpt: 30 }];
+    applyStyles(ws1, COLS1, rows1, '1E40AF', false);
+    freezeRow(ws1);
     XLSX.utils.book_append_sheet(wb, ws1, 'Школы с девочками');
 
-    // ── Sheet 2: no-girls schools (5ФК), filtered by region ──────────
+    // ════════════════════════════════════════════════════════════════════
+    // SHEET 3 — 5ФК no-girls schools
+    // ════════════════════════════════════════════════════════════════════
     if (noGirlsData?.features?.length) {
-      const enabledRegions = getEnabledRegionSet();
-      const anyRegionChecked = regionSelect.querySelectorAll('input:checked').length > 0;
-      const minGirlsR = Number(minGirlsRegion?.value || 0);
-      const minSWG    = Number(minSchoolsWithGirls?.value || 0);
-      const filterActive = anyRegionChecked || minGirlsR > 0 || minSWG > 0;
-
       const noGirlsFiltered = (noGirlsData.features || []).filter(f => {
         if (!filterActive) return true;
-        const rk = normRegion(f.properties?.region || '');
-        return enabledRegions.has(rk);
+        return enabledRegions.has(normRegion(f.properties?.region || ''));
       });
 
       const COLS2 = [
-        { h: 'Название',          w: 60, fn: p     => p.name    ?? '' },
-        { h: 'Регион',            w: 24, fn: p     => p.region  ?? '' },
-        { h: 'Адрес',             w: 40, fn: p     => p.address ?? '' },
-        { h: 'Источник',          w: 14, fn: p     => p.source  ?? '' },
-        { h: 'Качество геокода',  w: 16, fn: p     => p.geo_quality ?? '' },
-        { h: 'Тип геокода',       w: 14, fn: p     => p.geo_kind    ?? '' },
-        { h: 'Долгота',           w: 12, fn: (p,f) => f.geometry?.coordinates?.[0] ?? null },
-        { h: 'Широта',            w: 12, fn: (p,f) => f.geometry?.coordinates?.[1] ?? null },
+        { h: 'Название',            w: 60, fn: p     => p.name    ?? '' },
+        { h: 'Регион',              w: 24, fn: p     => p.region  ?? '' },
+        { h: 'Адрес',               w: 40, fn: p     => p.address ?? '' },
+        { h: 'Источник',            w: 13, fn: p     => p.source  ?? '' },
+        { h: 'Качество геокода',    w: 15, fn: p     => p.geo_quality ?? '' },
+        { h: 'Тип геокода',         w: 13, fn: p     => p.geo_kind    ?? '' },
+        { h: 'Долгота',             w: 11, fn: (p,f) => f.geometry?.coordinates?.[0] ?? null },
+        { h: 'Широта',              w: 11, fn: (p,f) => f.geometry?.coordinates?.[1] ?? null },
       ];
 
       const rows2 = noGirlsFiltered.map(f => {
@@ -1945,11 +2065,13 @@
       });
       const ws2 = XLSX.utils.aoa_to_sheet([COLS2.map(c => c.h), ...rows2]);
       ws2['!cols'] = COLS2.map(c => ({ wch: c.w }));
-      styleHeader(ws2, 'FEE2E2'); // red-100
+      ws2['!rows'] = [{ hpt: 30 }];
+      applyStyles(ws2, COLS2, rows2, '991B1B', false);
+      freezeRow(ws2);
       XLSX.utils.book_append_sheet(wb, ws2, '5ФК без девочек');
     }
 
-    XLSX.writeFile(wb, `girls_football_schools_${ts}.xlsx`);
+    XLSX.writeFile(wb, `girls_football_${ts}.xlsx`);
   }
 
   function exportRegionsCSV() {
