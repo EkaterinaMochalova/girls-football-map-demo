@@ -1853,66 +1853,102 @@
   }
 
   function exportSchoolsXLSX() {
-    if (!currentFilteredPointFeatures.length) return;
+    if (!currentFilteredPointFeatures.length && !(noGirlsData?.features?.length)) return;
     const bool = v => v === true || String(v).toLowerCase() === 'true' ? 'Да' : v === false || String(v).toLowerCase() === 'false' ? 'Нет' : '';
     const num  = v => (v != null && v !== '') ? Number(v) : null;
 
-    const COLS = [
-      { h: 'Название',            fn: p => p.name ?? '' },
-      { h: 'МРО',                 fn: p => p.mro ?? '' },
-      { h: 'Регион',              fn: p => p.region ?? '' },
-      { h: 'Город',               fn: p => p.city ?? '' },
-      { h: 'Адрес',               fn: p => p.address ?? '' },
-      { h: 'Телефон',             fn: p => p.phone ?? '' },
-      { h: 'Email',               fn: p => p.email ?? '' },
-      { h: 'Девочек всего',       fn: p => num(p.girls_total) },
-      { h: 'Смеш. группы',        fn: p => p.mixed_train != null ? bool(p.mixed_train) : '' },
-      { h: 'Смеш. соревн.',       fn: p => p.mixed_comp  != null ? bool(p.mixed_comp)  : '' },
-      { h: 'Тренеров всего',      fn: p => num(p.coaches_total) },
-      { h: 'Тренеров-женщин',     fn: p => num(p.coaches_female) },
-      { h: '2005 и ст.',          fn: p => num(p.birth_2005_plus) },
-      { h: '2006', fn: p => num(p.birth_2006) },
-      { h: '2007', fn: p => num(p.birth_2007) },
-      { h: '2008', fn: p => num(p.birth_2008) },
-      { h: '2009', fn: p => num(p.birth_2009) },
-      { h: '2010', fn: p => num(p.birth_2010) },
-      { h: '2011', fn: p => num(p.birth_2011) },
-      { h: '2012', fn: p => num(p.birth_2012) },
-      { h: '2013', fn: p => num(p.birth_2013) },
-      { h: '2014', fn: p => num(p.birth_2014) },
-      { h: '2015', fn: p => num(p.birth_2015) },
-      { h: '2016', fn: p => num(p.birth_2016) },
-      { h: '2017', fn: p => num(p.birth_2017) },
-      { h: '2018', fn: p => num(p.birth_2018) },
-      { h: '2019 и мл.',          fn: p => num(p.birth_2019_minus) },
-      { h: 'Долгота',             fn: (p, f) => f.geometry?.coordinates?.[0] ?? null },
-      { h: 'Широта',              fn: (p, f) => f.geometry?.coordinates?.[1] ?? null },
-    ];
-
-    const rows = currentFilteredPointFeatures.map(f => {
-      const p = f.properties || {};
-      return COLS.map(c => c.fn(p, f));
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet([COLS.map(c => c.h), ...rows]);
-
-    // Column widths
-    ws['!cols'] = COLS.map(c => ({ wch: Math.max(c.h.length + 2, 12) }));
-    ws['!cols'][0].wch = 42; // Название
-    ws['!cols'][4].wch = 36; // Адрес
-    ws['!cols'][5].wch = 20; // Телефон
-    ws['!cols'][6].wch = 28; // Email
-
-    // Bold header row
-    const range = XLSX.utils.decode_range(ws['!ref']);
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
-      if (cell) cell.s = { font: { bold: true }, fill: { fgColor: { rgb: 'EFF6FF' } } };
+    // ── helper: style header row ──────────────────────────────────────
+    function styleHeader(ws, color) {
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
+        if (cell) cell.s = { font: { bold: true }, fill: { fgColor: { rgb: color } } };
+      }
     }
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Школы с девочками');
     const ts = new Date().toISOString().slice(0, 10);
+
+    // ── Sheet 1: schools with girls ───────────────────────────────────
+    const COLS1 = [
+      { h: 'Название',            w: 44, fn: p     => p.name ?? '' },
+      { h: 'Альт. название',      w: 30, fn: p     => p.name_alt ?? '' },
+      { h: 'МРО',                 w: 18, fn: p     => p.mro ?? '' },
+      { h: 'Регион',              w: 22, fn: p     => p.region ?? '' },
+      { h: 'Город',               w: 18, fn: p     => p.city ?? '' },
+      { h: 'Адрес',               w: 36, fn: p     => p.address ?? '' },
+      { h: 'Телефон',             w: 20, fn: p     => p.phone ?? '' },
+      { h: 'Email',               w: 28, fn: p     => p.email ?? '' },
+      { h: 'Девочек всего',       w: 14, fn: p     => num(p.girls_total) },
+      { h: 'Смеш. тренировки',    w: 16, fn: p     => p.mixed_train != null ? bool(p.mixed_train) : '' },
+      { h: 'Смеш. соревнования',  w: 18, fn: p     => p.mixed_comp  != null ? bool(p.mixed_comp)  : '' },
+      { h: 'Тренеров всего',      w: 14, fn: p     => num(p.coaches_total) },
+      { h: 'Тренеров-женщин',     w: 15, fn: p     => num(p.coaches_female) },
+      { h: '2005 и ст.',          w: 11, fn: p     => num(p.birth_2005_plus) },
+      { h: '2006',                w:  8, fn: p     => num(p.birth_2006) },
+      { h: '2007',                w:  8, fn: p     => num(p.birth_2007) },
+      { h: '2008',                w:  8, fn: p     => num(p.birth_2008) },
+      { h: '2009',                w:  8, fn: p     => num(p.birth_2009) },
+      { h: '2010',                w:  8, fn: p     => num(p.birth_2010) },
+      { h: '2011',                w:  8, fn: p     => num(p.birth_2011) },
+      { h: '2012',                w:  8, fn: p     => num(p.birth_2012) },
+      { h: '2013',                w:  8, fn: p     => num(p.birth_2013) },
+      { h: '2014',                w:  8, fn: p     => num(p.birth_2014) },
+      { h: '2015',                w:  8, fn: p     => num(p.birth_2015) },
+      { h: '2016',                w:  8, fn: p     => num(p.birth_2016) },
+      { h: '2017',                w:  8, fn: p     => num(p.birth_2017) },
+      { h: '2018',                w:  8, fn: p     => num(p.birth_2018) },
+      { h: '2019 и мл.',          w: 11, fn: p     => num(p.birth_2019_minus) },
+      { h: 'Качество геокода',    w: 16, fn: p     => p.geo_quality ?? '' },
+      { h: 'Тип геокода',         w: 14, fn: p     => p.geo_kind    ?? '' },
+      { h: 'Долгота',             w: 12, fn: (p,f) => f.geometry?.coordinates?.[0] ?? null },
+      { h: 'Широта',              w: 12, fn: (p,f) => f.geometry?.coordinates?.[1] ?? null },
+    ];
+
+    const rows1 = currentFilteredPointFeatures.map(f => {
+      const p = f.properties || {};
+      return COLS1.map(c => c.fn(p, f));
+    });
+    const ws1 = XLSX.utils.aoa_to_sheet([COLS1.map(c => c.h), ...rows1]);
+    ws1['!cols'] = COLS1.map(c => ({ wch: c.w }));
+    styleHeader(ws1, 'DBEAFE'); // blue-100
+    XLSX.utils.book_append_sheet(wb, ws1, 'Школы с девочками');
+
+    // ── Sheet 2: no-girls schools (5ФК), filtered by region ──────────
+    if (noGirlsData?.features?.length) {
+      const enabledRegions = getEnabledRegionSet();
+      const anyRegionChecked = regionSelect.querySelectorAll('input:checked').length > 0;
+      const minGirlsR = Number(minGirlsRegion?.value || 0);
+      const minSWG    = Number(minSchoolsWithGirls?.value || 0);
+      const filterActive = anyRegionChecked || minGirlsR > 0 || minSWG > 0;
+
+      const noGirlsFiltered = (noGirlsData.features || []).filter(f => {
+        if (!filterActive) return true;
+        const rk = normRegion(f.properties?.region || '');
+        return enabledRegions.has(rk);
+      });
+
+      const COLS2 = [
+        { h: 'Название',          w: 60, fn: p     => p.name    ?? '' },
+        { h: 'Регион',            w: 24, fn: p     => p.region  ?? '' },
+        { h: 'Адрес',             w: 40, fn: p     => p.address ?? '' },
+        { h: 'Источник',          w: 14, fn: p     => p.source  ?? '' },
+        { h: 'Качество геокода',  w: 16, fn: p     => p.geo_quality ?? '' },
+        { h: 'Тип геокода',       w: 14, fn: p     => p.geo_kind    ?? '' },
+        { h: 'Долгота',           w: 12, fn: (p,f) => f.geometry?.coordinates?.[0] ?? null },
+        { h: 'Широта',            w: 12, fn: (p,f) => f.geometry?.coordinates?.[1] ?? null },
+      ];
+
+      const rows2 = noGirlsFiltered.map(f => {
+        const p = f.properties || {};
+        return COLS2.map(c => c.fn(p, f));
+      });
+      const ws2 = XLSX.utils.aoa_to_sheet([COLS2.map(c => c.h), ...rows2]);
+      ws2['!cols'] = COLS2.map(c => ({ wch: c.w }));
+      styleHeader(ws2, 'FEE2E2'); // red-100
+      XLSX.utils.book_append_sheet(wb, ws2, '5ФК без девочек');
+    }
+
     XLSX.writeFile(wb, `girls_football_schools_${ts}.xlsx`);
   }
 
