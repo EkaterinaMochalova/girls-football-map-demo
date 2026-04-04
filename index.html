@@ -38,7 +38,7 @@
       z-index:0;
     }
 
-    #app { height: 100%; display: grid; grid-template-columns: 340px 1fr; grid-template-rows: 1fr 280px; gap: 14px; padding: 14px; position: relative; z-index: 1; }
+    #app { height: 100%; display: grid; grid-template-columns: 340px 1fr; grid-template-rows: 1fr 210px; gap: 14px; padding: 14px; position: relative; z-index: 1; }
 
     /* Left glass panel */
     #sidebar{
@@ -866,6 +866,7 @@
     <div id="listHeader">
       <div class="left">
         <span id="listSub" style="font-size:12px; color:var(--muted);">—</span>
+        <button id="resetRegionFilter" style="display:none;margin-left:8px;padding:3px 10px;font-size:11px;font-weight:700;border:1px solid #e4002b;border-radius:8px;background:rgba(228,0,43,0.07);color:#e4002b;cursor:pointer;white-space:nowrap;">✕ Все регионы</button>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <input id="search" placeholder="Поиск по названию / городу / региону" />
@@ -1409,58 +1410,67 @@
       }
     }
 
-    // ── Schools list ───────────────────────────────────────────────────
-    const regionAllSchools = [
-      ...(pointsData?.features  || []),
-      ...(noGirlsData?.features || [])
-    ].filter(f => normRegion(f.properties?.region || '') === regionKey);
+    // ── Schools counts KPI ─────────────────────────────────────────────
+    const countWithGirls = (pointsData?.features || [])
+      .filter(f => normRegion(f.properties?.region || '') === regionKey).length;
+    const countNoGirls = (noGirlsData?.features || [])
+      .filter(f => normRegion(f.properties?.region || '') === regionKey).length;
+    const countFvsh = (fvshData?.features || [])
+      .filter(f => normRegion(f.properties?.region || '') === regionKey).length;
 
-    if (regionAllSchools.length > 0) {
-      const shown = regionAllSchools
-        .sort((a, b) => Number(b.properties?.girls_total ?? 0) - Number(a.properties?.girls_total ?? 0))
-        .slice(0, 40);
-      html += `<div class="panel-section-title">Школы (${regionAllSchools.length})</div>`;
-      shown.forEach(f => {
-        const p = f.properties || {};
-        const g = Number(p.girls_total ?? 0);
-        const hasGirls = g > 0 || p.has_girls === true;
-        const coords = f.geometry?.coordinates;
-        const meta = [
-          p.city,
-          hasGirls ? (g > 0 ? g + '\u202fдев.' : 'есть') : null,
-          p.coaches_total != null ? p.coaches_total + '\u202fтрен.' : null,
-        ].filter(Boolean).join(' · ');
-        html += `
-          <div class="panel-school-row" data-lon="${coords?.[0] ?? ''}" data-lat="${coords?.[1] ?? ''}">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${hasGirls?'#3b82f6':'#d1d5db'};"></span>
-              <div class="panel-school-name" style="flex:1;">${escapeHTML(p.name ?? 'Без названия')}</div>
-            </div>
-            <div class="panel-school-meta" style="margin-left:13px;">${escapeHTML(meta)}</div>
-          </div>`;
-      });
-      if (regionAllSchools.length > 40) {
-        html += `<div style="text-align:center;font-size:11px;color:var(--muted);padding:6px 0;">... и ещё ${regionAllSchools.length - 40} школ</div>`;
-      }
-    }
+    html += `
+      <div class="panel-section-title">Школы</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="background:rgba(239,246,255,0.9);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:10px 8px;text-align:center;">
+          <div style="font-size:22px;font-weight:800;color:#1d4ed8;line-height:1.1;">${countWithGirls}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">с девочками</div>
+        </div>
+        <div style="background:rgba(254,242,242,0.9);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:10px 8px;text-align:center;">
+          <div style="font-size:22px;font-weight:800;color:#dc2626;line-height:1.1;">${countNoGirls}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">без девочек</div>
+        </div>
+        <div style="background:rgba(240,253,244,0.9);border:1px solid rgba(22,163,74,0.2);border-radius:12px;padding:10px 8px;text-align:center;">
+          <div style="font-size:22px;font-weight:800;color:#15803d;line-height:1.1;">${countFvsh}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">ФвШ</div>
+        </div>
+      </div>
+      <button id="showRegionInList" style="width:100%;padding:9px;border-radius:12px;border:1px solid rgba(59,130,246,0.3);background:rgba(239,246,255,0.8);color:#1d4ed8;font-weight:700;font-size:12px;cursor:pointer;margin-bottom:4px;">
+        Показать школы в списке ↓
+      </button>`;
 
     regionPanelContent.innerHTML = html;
 
-    // Click school row → fly to it
-    regionPanelContent.querySelectorAll('.panel-school-row').forEach(el => {
-      const lat = parseFloat(el.dataset.lat);
-      const lon = parseFloat(el.dataset.lon);
-      if (Number.isFinite(lat) && Number.isFinite(lon)) {
-        el.addEventListener('click', () => map.setView([lat, lon], Math.max(map.getZoom(), 11), { animate: true }));
-      }
+    document.getElementById('showRegionInList')?.addEventListener('click', () => {
+      filterListByRegion(props.name);
     });
 
     regionPanel.classList.add('open');
   }
 
+  let activeListRegion = null;
+
+  function filterListByRegion(regionName) {
+    activeListRegion = regionName;
+    const btn = document.getElementById('resetRegionFilter');
+    if (btn) {
+      btn.style.display = '';
+      btn.textContent = `✕ ${regionName}`;
+    }
+    renderSchoolsList();
+  }
+
+  function resetListRegionFilter() {
+    activeListRegion = null;
+    const btn = document.getElementById('resetRegionFilter');
+    if (btn) btn.style.display = 'none';
+    renderSchoolsList();
+  }
+
   function closeRegionPanel() {
     regionPanel.classList.remove('open');
   }
+
+
 
   // ---- Region filter helpers ----
   function getSelectedRegionNormSetFromUI(){
@@ -1731,6 +1741,10 @@
   function renderSchoolsList(){
     const search = (searchInput.value || "").trim().toLowerCase();
     let rows = currentFilteredPointFeatures.slice();
+    if (activeListRegion) {
+      const rk = normRegion(activeListRegion);
+      rows = rows.filter(f => normRegion(f.properties?.region || '') === rk);
+    }
     if (search) rows = rows.filter(f => {
       const p = f.properties || {};
       return [p.name, p.region, p.city, p.address].filter(Boolean).join(" ").toLowerCase().includes(search);
@@ -2104,7 +2118,12 @@
 
     exportXLSXBtn.addEventListener('click', exportSchoolsXLSX);
 
-    closeRegionPanelBtn.addEventListener('click', closeRegionPanel);
+    closeRegionPanelBtn.addEventListener('click', () => { closeRegionPanel(); resetListRegionFilter(); });
+
+    document.getElementById('resetRegionFilter')?.addEventListener('click', () => {
+      resetListRegionFilter();
+      closeRegionPanel();
+    });
 
     resetAllBtn.addEventListener('click', () => {
       superCheckbox.checked = false;
@@ -2122,6 +2141,7 @@
       compChks.forEach(x => x.checked = false);
       searchInput.value = "";
       closeRegionPanel();
+      resetListRegionFilter();
       rerunAll();
       fitToRussia();
     });
