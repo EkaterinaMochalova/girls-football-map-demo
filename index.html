@@ -1257,19 +1257,26 @@
     const coverage       = schools > 0 ? Math.round(schoolsWithGirls / schools * 100) : 0;
     const coverageIndex  = Number(props.coverage_index ?? 0);
     const pop            = Number(props.population_thousands ?? 0);
+    const noGirlsSch     = Number(props.no_girls_schools ?? 0);
+    const pctWithGirls   = Number(props.pct_with_girls ?? 0);
 
     regionPanelName.textContent = props.name ?? 'Регион';
     regionPanelSub.textContent  = 'Сводка по спортшколам 2024';
 
     regionPanelKpis.innerHTML = `
-      <div class="kpi"><div class="v">${fmt.format(schools)}</div><div class="t">объектов</div></div>
       <div class="kpi"><div class="v">${fmt.format(schoolsWithGirls)}</div><div class="t">с девочками</div></div>
+      <div class="kpi" title="% школ с девочками от всех спортшкол региона (включая 5ФК без девочек)">
+        <div class="v" style="color:${pctWithGirls>=60?'#15803d':pctWithGirls>=30?'#ca8a04':'#dc2626'};">
+          ${pctWithGirls > 0 ? pctWithGirls.toFixed(1) + '%' : '—'}
+        </div>
+        <div class="t">школ с дев.</div>
+      </div>
       <div class="kpi"><div class="v">${fmt.format(girls)}</div><div class="t">девочек</div></div>
       <div class="kpi" title="Девочек на 100 000 жителей региона (Росстат 2023)">
         <div class="v" style="color:${coverageIndex>=50?'#15803d':coverageIndex>=25?'#ca8a04':'#dc2626'};">
           ${coverageIndex > 0 ? coverageIndex.toFixed(1) : '—'}
         </div>
-        <div class="t">на 100 тыс. жит.</div>
+        <div class="t">на 100 тыс.</div>
       </div>
     `;
 
@@ -1653,10 +1660,11 @@
   const TABLE_COLS = [
     { key: 'name',               label: 'Регион',        numeric: false },
     { key: 'total_schools',      label: 'Объектов',      numeric: true  },
-    { key: 'schools_with_girls', label: 'С девочками',   numeric: true  },
-    { key: 'total_girls',        label: 'Девочек',       numeric: true  },
-    { key: 'avg',                label: 'Ср. на объект', numeric: true  },
-    { key: 'coverage_index',     label: 'На 100 тыс.',   numeric: true  },
+    { key: 'schools_with_girls', label: 'С девочками',  numeric: true  },
+    { key: 'pct_with_girls',     label: '% с дев.',     numeric: true  },
+    { key: 'total_girls',        label: 'Девочек',      numeric: true  },
+    { key: 'avg',                label: 'Ср./объект',   numeric: true  },
+    { key: 'coverage_index',     label: 'На 100 тыс.',  numeric: true  },
   ];
 
   function renderRegionsTable() {
@@ -1673,6 +1681,7 @@
         schools_with_girls: sg,
         total_girls:        Number(p.total_girls ?? 0),
         avg:                Math.round(Number(p.avg_girls_per_school ?? 0) * 10) / 10,
+        pct_with_girls:     Number(p.pct_with_girls ?? 0),
         coverage_index:     Number(p.coverage_index ?? 0),
       };
     });
@@ -1705,6 +1714,7 @@
         <td>${escapeHTML(r.name)}</td>
         <td class="num">${fmt.format(r.total_schools)}</td>
         <td class="num">${fmt.format(r.schools_with_girls)}</td>
+        <td class="num"><span style="color:${r.pct_with_girls>=60?'#15803d':r.pct_with_girls>=30?'#ca8a04':'#dc2626'};font-weight:700;">${r.pct_with_girls > 0 ? r.pct_with_girls.toFixed(1)+'%' : '—'}</span></td>
         <td class="num">${fmt.format(r.total_girls)}</td>
         <td class="num">${r.avg > 0 ? fmt.format(r.avg) : '—'}</td>
         <td class="num"><span class="coverage-bar" style="width:${barW}px;background:${ciColor};"></span><span style="color:${ciColor};font-weight:700;">${ci > 0 ? ci.toFixed(1) : '—'}</span></td>
