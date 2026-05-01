@@ -816,6 +816,11 @@
         <span id="listSub" style="font-size:12px; color:var(--muted);">—</span>
         <button id="resetRegionFilter" style="display:none;margin-left:8px;padding:3px 10px;font-size:11px;font-weight:700;border:1px solid #e4002b;border-radius:8px;background:rgba(228,0,43,0.07);color:#e4002b;cursor:pointer;white-space:nowrap;">✕ Все регионы</button>
       </div>
+      <div class="tab-btns">
+        <button class="tab-btn active" id="tabSchools">СШ</button>
+        <button class="tab-btn" id="tabFvsh">ФвШ</button>
+        <button class="tab-btn" id="tabClubs">Клубы</button>
+      </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <input id="search" placeholder="Поиск по названию / городу / региону" />
         <button class="btn-small" id="exportXLSX" title="Экспорт школ в Excel (по текущему фильтру)">⬇ XLSX</button>
@@ -1032,6 +1037,58 @@
     return best ? { ...best, distanceKm: bestD } : null;
   }
 
+  // ---- ФвШ popup (shared between initial layer and applyOverlayRegionFilter) ----
+  function buildFvshPopup(feature) {
+    const coords = feature.geometry?.coordinates;
+    if (!coords || coords.length < 2) return '<div class="popup"><h3>Нет координат</h3></div>';
+    const [lon, lat] = coords;
+    const p = feature.properties || {};
+
+    const nearest = findNearestSportsSchool(lat, lon, sportsArr);
+    const nearestHtml = nearest ? `
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
+        <div style="font-weight:800;font-size:12px;">Ближайшая спортшкола</div>
+        <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(nearest.name)}</div>
+        <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearest.region, nearest.city].filter(Boolean).join(', '))}</div>
+        <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearest.distanceKm * 10) / 10)} км</div>
+      </div>` : '';
+
+    // Only search for nearest no-girls school within the SAME region
+    const fvshRegionKey = normRegion(p.region || '');
+    const noGirlsAll = noGirlsData ? buildSportsIndex(noGirlsData) : [];
+    const noGirlsInRegion = fvshRegionKey
+      ? noGirlsAll.filter(s => normRegion(s.region) === fvshRegionKey)
+      : noGirlsAll;
+    const nearestNoGirls = noGirlsInRegion.length ? findNearestSportsSchool(lat, lon, noGirlsInRegion) : null;
+
+    let nearestNoGirlsHtml = '';
+    if (nearestNoGirls) {
+      nearestNoGirlsHtml = `
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
+          <div style="font-weight:800;font-size:12px;">Ближайшая школа без девочек (5ФК)</div>
+          <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(nearestNoGirls.name)}</div>
+          <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearestNoGirls.region, nearestNoGirls.city].filter(Boolean).join(', '))}</div>
+          <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearestNoGirls.distanceKm * 10) / 10)} км</div>
+        </div>`;
+    } else if (fvshRegionKey && noGirlsAll.length > 0) {
+      nearestNoGirlsHtml = `
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
+          <div style="font-weight:800;font-size:12px;">Ближайшая школа без девочек (5ФК)</div>
+          <div style="margin-top:4px;font-size:12px;color:var(--muted);">В регионе все СШ охвачены девочками</div>
+        </div>`;
+    }
+
+    return `
+      <div class="popup">
+        <h3>${escapeHTML(p.name || 'Школа ФвШ')}</h3>
+        <span class="type-badge" style="background:rgba(22,163,74,0.12);color:#15803d;">Школа ФвШ</span>
+        <div class="muted">${escapeHTML([p.region, p.CITY || p.city].filter(Boolean).join(', '))}</div>
+        ${p.Address || p.address ? `<div style="font-size:12px;color:var(--muted);">${escapeHTML(p.Address || p.address)}</div>` : ''}
+        ${nearestHtml}
+        ${nearestNoGirlsHtml}
+      </div>`;
+  }
+
   // ---- UI refs ----
   const superCheckbox  = document.getElementById('toggleSuperleague');
   const firstCheckbox  = document.getElementById('toggleFirstLeague');
@@ -1090,6 +1147,56 @@
 
   // ---- Data holders ----
   let regionsData = null, pointsData = null;
+
+  // ── Global benchmark stats (computed after all data loads) ──────────
+  let nationalStats = null, mroStatsMap = {}, regionMROMap = {};
+
+  function computeGlobalStats() {
+    const feats = regionsData?.features || [];
+    if (!feats.length) return;
+    // Build region-key → MRO from schools data
+    for (const f of (pointsData?.features || [])) {
+      const p = f.properties || {};
+      if (p.mro && p.region) regionMROMap[normRegion(p.region)] = p.mro;
+    }
+    function aggFrom(arr) {
+      const n = arr.length; if (!n) return null;
+      const vals = key => arr.map(f => Number(f.properties?.[key] ?? 0));
+      const avg  = key => vals(key).reduce((s,v)=>s+v,0) / n;
+      const nonZeroAvg = key => { const v = vals(key).filter(v=>v>0); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : 0; };
+      return { n,
+        avgPctWithGirls: avg('pct_with_girls'),
+        avgCoverage:     nonZeroAvg('coverage_index'),
+        avgWithGirls:    avg('schools_with_girls'),
+        avgNoGirls:      avg('no_girls_schools'),
+      };
+    }
+    nationalStats = aggFrom(feats);
+    const mroGroups = {};
+    for (const f of feats) {
+      const mro = regionMROMap[normRegion(f.properties?.name)];
+      if (!mro) continue;
+      if (!mroGroups[mro]) mroGroups[mro] = [];
+      mroGroups[mro].push(f);
+    }
+    for (const [mro, arr] of Object.entries(mroGroups)) mroStatsMap[mro] = aggFrom(arr);
+  }
+
+  // ── Comparison badge: Δ vs national and/or MRO avg ────────────────
+  function compTag(value, natAvg, mroAvg, higherIsBetter = true) {
+    const badge = (avg, label) => {
+      if (!avg || avg === 0 || value == null) return '';
+      const pct = Math.round((value - avg) / avg * 100);
+      if (Math.abs(pct) < 3) return `<span style="font-size:9px;color:#64748b;font-weight:600;background:rgba(0,0,0,0.05);border-radius:4px;padding:1px 5px;">≈&nbsp;${label}</span>`;
+      const up = pct > 0;
+      const good = higherIsBetter ? up : !up;
+      const col  = good ? '#15803d' : '#dc2626';
+      const bg   = good ? 'rgba(22,163,74,0.10)' : 'rgba(220,38,38,0.10)';
+      return `<span style="font-size:9px;color:${col};font-weight:700;background:${bg};border-radius:4px;padding:1px 5px;">${up?'▲':'▼'}&nbsp;${up?'+':''}${pct}%&nbsp;${label}</span>`;
+    };
+    const b1 = badge(natAvg, 'РФ'); const b2 = badge(mroAvg, 'ФО');
+    return (b1||b2) ? `<div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;">${b1}${b2}</div>` : '';
+  }
   let regionsFillLayer = null, superOutlineLayer = null, firstOutlineLayer = null;
   let superBrand = { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
   let firstBrand = { color: "#ff4b00", colorDark: "#111111", logo: "./assets/firstleague_logo_orange.png" };
@@ -1179,6 +1286,130 @@
     legend.addTo(map);
   }
   addCompactLegend();
+
+  // ── Зоны внимания / Сильные стороны ──────────────────────────────
+  function buildRisksBlock(rk, props, ageGroups, coachesTotal, coachesFemale, swg, sng, fvshCnt, coverage) {
+    const risks = [], strengths = [];
+    const totalSch = swg + sng;
+
+    // Age coverage
+    const hasAnyAge = ageGroups.some(g => g.count > 0);
+    if (hasAnyAge) {
+      ['5–6','7–8'].forEach(lbl => {
+        if ((ageGroups.find(g=>g.label===lbl)?.count||0) === 0)
+          risks.push(`Нет охвата возраста ${lbl} лет`);
+      });
+    }
+    // Female coaches
+    const pctF = coachesTotal > 0 ? Math.round(coachesFemale/coachesTotal*100) : null;
+    if (pctF !== null) {
+      if (pctF < 15) risks.push(`Доля женщин-тренеров — ${pctF}% (критически низко)`);
+      else if (pctF < 25) risks.push(`Доля женщин-тренеров — ${pctF}% (ниже 25%)`);
+      else strengths.push(`Доля женщин-тренеров — ${pctF}%`);
+    }
+    // Schools balance
+    if (swg === 0) risks.push('Нет спортшкол с секцией для девочек');
+    else if (sng > swg) risks.push(`${sng} СШ без девочек — больше чем с девочками (${swg})`);
+    else if (totalSch > 0 && Math.round(swg/totalSch*100) >= 60) strengths.push(`${Math.round(swg/totalSch*100)}% спортшкол охвачены девочками`);
+    // Coverage
+    if (coverage > 0 && coverage < 10)       risks.push(`Охват ${coverage.toFixed(1)} дев./100 тыс. жит. — очень низкий`);
+    else if (coverage >= 10 && coverage < 25) risks.push(`Охват ${coverage.toFixed(1)} дев./100 тыс. жит. — ниже среднего`);
+    else if (coverage >= 50)                  strengths.push(`Высокий охват: ${coverage.toFixed(1)} на 100 тыс. жит.`);
+    // ФвШ
+    if (fvshCnt === 0) risks.push('Нет школ ФвШ — нет точек входа в массовый футбол');
+    else strengths.push(`${fvshCnt} школ ФвШ — массовый вход в футбол`);
+
+    if (!risks.length && !strengths.length) return '';
+    let h = `<div class="panel-section-title" style="margin-top:12px;">Зоны внимания</div>`;
+    if (risks.length) {
+      h += `<div style="background:rgba(254,242,242,0.85);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:10px 12px;margin-bottom:8px;">`;
+      risks.forEach(t => { h += `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:5px;font-size:12px;"><span style="flex-shrink:0;">⚠️</span><span>${escapeHTML(t)}</span></div>`; });
+      h += `</div>`;
+    }
+    if (strengths.length) {
+      h += `<div class="panel-section-title" style="margin-top:4px;">Сильные стороны</div>`;
+      h += `<div style="background:rgba(240,253,244,0.85);border:1px solid rgba(22,163,74,0.25);border-radius:12px;padding:10px 12px;margin-bottom:8px;">`;
+      strengths.forEach(t => { h += `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:5px;font-size:12px;"><span style="flex-shrink:0;">✅</span><span>${escapeHTML(t)}</span></div>`; });
+      h += `</div>`;
+    }
+    return h;
+  }
+
+  // ── Путь футболистки в регионе ────────────────────────────────────
+  function buildPathwayBlock(rk) {
+    const fvshCnt   = (fvshData?.features||[]).filter(f=>normRegion(f.properties?.region||'')===rk).length;
+    const sswg      = (pointsData?.features||[]).filter(f=>normRegion(f.properties?.region||'')===rk).length;
+    const sl        = superByRegion[rk]||[];
+    const fl        = firstByRegion[rk]||[];
+    const clubNames = [...sl.map(c=>typeof c==='string'?c:c.club||''), ...fl.map(c=>typeof c==='string'?c:c.club||'')].filter(Boolean);
+    const steps = [
+      { icon:'🏫', label:'Массовый вход',      sub:'Школы ФвШ',              ok: fvshCnt>0,     desc: fvshCnt>0  ? `${fvshCnt} школ ФвШ` : 'Нет школ ФвШ' },
+      { icon:'⚽', label:'Регулярные занятия',  sub:'СШ с девочками',         ok: sswg>0,        desc: sswg>0     ? `${sswg} СШ с секцией` : 'Нет СШ с девочками' },
+      { icon:'🏆', label:'Верхний уровень',     sub:'Суперлига / Первая лига', ok: clubNames.length>0, desc: clubNames.length>0 ? clubNames.slice(0,2).join(', ')+(clubNames.length>2?'…':'') : 'Нет клуба' },
+    ];
+    let h = `<div class="panel-section-title" style="margin-top:12px;">Путь футболистки в регионе</div><div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">`;
+    steps.forEach((s,i) => {
+      const ok = s.ok;
+      h += `<div style="background:${ok?'rgba(240,253,244,0.9)':'rgba(254,242,242,0.9)'};border:1px solid ${ok?'rgba(22,163,74,0.25)':'rgba(239,68,68,0.25)'};border-radius:10px;padding:7px 10px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:15px;flex-shrink:0;">${s.icon}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;font-weight:800;color:${ok?'#15803d':'#dc2626'};">${s.label}</div>
+          <div style="font-size:11px;color:${ok?'#374151':'#9ca3af'};margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(s.desc)}</div>
+        </div>
+        <span style="font-size:13px;flex-shrink:0;">${ok?'✓':'✗'}</span>
+      </div>`;
+      if (i < steps.length-1) h += `<div style="text-align:center;font-size:11px;color:var(--muted);line-height:1.2;">↓</div>`;
+    });
+    const gaps = steps.filter(s=>!s.ok).map(s=>s.sub);
+    if (gaps.length) h += `<div style="font-size:11px;color:#dc2626;margin-top:4px;">Пробел: ${escapeHTML(gaps.join(' · '))}</div>`;
+    h += `</div>`;
+    return h;
+  }
+
+  // ── Индекс приоритета ─────────────────────────────────────────────
+  function buildPriorityBlock(rk, props, swg, sng, fvshCnt) {
+    let score = 0; const factors = [];
+    const sl = superByRegion[rk]||[], fl = firstByRegion[rk]||[];
+    const hasClub    = sl.length>0||fl.length>0;
+    const coverage   = Number(props.coverage_index??0);
+    const pctWithG   = Number(props.pct_with_girls??0);
+
+    if (sng >= 10) { score+=25; factors.push({t:`${sng} СШ без девочек — высокий потенциал конверсии`,ok:true}); }
+    else if (sng >= 3) { score+=15; factors.push({t:`${sng} СШ без девочек — есть потенциал`,ok:true}); }
+    else if (sng === 0 && swg > 0) { factors.push({t:'Все СШ уже охвачены девочками',ok:true}); score+=5; }
+
+    if (fvshCnt>0) { score+=20; factors.push({t:`${fvshCnt} ФвШ — есть точки входа`,ok:true}); }
+    else { factors.push({t:'Нет ФвШ — отсутствует массовый вход',ok:false}); }
+
+    if (hasClub) { score+=25; factors.push({t:'Есть клуб Суперлиги / Первой лиги',ok:true}); }
+
+    if (swg >= 5)       { score+=15; factors.push({t:`${swg} СШ с девочками — есть инфраструктура`,ok:true}); }
+    else if (swg > 0)   { score+=5;  factors.push({t:`${swg} СШ с девочками — слабая база`,ok:false}); }
+
+    if (coverage>0 && coverage<30) { score+=15; factors.push({t:`Охват ${coverage.toFixed(1)}/100тыс. — большой потенциал роста`,ok:true}); }
+
+    const lv = score>=70
+      ? {label:'Высокий', col:'#dc2626', bg:'rgba(254,242,242,0.9)', br:'rgba(239,68,68,0.3)', hint:'Регион готов к быстрому эффекту'}
+      : score>=40
+        ? {label:'Средний', col:'#ca8a04', bg:'rgba(254,249,235,0.9)', br:'rgba(234,179,8,0.3)',  hint:'Есть потенциал, требует развития'}
+        : {label:'Низкий',  col:'#64748b', bg:'rgba(248,250,252,0.9)', br:'rgba(148,163,184,0.3)',hint:'Требует базовой инфраструктуры'};
+
+    let h = `<div class="panel-section-title" style="margin-top:12px;">Индекс приоритета</div>`;
+    h += `<div style="background:${lv.bg};border:1px solid ${lv.br};border-radius:12px;padding:10px 12px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div>
+          <span style="font-size:14px;font-weight:800;color:${lv.col};">${lv.label}</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:6px;">${escapeHTML(lv.hint)}</span>
+        </div>
+        <span style="font-size:16px;font-weight:900;color:${lv.col};">${score}<span style="font-size:10px;font-weight:600;">/100</span></span>
+      </div>`;
+    factors.forEach(f => {
+      h += `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-size:11px;">
+        <span style="flex-shrink:0;">${f.ok?'✅':'⚠️'}</span><span style="color:#374151;">${escapeHTML(f.t)}</span></div>`;
+    });
+    h += `</div>`;
+    return h;
+  }
 
   // ---- Region panel ----
   function openRegionPanel(props) {
@@ -1273,10 +1504,12 @@
         <div style="background:rgba(255,255,255,0.6);border:1px solid var(--stroke);border-radius:12px;padding:9px 8px;text-align:center;" title="% школ с девочками от всех спортшкол (включая 5ФК)">
           <div style="font-size:20px;font-weight:800;line-height:1.1;color:${pctBar>=60?'#15803d':pctBar>=30?'#ca8a04':'#dc2626'};">${pctBar > 0 ? pctBar + '%' : '—'}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">шк. с дев.</div>
+          ${compTag(pctBar, nationalStats?.avgPctWithGirls, mroStatsMap[mro]?.avgPctWithGirls)}
         </div>
         <div style="background:rgba(255,255,255,0.6);border:1px solid var(--stroke);border-radius:12px;padding:9px 8px;text-align:center;" title="Девочек на 100 000 жителей (Росстат 2023)">
           <div style="font-size:20px;font-weight:800;line-height:1.1;color:${coverageIndex>=50?'#15803d':coverageIndex>=25?'#ca8a04':'#dc2626'};">${coverageIndex > 0 ? coverageIndex.toFixed(1) : '—'}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">на 100 тыс.</div>
+          ${compTag(coverageIndex, nationalStats?.avgCoverage, mroStatsMap[mro]?.avgCoverage)}
         </div>
       </div>`;
 
@@ -1359,10 +1592,26 @@
       }
     }
 
+    // ── Зоны внимания / Сильные стороны ──────────────────────────────
+    html += buildRisksBlock(regionKey, props, ageGroups, coachesTotal, coachesFemale,
+                            countWithGirlsKpi, countNoGirlsKpi, countFvshKpi, coverageIndex);
+
+    // ── Путь футболистки ──────────────────────────────────────────────
+    html += buildPathwayBlock(regionKey);
+
+    // ── Индекс приоритета ─────────────────────────────────────────────
+    html += buildPriorityBlock(regionKey, props, countWithGirlsKpi, countNoGirlsKpi, countFvshKpi);
+
+    // ── Кнопки ───────────────────────────────────────────────────────
     html += `
-      <button id="showRegionInList" style="width:100%;padding:9px;border-radius:12px;border:1px solid rgba(59,130,246,0.3);background:rgba(239,246,255,0.8);color:#1d4ed8;font-weight:700;font-size:12px;cursor:pointer;margin-bottom:14px;">
-        Показать школы в списке ↓
-      </button>`;
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button id="showRegionInList" style="flex:1;padding:9px;border-radius:12px;border:1px solid rgba(59,130,246,0.3);background:rgba(239,246,255,0.8);color:#1d4ed8;font-weight:700;font-size:12px;cursor:pointer;">
+          Список школ ↓
+        </button>
+        <button id="downloadPassport" style="flex:1;padding:9px;border-radius:12px;border:1px solid rgba(22,163,74,0.3);background:rgba(240,253,244,0.8);color:#15803d;font-weight:700;font-size:12px;cursor:pointer;">
+          📄 Паспорт региона
+        </button>
+      </div>`;
 
     regionPanelContent.innerHTML = html;
 
@@ -1370,10 +1619,24 @@
       filterListByRegion(props.name);
     });
 
+    document.getElementById('downloadPassport')?.addEventListener('click', () => {
+      printRegionPassport(props.name ?? 'Регион', {
+        props, regionKey, mro, mroColor, pop, popStr,
+        countWithGirlsKpi, countNoGirlsKpi, countFvshKpi,
+        girls, pctBar, coverageIndex,
+        coachesTotal, coachesFemale, pctFemale,
+        ageGroups, schoolsWithCoachData: schoolsWithCoachData.length,
+        sl, fl,
+        regionMasterSchools,
+      });
+    });
+
     regionPanel.classList.add('open');
   }
 
   let activeListRegion = null;
+  let activeListTab = 'schools'; // 'schools' | 'fvsh' | 'clubs'
+  let superByRegionName = {}, firstByRegionName = {};
 
   function filterListByRegion(regionName) {
     activeListRegion = regionName;
@@ -1588,37 +1851,7 @@
         }),
         onEachFeature: (feature, layer) => {
           layer.on('click', () => {
-            const coords = feature.geometry?.coordinates;
-            if (!coords || coords.length < 2) return;
-            const [lon, lat] = coords;
-            const p = feature.properties || {};
-            const nearest = findNearestSportsSchool(lat, lon, sportsArr);
-            const nearestHtml = nearest ? `
-              <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
-                <div style="font-weight:800;font-size:12px;">Ближайшая спортшкола</div>
-                <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(nearest.name)}</div>
-                <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearest.region, nearest.city].filter(Boolean).join(", "))}</div>
-                <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearest.distanceKm * 10) / 10)} км</div>
-              </div>` : '';
-            const noGirlsArr = noGirlsData ? buildSportsIndex(noGirlsData) : [];
-            const nearestNoGirls = noGirlsArr.length ? findNearestSportsSchool(lat, lon, noGirlsArr) : null;
-            const nearestNoGirlsHtml = nearestNoGirls ? `
-              <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
-                <div style="font-weight:800;font-size:12px;">Ближайшая школа без девочек (5ФК)</div>
-                <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(nearestNoGirls.name)}</div>
-                <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearestNoGirls.region, nearestNoGirls.city].filter(Boolean).join(", "))}</div>
-                <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearestNoGirls.distanceKm * 10) / 10)} км</div>
-              </div>` : '';
-            const html = `
-              <div class="popup">
-                <h3>${escapeHTML(p.name || "Школа ФвШ")}</h3>
-                <span class="type-badge" style="background:rgba(22,163,74,0.12);color:#15803d;">Школа ФвШ</span>
-                <div class="muted">${escapeHTML([p.region, p.CITY || p.city].filter(Boolean).join(", "))}</div>
-                ${p.Address || p.address ? `<div style="font-size:12px;color:var(--muted);">${escapeHTML(p.Address || p.address)}</div>` : ""}
-                ${nearestHtml}
-                ${nearestNoGirlsHtml}
-              </div>`;
-            layer.bindPopup(html, { maxWidth: 380 }).openPopup();
+            layer.bindPopup(buildFvshPopup(feature), { maxWidth: 380 }).openPopup();
           });
         }
       }));
@@ -1654,8 +1887,114 @@
     }
   }
 
+  // ---- ФвШ list ----
+  function renderFvshList(){
+    const search = (searchInput.value || "").trim().toLowerCase();
+    let rows = fvshData ? [...(fvshData.features || [])] : [];
+    if (activeListRegion) {
+      const rk = normRegion(activeListRegion);
+      rows = rows.filter(f => normRegion(f.properties?.region || '') === rk);
+    }
+    if (search) rows = rows.filter(f => {
+      const p = f.properties || {};
+      return [p.name, p.region, p.CITY || p.city, p.Address || p.address].filter(Boolean).join(' ').toLowerCase().includes(search);
+    });
+    rows.sort((a,b) => String(a.properties?.region || '').localeCompare(String(b.properties?.region || ''), 'ru'));
+
+    listSub.textContent = `${fmt.format(rows.length)} школ ФвШ`;
+    schoolsList.innerHTML = '';
+    if (!rows.length) {
+      schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено.</div>`;
+      return;
+    }
+    for (const f of rows.slice(0, 400)) {
+      const p = f.properties || {};
+      const city = p.CITY || p.city || '';
+      const address = p.Address || p.address || '';
+      const el = document.createElement('div');
+      el.className = 'row';
+      el.innerHTML = `
+        <div>
+          <div class="name">${escapeHTML(p.name ?? 'Без названия')}</div>
+          <div class="meta">${escapeHTML([p.region, city].filter(Boolean).join(', '))}</div>
+        </div>
+        <div class="addr">${escapeHTML(address)}</div>
+        <div style="font-size:11px;background:rgba(22,163,74,0.12);color:#15803d;border-radius:6px;padding:2px 7px;align-self:center;font-weight:700;white-space:nowrap;">ФвШ</div>
+        <div></div>
+      `;
+      el.addEventListener('click', () => {
+        const c = f.geometry?.coordinates;
+        if (c?.length >= 2) map.setView([c[1], c[0]], Math.max(map.getZoom(), 10), { animate: true });
+      });
+      schoolsList.appendChild(el);
+    }
+  }
+
+  // ---- Clubs list ----
+  function renderClubsList(){
+    const slChecked = superCheckbox?.checked;
+    const flChecked = firstCheckbox?.checked;
+
+    if (!slChecked && !flChecked) {
+      listSub.textContent = '0 клубов';
+      schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Включите Суперлигу или Первую лигу в разделе «Соревнования».</div>`;
+      return;
+    }
+
+    const rows = [];
+    if (slChecked) {
+      for (const [rKey, clubs] of Object.entries(superByRegion)) {
+        const regionDisplay = superByRegionName[rKey] || rKey;
+        for (const c of clubs) {
+          const name = typeof c === 'string' ? c : (c.club || '');
+          const city = typeof c === 'string' ? '' : (c.city || '');
+          rows.push({ region: regionDisplay, name, city, competition: 'Суперлига', color: superBrand.color });
+        }
+      }
+    }
+    if (flChecked) {
+      for (const [rKey, clubs] of Object.entries(firstByRegion)) {
+        const regionDisplay = firstByRegionName[rKey] || rKey;
+        for (const c of clubs) {
+          const name = typeof c === 'string' ? c : (c.club || '');
+          const city = typeof c === 'string' ? '' : (c.city || '');
+          rows.push({ region: regionDisplay, name, city, competition: 'Первая лига', color: firstBrand.color });
+        }
+      }
+    }
+    rows.sort((a,b) => a.region.localeCompare(b.region, 'ru') || a.competition.localeCompare(b.competition, 'ru'));
+
+    const search = (searchInput.value || '').trim().toLowerCase();
+    const filtered = search
+      ? rows.filter(r => [r.name, r.region, r.city, r.competition].join(' ').toLowerCase().includes(search))
+      : rows;
+
+    listSub.textContent = `${fmt.format(filtered.length)} клубов`;
+    schoolsList.innerHTML = '';
+    if (!filtered.length) {
+      schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено.</div>`;
+      return;
+    }
+    for (const r of filtered) {
+      const el = document.createElement('div');
+      el.className = 'row';
+      el.innerHTML = `
+        <div>
+          <div class="name">${escapeHTML(r.name)}</div>
+          <div class="meta">${escapeHTML(r.region)}</div>
+        </div>
+        <div class="addr">${escapeHTML(r.city)}</div>
+        <div style="font-size:11px;background:${r.color}22;color:${r.color};border-radius:6px;padding:2px 7px;align-self:center;font-weight:700;white-space:nowrap;">${escapeHTML(r.competition)}</div>
+        <div></div>
+      `;
+      schoolsList.appendChild(el);
+    }
+  }
+
   // ---- Schools list ----
   function renderSchoolsList(){
+    if (activeListTab === 'fvsh')  { renderFvshList();  return; }
+    if (activeListTab === 'clubs') { renderClubsList(); return; }
     const search = (searchInput.value || "").trim().toLowerCase();
     let rows = currentFilteredPointFeatures.slice();
     if (activeListRegion) {
@@ -1910,7 +2249,196 @@
       XLSX.utils.book_append_sheet(wb, ws2, '5ФК без девочек');
     }
 
+    // ════════════════════════════════════════════════════════════════════
+    // SHEET 4 — ФвШ schools
+    // ════════════════════════════════════════════════════════════════════
+    if (fvshData?.features?.length) {
+      const fvshFiltered = (fvshData.features || []).filter(f =>
+        !filterActive || enabledRegions.has(normRegion(f.properties?.region || ''))
+      );
+
+      const COLS3 = [
+        { h: 'Название',  w: 60, fn: p     => p.name                  ?? '' },
+        { h: 'Регион',    w: 24, fn: p     => p.region                 ?? '' },
+        { h: 'Город',     w: 18, fn: p     => p.CITY || p.city         || '' },
+        { h: 'Адрес',     w: 40, fn: p     => p.Address || p.address   || '' },
+        { h: 'Долгота',   w: 11, fn: (p,f) => f.geometry?.coordinates?.[0] ?? null },
+        { h: 'Широта',    w: 11, fn: (p,f) => f.geometry?.coordinates?.[1] ?? null },
+      ];
+
+      const rows3 = fvshFiltered.map(f => {
+        const p = f.properties || {};
+        return COLS3.map(c => c.fn(p, f));
+      });
+      const ws3 = XLSX.utils.aoa_to_sheet([COLS3.map(c => c.h), ...rows3]);
+      ws3['!cols'] = COLS3.map(c => ({ wch: c.w }));
+      ws3['!rows'] = [{ hpt: 30 }];
+      applyStyles(ws3, COLS3, rows3, '15803D', false);
+      freezeRow(ws3);
+      XLSX.utils.book_append_sheet(wb, ws3, 'Школы ФвШ');
+    }
+
     XLSX.writeFile(wb, `girls_football_${ts}.xlsx`);
+  }
+
+  // ── Паспорт региона (печать / PDF) ───────────────────────────────
+  function printRegionPassport(regionName, d) {
+    const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const fmtN = v => (v != null && v !== '') ? Number(v).toLocaleString('ru-RU') : '—';
+    const natS = nationalStats, mroS = mroStatsMap[d.mro];
+
+    // ── Зоны внимания / Сильные стороны (text for print) ─────────────
+    const risks = [], strengths = [];
+    const ageGroups = d.ageGroups || [];
+    if (ageGroups.some(g=>g.count>0)) {
+      ['5–6','7–8'].forEach(lbl => { if((ageGroups.find(g=>g.label===lbl)?.count||0)===0) risks.push(`Нет охвата возраста ${lbl} лет`); });
+    }
+    const pctFc = d.coachesTotal>0 ? Math.round(d.coachesFemale/d.coachesTotal*100) : null;
+    if (pctFc!==null) { if(pctFc<25) risks.push(`Доля женщин-тренеров — ${pctFc}%`); else strengths.push(`Доля женщин-тренеров — ${pctFc}%`); }
+    if (d.countWithGirlsKpi===0) risks.push('Нет спортшкол с секцией для девочек');
+    else if (d.countNoGirlsKpi>d.countWithGirlsKpi) risks.push(`${d.countNoGirlsKpi} СШ без девочек — больше, чем с девочками`);
+    if (d.coverageIndex>0&&d.coverageIndex<25) risks.push(`Охват ${d.coverageIndex.toFixed(1)} дев./100 тыс. — ниже среднего`);
+    else if (d.coverageIndex>=50) strengths.push(`Высокий охват: ${d.coverageIndex.toFixed(1)} на 100 тыс.`);
+    if (d.countFvshKpi===0) risks.push('Нет школ ФвШ'); else strengths.push(`${d.countFvshKpi} школ ФвШ`);
+
+    // ── Путь футболистки ─────────────────────────────────────────────
+    const pathSteps = [
+      { label:'Массовый вход (ФвШ)',           ok: d.countFvshKpi>0,         info: d.countFvshKpi>0?`${d.countFvshKpi} школ`:'отсутствует' },
+      { label:'Регулярные занятия (СШ)',       ok: d.countWithGirlsKpi>0,    info: d.countWithGirlsKpi>0?`${d.countWithGirlsKpi} СШ`:'отсутствует' },
+      { label:'Верхний уровень (клуб)',        ok: d.sl.length+d.fl.length>0, info: [...d.sl,...d.fl].map(c=>typeof c==='string'?c:c.club||'').join(', ')||'отсутствует' },
+    ];
+
+    // ── Список школ ──────────────────────────────────────────────────
+    const schoolRows = (d.regionMasterSchools||[])
+      .sort((a,b)=>Number(b.properties?.girls_total??0)-Number(a.properties?.girls_total??0))
+      .slice(0, 60);
+
+    // ── Age bar helper ────────────────────────────────────────────────
+    const maxAge = Math.max(1, ...ageGroups.map(g=>g.count));
+    const ageBars = ageGroups.map(g => {
+      const pct = Math.round(g.count/maxAge*100);
+      return `<tr><td style="width:44px;font-weight:700;">${esc(g.label)}</td>
+        <td><div style="background:#e5e7eb;border-radius:3px;height:8px;"><div style="background:#3b82f6;border-radius:3px;height:8px;width:${pct}%;"></div></div></td>
+        <td style="width:40px;text-align:right;color:#6b7280;">${g.count>0?g.count:'—'}</td></tr>`;
+    }).join('');
+
+    const compRow = (val, natAvg, mroAvg, lbl) => {
+      const delta = (v,a,l) => { if(!a||a===0) return ''; const p=Math.round((v-a)/a*100); const s=p>0?'+':''; const col=p>=10?'#15803d':p<=-10?'#dc2626':'#6b7280'; return `<span style="color:${col};font-weight:700;">${s}${p}%&nbsp;${l}</span>`; };
+      return `<small style="display:block;margin-top:2px;">${delta(val,natAvg,'РФ')} ${delta(val,mroAvg,'ФО')}</small>`;
+    };
+
+    const html = `<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"/>
+<title>Паспорт: ${esc(regionName)}</title>
+<style>
+@page{size:A4;margin:18mm 14mm 16mm}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;color:#111;line-height:1.45;margin:0}
+h1{font-size:17pt;font-weight:900;margin:0 0 4px;color:#1d4ed8}
+h2{font-size:11pt;font-weight:800;margin:14px 0 6px;border-bottom:2px solid #2563eb;padding-bottom:3px;color:#1d4ed8;page-break-after:avoid}
+.badges{margin-bottom:10px}
+.badge{display:inline-block;border-radius:5px;padding:2px 9px;font-size:8.5pt;font-weight:700;margin-right:4px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.kpi{border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 6px;text-align:center}
+.kpi .v{font-size:20pt;font-weight:900;line-height:1.1}
+.kpi .l{font-size:8pt;color:#6b7280;margin-top:2px}
+.kpi .c{font-size:8pt;margin-top:3px}
+table.age{width:100%;border-collapse:collapse;font-size:10pt}
+table.age td{padding:3px 4px}
+.risk{display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-size:10pt}
+.path-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;margin-bottom:4px;font-size:10pt}
+.path-ok{background:#f0fdf4;border:1px solid #bbf7d0}
+.path-gap{background:#fef2f2;border:1px solid #fecaca}
+table.schools{width:100%;border-collapse:collapse;font-size:9pt;margin-top:4px}
+table.schools th{background:#eff6ff;color:#1d4ed8;font-weight:700;padding:5px 6px;text-align:left;border-bottom:2px solid #bfdbfe}
+table.schools td{padding:4px 6px;border-bottom:1px solid #f3f4f6;vertical-align:top}
+table.schools tr:nth-child(even) td{background:#f8faff}
+.bar-bg{background:#e5e7eb;border-radius:3px;height:9px}
+.bar-fill{background:#3b82f6;border-radius:3px;height:9px}
+.footer{margin-top:18px;font-size:8pt;color:#9ca3af;text-align:center;border-top:1px solid #e5e7eb;padding-top:6px}
+.no-print{background:#dbeafe;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:10pt}
+@media print{.no-print{display:none}}
+</style></head><body>
+
+<div class="no-print">
+  <b>Для сохранения в PDF:</b> Файл → Печать → «Сохранить как PDF» (или Ctrl/Cmd+P).
+  <button onclick="window.print()" style="margin-left:10px;padding:4px 14px;background:#2563eb;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:10pt;">🖨 Печать / PDF</button>
+</div>
+
+<h1>${esc(regionName)}</h1>
+<div class="badges">
+  ${d.mro?`<span class="badge" style="background:${d.mroColor}22;color:${d.mroColor};border:1.5px solid ${d.mroColor}44;">${esc(d.mro)}</span>`:''}
+  ${d.popStr?`<span class="badge" style="background:#f3f4f6;color:#374151;border:1.5px solid #e5e7eb;">${esc(d.popStr)}</span>`:''}
+  <span class="badge" style="background:#f0fdf4;color:#15803d;border:1.5px solid #bbf7d0;">Паспорт · 2024</span>
+</div>
+
+<h2>Инфраструктура</h2>
+<div class="grid3">
+  <div class="kpi"><div class="v" style="color:#1d4ed8">${d.countWithGirlsKpi}</div><div class="l">СШ с девочками</div></div>
+  <div class="kpi"><div class="v" style="color:#dc2626">${d.countNoGirlsKpi}</div><div class="l">СШ без девочек</div></div>
+  <div class="kpi"><div class="v" style="color:#15803d">${d.countFvshKpi}</div><div class="l">Школ ФвШ</div></div>
+</div>
+
+<h2>Охват девочек</h2>
+<div class="grid3">
+  <div class="kpi"><div class="v">${fmtN(d.girls)}</div><div class="l">девочек всего</div></div>
+  <div class="kpi">
+    <div class="v" style="color:${d.pctBar>=60?'#15803d':d.pctBar>=30?'#ca8a04':'#dc2626'}">${d.pctBar>0?d.pctBar+'%':'—'}</div>
+    <div class="l">% школ с девочками</div>
+    <div class="c">${compRow(d.pctBar, natS?.avgPctWithGirls, mroS?.avgPctWithGirls)}</div>
+  </div>
+  <div class="kpi">
+    <div class="v" style="color:${d.coverageIndex>=50?'#15803d':d.coverageIndex>=25?'#ca8a04':'#dc2626'}">${d.coverageIndex>0?d.coverageIndex.toFixed(1):'—'}</div>
+    <div class="l">на 100 тыс. жит.</div>
+    <div class="c">${compRow(d.coverageIndex, natS?.avgCoverage, mroS?.avgCoverage)}</div>
+  </div>
+</div>
+
+${ageGroups.some(g=>g.count>0)?`
+<h2>Возрастная структура</h2>
+<table class="age">${ageBars}</table>`:''}
+
+${d.coachesTotal>0?`
+<h2>Тренерский ресурс</h2>
+<div class="grid3">
+  <div class="kpi"><div class="v" style="color:#1d4ed8">${fmtN(d.coachesTotal)}</div><div class="l">тренеров всего<br><small style="color:#9ca3af">${d.schoolsWithCoachData} шк. ответили</small></div></div>
+  <div class="kpi"><div class="v" style="color:#7c3aed">${fmtN(d.coachesFemale)}</div><div class="l">тренеров-женщин</div></div>
+  <div class="kpi"><div class="v" style="color:${d.pctFemale>=30?'#15803d':d.pctFemale>=15?'#ca8a04':'#dc2626'}">${d.pctFemale}%</div><div class="l">доля женщин</div></div>
+</div>`:''}
+
+${d.sl.length+d.fl.length>0?`
+<h2>Клубы</h2>
+${d.sl.length?`<p style="margin:4px 0;font-size:10pt;"><b style="color:#d000e0;">Суперлига:</b> ${esc(d.sl.map(c=>typeof c==='string'?c:c.club).join(', '))}</p>`:''}
+${d.fl.length?`<p style="margin:4px 0;font-size:10pt;"><b style="color:#ff4b00;">Первая лига:</b> ${esc(d.fl.map(c=>typeof c==='string'?c:(c.club+(c.city?` (${c.city})`:''))).join(', '))}</p>`:''}
+`:''}
+
+<h2>Путь футболистки в регионе</h2>
+${pathSteps.map(s=>`<div class="path-row ${s.ok?'path-ok':'path-gap'}">
+  <span style="font-size:13pt;">${s.ok?'✓':'✗'}</span>
+  <div><b>${esc(s.label)}</b><br><span style="color:${s.ok?'#374151':'#9ca3af'};font-size:9.5pt;">${esc(s.info)}</span></div>
+</div>`).join('')}
+
+${risks.length+strengths.length>0?`
+<h2>Зоны внимания</h2>
+${risks.map(t=>`<div class="risk">⚠️ <span>${esc(t)}</span></div>`).join('')}
+${strengths.length?`<p style="margin:8px 0 4px;font-weight:700;font-size:10pt;">Сильные стороны</p>${strengths.map(t=>`<div class="risk">✅ <span>${esc(t)}</span></div>`).join('')}`:''}
+`:''}
+
+${schoolRows.length?`
+<h2>Список спортшкол с девочками (${schoolRows.length}${d.regionMasterSchools.length>60?' из '+d.regionMasterSchools.length:''})</h2>
+<table class="schools">
+  <thead><tr><th>Название</th><th>Город</th><th style="text-align:right">Девочек</th></tr></thead>
+  <tbody>${schoolRows.map(f=>{const p=f.properties||{};return`<tr><td>${esc(p.name||'')}</td><td>${esc(p.city||'')}</td><td style="text-align:right;font-weight:700;">${fmtN(p.girls_total)}</td></tr>`;}).join('')}</tbody>
+</table>`:''}
+
+<div class="footer">Карта девочкового футбола России · ${new Date().toLocaleDateString('ru-RU','ru')} · girls-football-map-demo</div>
+</body></html>`;
+
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) { alert('Разрешите всплывающие окна для этой страницы'); return; }
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 600);
   }
 
   function fillRegionSelectFromGeoJSON(){
@@ -2002,8 +2530,24 @@
     ageChks.forEach(x => x.addEventListener('change', rerunAll));
     compChks.forEach(x => x.addEventListener('change', rerunAll));
 
-    superCheckbox.addEventListener('change', rebuildOutlines);
-    firstCheckbox.addEventListener('change', rebuildOutlines);
+    superCheckbox.addEventListener('change', () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); });
+    firstCheckbox.addEventListener('change', () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); });
+
+    // ---- List tabs ----
+    const tabSchoolsBtn = document.getElementById('tabSchools');
+    const tabFvshBtn    = document.getElementById('tabFvsh');
+    const tabClubsBtn   = document.getElementById('tabClubs');
+
+    function setListTab(tab) {
+      activeListTab = tab;
+      tabSchoolsBtn?.classList.toggle('active', tab === 'schools');
+      tabFvshBtn?.classList.toggle('active',    tab === 'fvsh');
+      tabClubsBtn?.classList.toggle('active',   tab === 'clubs');
+      renderSchoolsList();
+    }
+    tabSchoolsBtn?.addEventListener('click', () => setListTab('schools'));
+    tabFvshBtn?.addEventListener('click',    () => setListTab('fvsh'));
+    tabClubsBtn?.addEventListener('click',   () => setListTab('clubs'));
 
     sportsCheckbox?.addEventListener('change', () => {
       if (sportsCheckbox.checked) {
@@ -2129,37 +2673,7 @@
           }),
           onEachFeature: (feature, layer) => {
             layer.on('click', () => {
-              const coords = feature.geometry?.coordinates;
-              if (!coords || coords.length < 2) return;
-              const [lon, lat] = coords;
-              const p = feature.properties || {};
-              const nearest = findNearestSportsSchool(lat, lon, sportsArr);
-              const nearestHtml = nearest ? `
-                <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
-                  <div style="font-weight:800;font-size:12px;">Ближайшая спортшкола</div>
-                  <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(nearest.name)}</div>
-                  <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearest.region, nearest.city].filter(Boolean).join(", "))}</div>
-                  <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearest.distanceKm * 10) / 10)} км</div>
-                </div>` : '';
-              const noGirlsArr = noGirlsData ? buildSportsIndex(noGirlsData) : [];
-              const nearestNoGirls = noGirlsArr.length ? findNearestSportsSchool(lat, lon, noGirlsArr) : null;
-              const nearestNoGirlsHtml = nearestNoGirls ? `
-                <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
-                  <div style="font-weight:800;font-size:12px;">Ближайшая школа без девочек (5ФК)</div>
-                  <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(nearestNoGirls.name)}</div>
-                  <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearestNoGirls.region, nearestNoGirls.city].filter(Boolean).join(", "))}</div>
-                  <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearestNoGirls.distanceKm * 10) / 10)} км</div>
-                </div>` : '';
-              const html = `
-                <div class="popup">
-                  <h3>${escapeHTML(p.name || "Школа ФвШ")}</h3>
-                  <span class="type-badge" style="background:rgba(22,163,74,0.12);color:#15803d;">Школа ФвШ</span>
-                  <div class="muted">${escapeHTML([p.region, p.CITY || p.city].filter(Boolean).join(", "))}</div>
-                  ${p.Address || p.address ? `<div style="font-size:12px;color:var(--muted);">${escapeHTML(p.Address || p.address)}</div>` : ""}
-                  ${nearestHtml}
-                  ${nearestNoGirlsHtml}
-                </div>`;
-              layer.bindPopup(html, { maxWidth: 380 }).openPopup();
+              layer.bindPopup(buildFvshPopup(feature), { maxWidth: 380 }).openPopup();
             });
           }
         });
@@ -2176,8 +2690,21 @@
     // No-girls layer (5ФК 2023)
     fetchJSON('./data/no_girls_schools.json')
       .then(data => {
-        noGirlsData = data;
-        const cnt = data.features?.length || 0;
+        // Deduplicate: remove schools that already appear in schools_with_girls layer
+        // (same school may exist in both 5ФК 2023 data and newer 2024 survey data)
+        const withGirlsKeySet = new Set(
+          (pointsData?.features || []).map(f => {
+            const p = f.properties || {};
+            return String(p.name || '').toLowerCase().trim() + '|' + normRegion(p.region || '');
+          })
+        );
+        const dedupedFeatures = (data.features || []).filter(f => {
+          const p = f.properties || {};
+          const key = String(p.name || '').toLowerCase().trim() + '|' + normRegion(p.region || '');
+          return !withGirlsKeySet.has(key);
+        });
+        noGirlsData = { ...data, features: dedupedFeatures };
+        const cnt = dedupedFeatures.length;
         if (noGirlsStatus) noGirlsStatus.textContent = `(${fmt.format(cnt)})`;
         currentFilteredNoGirlsCount = cnt;
         document.getElementById('kpiSchools').textContent = fmt.format(currentFilteredPointFeatures.length + cnt);
@@ -2231,20 +2758,25 @@
   .then(([sl, fl]) => {
     if (sl) {
       superBrand = sl.brand || superBrand;
-      superByRegion = {};
+      superByRegion = {}; superByRegionName = {};
       for (const [rName, clubs] of Object.entries(sl.by_region || {})) {
-        superByRegion[normRegion(rName)] = (clubs || []).filter(Boolean);
+        const key = normRegion(rName);
+        superByRegion[key] = (clubs || []).filter(Boolean);
+        superByRegionName[key] = rName;
       }
     } else if (slStatus) slStatus.textContent = "(нет данных)";
 
     if (fl) {
       firstBrand = fl.brand || firstBrand;
-      firstByRegion = {};
+      firstByRegion = {}; firstByRegionName = {};
       for (const [rName, clubs] of Object.entries(fl.by_region || {})) {
-        firstByRegion[normRegion(rName)] = (clubs || []).filter(Boolean);
+        const key = normRegion(rName);
+        firstByRegion[key] = (clubs || []).filter(Boolean);
+        firstByRegionName[key] = rName;
       }
     } else if (flStatus) flStatus.textContent = "(нет данных)";
 
+    computeGlobalStats();   // build national / MRO benchmarks
     applyRegionFilterStyles();
     applySchoolsFilter();
     rebuildOutlines();
