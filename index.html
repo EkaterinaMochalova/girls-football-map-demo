@@ -855,9 +855,16 @@
 
   const fmt = new Intl.NumberFormat('ru-RU');
 
+  // Known naming discrepancies between datasets (after normalization)
+  const REGION_ALIASES = {
+    'хмао':                    'ханты-мансийский югра',
+    'чувашская':               'чувашия',
+    'северная осетия-алания':  'северная осетия алания',
+  };
+
   function normRegion(s) {
     if (!s) return "";
-    return String(s)
+    const n = String(s)
       .toLowerCase()
       .replaceAll("ё", "е")
       .replace(/[().,"]/g, " ")
@@ -865,10 +872,13 @@
       .trim()
       .replace(/\s*[–—]\s*/g, " ")   // em-dash → space (e.g. "Северная Осетия — Алания")
       .replace(/\s+-\s+/g, " ")       // spaced hyphen → space (e.g. "Осетия - Алания")
-      .replace(/\b(республика|респ|область|обл|край|кр|автономная область|автономный округ|округ|ао|г\.|город)\b/g, "")
+      .replace(/(^|\s)автономная\s+область(\s|$)/g, " ")
+      .replace(/(^|\s)автономный\s+округ(\s|$)/g, " ")
+      .replace(/(^|\s)(республика|область|край|округ|город|г|респ|обл|кр|ао)(\s|$)/g, " ")
       .replace(/[-–]\s*$/, "")
       .replace(/\s+/g, " ")
       .trim();
+    return REGION_ALIASES[n] ?? n;
   }
 
   function escapeHTML(s){
