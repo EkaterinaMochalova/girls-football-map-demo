@@ -1233,6 +1233,11 @@
       const p = f.properties || {};
       if (p.mro && p.region) regionMROMap[normRegion(p.region)] = p.mro;
     }
+    // Extra regions (Crimea, Donbas, etc.) also belong to 'Юг'
+    for (const f of (regionsData?.features || [])) {
+      const p = f.properties || {};
+      if (p.mro && p.name) regionMROMap[normRegion(p.name)] = p.mro;
+    }
     function aggFrom(arr) {
       const n = arr.length; if (!n) return null;
       const vals = key => arr.map(f => Number(f.properties?.[key] ?? 0));
@@ -2820,11 +2825,20 @@ ${schoolRows.length?`
   // ---- Load data ----
   Promise.all([
     fetchJSON('./russia_subjects_with_sportschools2024.json'),
-    fetchJSON('https://ekaterinamochalova.github.io/girls-football-map-demo/schools_points_master.json')
+    fetchJSON('https://ekaterinamochalova.github.io/girls-football-map-demo/schools_points_master.json'),
+    fetchJSON('./data/extra_regions.geojson').catch(() => null)   // Crimea, Donbas, etc.
   ])
-  .then(([regions, points]) => {
+  .then(([regions, points, extraRegions]) => {
     regionsData = regions;
     pointsData  = points;
+
+    // Merge extra regions (politically absent from main GeoJSON) into the same layer
+    if (extraRegions?.features?.length) {
+      regions = {
+        ...regions,
+        features: [...(regions.features || []), ...extraRegions.features]
+      };
+    }
 
     if (sportsStatus) sportsStatus.textContent = `(${fmt.format(points.features?.length ?? 0)})`;
     updateKPIs(new Set());

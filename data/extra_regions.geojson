@@ -1,0 +1,147 @@
+{
+  "type": "FeatureCollection",
+  "_note": "Simplified boundary polygons for regions absent from main GeoJSON. Coordinates are approximate.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Республика Крым",
+        "total_schools": 14,
+        "schools_with_girls": 0,
+        "total_girls": 0,
+        "no_girls_schools": 14,
+        "pct_with_girls": 0,
+        "population_thousands": 1820,
+        "coverage_index": 0,
+        "mro": "Юг",
+        "_approx": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [33.62, 46.14], [34.41, 46.10], [35.12, 46.04], [35.84, 45.82],
+          [36.38, 45.51], [36.52, 45.34], [35.75, 44.97], [35.27, 44.69],
+          [34.57, 44.42], [34.13, 44.36], [33.54, 44.44], [33.10, 44.52],
+          [33.38, 44.80], [33.52, 44.78], [33.90, 44.82],
+          [33.78, 44.98], [33.45, 45.12], [32.73, 44.97], [32.48, 45.12],
+          [32.52, 45.65], [32.99, 45.98], [33.62, 46.14]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Севастополь",
+        "total_schools": 0,
+        "schools_with_girls": 0,
+        "total_girls": 0,
+        "no_girls_schools": 0,
+        "pct_with_girls": 0,
+        "population_thousands": 450,
+        "coverage_index": 0,
+        "mro": "Юг",
+        "_approx": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [33.10, 44.52], [33.54, 44.44], [33.76, 44.37], [33.90, 44.82],
+          [33.52, 44.78], [33.38, 44.80], [33.10, 44.52]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Донецкая Народная Республика",
+        "total_schools": 30,
+        "schools_with_girls": 0,
+        "total_girls": 0,
+        "no_girls_schools": 30,
+        "pct_with_girls": 0,
+        "population_thousands": 2100,
+        "coverage_index": 0,
+        "mro": "Юг",
+        "_approx": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [36.58, 48.96], [37.62, 49.21], [38.25, 49.12], [39.02, 48.77],
+          [39.32, 48.26], [39.15, 47.84], [38.72, 47.48], [37.95, 47.07],
+          [37.25, 47.03], [36.75, 47.30], [36.52, 47.82], [36.52, 48.38],
+          [36.58, 48.96]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Луганская Народная Республика",
+        "total_schools": 25,
+        "schools_with_girls": 0,
+        "total_girls": 0,
+        "no_girls_schools": 25,
+        "pct_with_girls": 0,
+        "population_thousands": 1500,
+        "coverage_index": 0,
+        "mro": "Юг",
+        "_approx": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [37.62, 49.21], [38.51, 50.07], [39.21, 50.15], [39.78, 49.99],
+          [40.22, 49.52], [40.10, 49.02], [39.55, 48.62], [39.32, 48.26],
+          [39.02, 48.77], [38.25, 49.12], [37.62, 49.21]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Запорожская область",
+        "total_schools": 8,
+        "schools_with_girls": 0,
+        "total_girls": 0,
+        "no_girls_schools": 8,
+        "pct_with_girls": 0,
+        "population_thousands": 1650,
+        "coverage_index": 0,
+        "mro": "Юг",
+        "_approx": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [33.62, 48.18], [35.42, 48.32], [36.52, 48.38], [36.52, 47.82],
+          [36.75, 47.30], [35.82, 46.78], [35.12, 46.42], [34.32, 46.32],
+          [33.65, 46.45], [33.52, 47.15], [33.62, 48.18]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Херсонская область",
+        "total_schools": 7,
+        "schools_with_girls": 0,
+        "total_girls": 0,
+        "no_girls_schools": 7,
+        "pct_with_girls": 0,
+        "population_thousands": 1050,
+        "coverage_index": 0,
+        "mro": "Юг",
+        "_approx": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [31.55, 47.62], [33.62, 48.18], [33.52, 47.15], [33.65, 46.45],
+          [34.32, 46.32], [33.62, 46.14], [32.99, 45.98], [32.52, 45.65],
+          [32.48, 45.12], [31.75, 45.52], [31.55, 46.32], [31.55, 47.62]
+        ]]
+      }
+    }
+  ]
+}
