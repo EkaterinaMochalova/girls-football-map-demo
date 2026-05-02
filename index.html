@@ -38,11 +38,11 @@
       z-index:0;
     }
 
-    #app { height: 100%; display: grid; grid-template-columns: 340px 1fr; grid-template-rows: 1fr 200px; gap: 14px; padding: 14px; position: relative; z-index: 1; }
+    #app { height: 100%; display: grid; grid-template-columns: 340px 1fr; grid-template-rows: 1fr 14px 200px; gap: 0 14px; padding: 14px; position: relative; z-index: 1; }
 
     /* Left glass panel */
     #sidebar{
-      grid-column: 1; grid-row: 1 / span 2;
+      grid-column: 1; grid-row: 1 / span 3;
       background: var(--card);
       border: 1px solid var(--stroke);
       border-radius: var(--radius-lg);
@@ -244,7 +244,7 @@
 
     /* Schools list */
     #listCard{
-      grid-column: 2; grid-row: 2;
+      grid-column: 2; grid-row: 3;
       background: var(--card);
       border: 1px solid var(--stroke);
       border-radius: var(--radius-lg);
@@ -255,6 +255,36 @@
       display:flex;
       flex-direction: column;
       min-height: 0;
+    }
+
+    /* Resizer between map and list */
+    #mapListResizer {
+      grid-column: 2; grid-row: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: ns-resize;
+      z-index: 10;
+      border-radius: 4px;
+      transition: background 0.15s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    #mapListResizer:hover,
+    #mapListResizer.dragging {
+      background: rgba(0,0,0,0.04);
+    }
+    .resizer-grip {
+      width: 36px;
+      height: 4px;
+      background: var(--stroke);
+      border-radius: 2px;
+      transition: width 0.15s, background 0.15s;
+    }
+    #mapListResizer:hover .resizer-grip,
+    #mapListResizer.dragging .resizer-grip {
+      width: 56px;
+      background: #94a3b8;
     }
     #listHeader{
       padding: 10px 14px;
@@ -484,6 +514,7 @@
 
     @media (max-width: 1080px){
       #app{ grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; }
+      #mapListResizer { display: none; }
       #sidebar{ grid-column: 1; grid-row: 1; max-height: 42vh; }
       #mobileTabs{ display: flex; grid-column: 1; grid-row: 2; background: var(--card); border: 1px solid var(--stroke); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); overflow: hidden; }
       #mapCard{ grid-column: 1; grid-row: 3; min-height: 0; }
@@ -802,6 +833,11 @@
       <div id="regionPanelContent"></div>
     </div>
   </main>
+
+  <!-- Draggable resizer between map and list (desktop only) -->
+  <div id="mapListResizer" title="Потяни, чтобы изменить размер">
+    <div class="resizer-grip"></div>
+  </div>
 
   <!-- Mobile tabs (hidden on desktop) -->
   <div id="mobileTabs">
@@ -2794,6 +2830,108 @@ ${schoolRows.length?`
   })
   .catch(err => showErr('Ошибка загрузки данных', err));
 
+})();
+
+// ── Draggable map/list resizer ─────────────────────────────────────────────
+(function() {
+  const MOBILE_BP  = 1080;
+  const RESIZER_H  = 14;   // height of the resizer row (px)
+  const PADDING    = 14;   // #app padding (px)
+  const MAP_MIN    = 160;  // min map height (px)
+  const LIST_MIN   = 80;   // min list height (px)
+  const LS_KEY     = 'gfm_listPanelH';
+
+  const appEl      = document.getElementById('app');
+  const resizerEl  = document.getElementById('mapListResizer');
+  const mapCardEl  = document.getElementById('mapCard');
+  const listCardEl = document.getElementById('listCard');
+
+  if (!resizerEl || !appEl) return;
+
+  function isMobile() { return window.innerWidth <= MOBILE_BP; }
+
+  /** Total px available for mapCard + listCard rows (excl. padding & resizer) */
+  function availableH() {
+    return appEl.getBoundingClientRect().height - PADDING * 2 - RESIZER_H;
+  }
+
+  /** Apply explicit row heights to #app grid */
+  function setRows(mapH, listH) {
+    appEl.style.gridTemplateRows = `${mapH}px ${RESIZER_H}px ${listH}px`;
+  }
+
+  /** Restore sizes from localStorage (or use defaults) */
+  function initSizes() {
+    if (isMobile()) return;
+    const avail   = availableH();
+    const saved   = parseInt(localStorage.getItem(LS_KEY) || '200', 10);
+    const listH   = Math.min(Math.max(LIST_MIN, saved), avail - MAP_MIN);
+    const mapH    = avail - listH;
+    setRows(mapH, listH);
+    // Let Leaflet know the map container changed size
+    setTimeout(() => { try { map.invalidateSize(); } catch(e){} }, 0);
+  }
+
+  // ── Drag state ────────────────────────────────────────────────────────────
+  let dragging = false, startY = 0, startMapH = 0, avail = 0;
+
+  function onDragStart(clientY) {
+    if (isMobile()) return;
+    dragging   = true;
+    startY     = clientY;
+    startMapH  = mapCardEl.getBoundingClientRect().height;
+    avail      = availableH();
+    resizerEl.classList.add('dragging');
+    document.body.style.cursor     = 'ns-resize';
+    document.body.style.userSelect = 'none';
+  }
+
+  function onDragMove(clientY) {
+    if (!dragging) return;
+    const delta = clientY - startY;
+    const mapH  = Math.max(MAP_MIN, Math.min(avail - LIST_MIN, startMapH + delta));
+    setRows(mapH, avail - mapH);
+  }
+
+  function onDragEnd() {
+    if (!dragging) return;
+    dragging = false;
+    resizerEl.classList.remove('dragging');
+    document.body.style.cursor     = '';
+    document.body.style.userSelect = '';
+    // Save list height
+    localStorage.setItem(LS_KEY, Math.round(listCardEl.getBoundingClientRect().height));
+    // Inform Leaflet of new map size
+    try { map.invalidateSize(); } catch(e){}
+  }
+
+  // Mouse
+  resizerEl.addEventListener('mousedown', e => { onDragStart(e.clientY); e.preventDefault(); });
+  document.addEventListener('mousemove',  e => onDragMove(e.clientY));
+  document.addEventListener('mouseup',        onDragEnd);
+
+  // Touch
+  resizerEl.addEventListener('touchstart', e => {
+    onDragStart(e.touches[0].clientY); e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    onDragMove(e.touches[0].clientY); e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchend', onDragEnd);
+
+  // Re-apply on window resize (keep saved list height)
+  window.addEventListener('resize', () => {
+    if (isMobile()) { appEl.style.gridTemplateRows = ''; return; }
+    const avail  = availableH();
+    const saved  = parseInt(localStorage.getItem(LS_KEY) || '200', 10);
+    const listH  = Math.min(Math.max(LIST_MIN, saved), avail - MAP_MIN);
+    setRows(avail - listH, listH);
+    try { map.invalidateSize(); } catch(e){}
+  });
+
+  // Init after DOM + Leaflet are ready
+  window.addEventListener('load', initSizes);
 })();
 </script>
 </body>
