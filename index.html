@@ -1419,9 +1419,9 @@
     const fl        = firstByRegion[rk]||[];
     const clubNames = [...sl.map(c=>typeof c==='string'?c:c.club||''), ...fl.map(c=>typeof c==='string'?c:c.club||'')].filter(Boolean);
     const steps = [
-      { icon:'🏫', label:'Массовый вход',      sub:'Школы ФвШ',              ok: fvshCnt>0,     desc: fvshCnt>0  ? `${fvshCnt} школ ФвШ` : 'Нет школ ФвШ' },
-      { icon:'⚽', label:'Регулярные занятия',  sub:'СШ с девочками',         ok: sswg>0,        desc: sswg>0     ? `${sswg} СШ с секцией` : 'Нет СШ с девочками' },
-      { icon:'🏆', label:'Верхний уровень',     sub:'Суперлига / Первая лига', ok: clubNames.length>0, desc: clubNames.length>0 ? clubNames.slice(0,2).join(', ')+(clubNames.length>2?'…':'') : 'Нет клуба' },
+      { icon:'🏫', label:'Развивайся',  caption:'массовый футбол',         ok: fvshCnt>0,          desc: fvshCnt>0  ? `${fvshCnt} школ ФвШ` : 'Нет школ ФвШ' },
+      { icon:'⚽', label:'Играй',       caption:'подготовка резерва',       ok: sswg>0,             desc: sswg>0     ? `${sswg} СШ с секцией` : 'Нет СШ с девочками' },
+      { icon:'🏆', label:'Побеждай',    caption:'профессиональный футбол',  ok: clubNames.length>0, desc: clubNames.length>0 ? clubNames.slice(0,2).join(', ')+(clubNames.length>2?'…':'') : 'Нет клуба' },
     ];
     let h = `<div class="panel-section-title" style="margin-top:12px;">Путь футболистки в регионе</div><div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">`;
     steps.forEach((s,i) => {
@@ -1429,14 +1429,17 @@
       h += `<div style="background:${ok?'rgba(240,253,244,0.9)':'rgba(254,242,242,0.9)'};border:1px solid ${ok?'rgba(22,163,74,0.25)':'rgba(239,68,68,0.25)'};border-radius:10px;padding:7px 10px;display:flex;align-items:center;gap:8px;">
         <span style="font-size:15px;flex-shrink:0;">${s.icon}</span>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:11px;font-weight:800;color:${ok?'#15803d':'#dc2626'};">${s.label}</div>
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="font-size:12px;font-weight:800;color:${ok?'#15803d':'#dc2626'};">${s.label}</span>
+            <span style="font-size:10px;color:var(--muted);font-weight:400;">${s.caption}</span>
+          </div>
           <div style="font-size:11px;color:${ok?'#374151':'#9ca3af'};margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(s.desc)}</div>
         </div>
         <span style="font-size:13px;flex-shrink:0;">${ok?'✓':'✗'}</span>
       </div>`;
       if (i < steps.length-1) h += `<div style="text-align:center;font-size:11px;color:var(--muted);line-height:1.2;">↓</div>`;
     });
-    const gaps = steps.filter(s=>!s.ok).map(s=>s.sub);
+    const gaps = steps.filter(s=>!s.ok).map(s=>s.label);
     if (gaps.length) h += `<div style="font-size:11px;color:#dc2626;margin-top:4px;">Пробел: ${escapeHTML(gaps.join(' · '))}</div>`;
     h += `</div>`;
     return h;
@@ -1564,17 +1567,17 @@
           <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">ФвШ</div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:10px;">
-        <div style="background:rgba(255,255,255,0.6);border:1px solid var(--stroke);border-radius:12px;padding:9px 8px;text-align:center;">
-          <div style="font-size:20px;font-weight:800;color:var(--text);line-height:1.1;">${fmt.format(girls)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">девочек в СШ</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.6);border:1px solid var(--stroke);border-radius:12px;padding:9px 8px;text-align:center;" title="% школ с девочками от всех спортшкол (включая 5ФК)">
+      <div style="background:rgba(255,255,255,0.6);border:1px solid var(--stroke);border-radius:12px;padding:10px 14px;margin-bottom:7px;display:flex;align-items:baseline;gap:8px;">
+        <div style="font-size:28px;font-weight:800;color:var(--text);line-height:1;">${fmt.format(girls)}</div>
+        <div style="font-size:12px;color:var(--muted);">девочек в СШ</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;">
+        <div style="background:rgba(255,255,255,0.6);border:1px solid var(--stroke);border-radius:12px;padding:9px 10px;text-align:center;" title="% школ с девочками от всех спортшкол (включая 5ФК)">
           <div style="font-size:20px;font-weight:800;line-height:1.1;color:${pctBar>=60?'#15803d':pctBar>=30?'#ca8a04':'#dc2626'};">${pctBar > 0 ? pctBar + '%' : '—'}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">шк. с дев.</div>
           ${compTag(pctBar, nationalStats?.avgPctWithGirls, mroStatsMap[mro]?.avgPctWithGirls)}
         </div>
-        <div style="background:rgba(255,255,255,0.6);border:1px solid var(--stroke);border-radius:12px;padding:9px 8px;text-align:center;" title="Девочек на 100 000 жителей (Росстат 2023)">
+        <div style="background:rgba(255,255,255,0.6);border:1px solid var(--stroke);border-radius:12px;padding:9px 10px;text-align:center;" title="Девочек на 100 000 жителей (Росстат 2023)">
           <div style="font-size:20px;font-weight:800;line-height:1.1;color:${coverageIndex>=50?'#15803d':coverageIndex>=25?'#ca8a04':'#dc2626'};">${coverageIndex > 0 ? coverageIndex.toFixed(1) : '—'}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">на 100 тыс.</div>
           ${compTag(coverageIndex, nationalStats?.avgCoverage, mroStatsMap[mro]?.avgCoverage)}
@@ -2497,9 +2500,9 @@
 
     // ── Путь футболистки ─────────────────────────────────────────────
     const pathSteps = [
-      { label:'Массовый вход (ФвШ)',           ok: d.countFvshKpi>0,         info: d.countFvshKpi>0?`${d.countFvshKpi} школ`:'отсутствует' },
-      { label:'Регулярные занятия (СШ)',       ok: d.countWithGirlsKpi>0,    info: d.countWithGirlsKpi>0?`${d.countWithGirlsKpi} СШ`:'отсутствует' },
-      { label:'Верхний уровень (клуб)',        ok: d.sl.length+d.fl.length>0, info: [...d.sl,...d.fl].map(c=>typeof c==='string'?c:c.club||'').join(', ')||'отсутствует' },
+      { label:'Развивайся', caption:'массовый футбол',        ok: d.countFvshKpi>0,         info: d.countFvshKpi>0?`${d.countFvshKpi} школ ФвШ`:'отсутствует' },
+      { label:'Играй',      caption:'подготовка резерва',     ok: d.countWithGirlsKpi>0,    info: d.countWithGirlsKpi>0?`${d.countWithGirlsKpi} СШ`:'отсутствует' },
+      { label:'Побеждай',   caption:'профессиональный футбол', ok: d.sl.length+d.fl.length>0, info: [...d.sl,...d.fl].map(c=>typeof c==='string'?c:c.club||'').join(', ')||'отсутствует' },
     ];
 
     // ── Список школ ──────────────────────────────────────────────────
@@ -2608,7 +2611,10 @@ ${d.fl.length?`<p style="margin:4px 0;font-size:10pt;"><b style="color:#ff4b00;"
 <h2>Путь футболистки в регионе</h2>
 ${pathSteps.map(s=>`<div class="path-row ${s.ok?'path-ok':'path-gap'}">
   <span style="font-size:13pt;">${s.ok?'✓':'✗'}</span>
-  <div><b>${esc(s.label)}</b><br><span style="color:${s.ok?'#374151':'#9ca3af'};font-size:9.5pt;">${esc(s.info)}</span></div>
+  <div>
+    <b>${esc(s.label)}</b> <span style="font-weight:400;color:#6b7280;font-size:9pt;">${esc(s.caption)}</span><br>
+    <span style="color:${s.ok?'#374151':'#9ca3af'};font-size:9.5pt;">${esc(s.info)}</span>
+  </div>
 </div>`).join('')}
 
 ${risks.length+strengths.length>0?`
