@@ -870,6 +870,7 @@
         <button class="tab-btn active" id="tabSchools">СШ</button>
         <button class="tab-btn" id="tabFvsh">ФвШ</button>
         <button class="tab-btn" id="tabClubs">Клубы</button>
+        <button class="tab-btn" id="tabRegions">Регионы</button>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <input id="search" placeholder="Поиск по названию / городу / региону" />
@@ -904,6 +905,19 @@
   }
 
   const fmt = new Intl.NumberFormat('ru-RU');
+
+  // MRO palette (keys match actual `mro` field values in schools data)
+  const MRO_COLORS = {
+    'Москва и МО':                '#3b82f6',
+    'Золотое Кольцо':             '#6366f1',
+    'Центр':                      '#818cf8',
+    'Северо-Запад и Санкт-Петербург': '#0d9488',
+    'Юг':                         '#f97316',
+    'Приволжье':                  '#22c55e',
+    'Урал и Западная Сибирь':     '#8b5cf6',
+    'Сибирь':                     '#6366f1',
+    'Дальний Восток':             '#06b6d4',
+  };
 
   // Known naming discrepancies between datasets (after normalization)
   const REGION_ALIASES = {
@@ -1498,16 +1512,6 @@
     const mixedCompCount  = schoolsWithMixedData.filter(f => f.properties.mixed_comp  === true).length;
 
     // ── Header ─────────────────────────────────────────────────────────
-    const MRO_COLORS = {
-      'Центральный':       '#3b82f6',
-      'Северо-Западный':   '#0d9488',
-      'Южный':             '#f97316',
-      'Северо-Кавказский': '#ef4444',
-      'Приволжский':       '#22c55e',
-      'Уральский':         '#8b5cf6',
-      'Сибирский':         '#6366f1',
-      'Дальний Восток':    '#06b6d4',
-    };
     const mroColor = (mro && MRO_COLORS[mro]) ? MRO_COLORS[mro] : '#64748b';
 
     let popStr = '';
@@ -1685,7 +1689,8 @@
   }
 
   let activeListRegion = null;
-  let activeListTab = 'schools'; // 'schools' | 'fvsh' | 'clubs'
+  let activeListTab = 'schools'; // 'schools' | 'fvsh' | 'clubs' | 'regions'
+  let regionsMatchMode = 'any';  // 'any' | 'all'
   let superByRegionName = {}, firstByRegionName = {};
 
   function filterListByRegion(regionName) {
@@ -2041,10 +2046,144 @@
     }
   }
 
+  // ---- Regions list ----
+  function renderRegionsList() {
+    // Active competitions with their data maps
+    const comps = [];
+    if (superCheckbox?.checked) comps.push({ label: 'Суперлига',    color: superBrand.color, byRegion: superByRegion });
+    if (firstCheckbox?.checked) comps.push({ label: 'Первая лига',  color: firstBrand.color, byRegion: firstByRegion });
+
+    // Gather all regions from GeoJSON layer
+    const geoList = [];
+    if (regionsFillLayer) {
+      regionsFillLayer.eachLayer(l => {
+        const props = l.feature?.properties;
+        if (props?.name) geoList.push({ props, layer: l });
+      });
+    }
+
+    // Sort: MRO then alphabetical
+    geoList.sort((a, b) => {
+      const mroA = regionMROMap[normRegion(a.props.name)] || 'Я';
+      const mroB = regionMROMap[normRegion(b.props.name)] || 'Я';
+      return mroA.localeCompare(mroB, 'ru') || a.props.name.localeCompare(b.props.name, 'ru');
+    });
+
+    // Filter by selected competitions + match mode
+    const filterActive = comps.length > 0;
+    let filtered = geoList.filter(({ props }) => {
+      if (!filterActive) return true;
+      const rk = normRegion(props.name);
+      const matchCount = comps.filter(c => (c.byRegion[rk] || []).length > 0).length;
+      return regionsMatchMode === 'all' ? matchCount === comps.length : matchCount > 0;
+    });
+
+    // Search filter
+    const search = (searchInput.value || '').trim().toLowerCase();
+    if (search) filtered = filtered.filter(({ props }) => props.name.toLowerCase().includes(search));
+
+    listSub.textContent = `${fmt.format(filtered.length)} регионов`;
+
+    // ── Any/All toggle bar ────────────────────────────────────────────
+    function modeBtn(id, mode, label) {
+      const on = regionsMatchMode === mode;
+      return `<button id="${id}" style="padding:2px 10px;border-radius:8px;font-size:11px;cursor:pointer;
+        border:1px solid ${on?'#2563eb':'var(--stroke)'};
+        background:${on?'rgba(37,99,235,0.1)':'transparent'};
+        color:${on?'#2563eb':'var(--muted)'};
+        font-weight:${on?700:400};">${label}</button>`;
+    }
+    const modeBar = `
+      <div style="display:flex;align-items:center;gap:6px;padding:8px 14px 7px;flex-shrink:0;
+                  border-bottom:1px solid var(--stroke);background:rgba(255,255,255,0.55);flex-wrap:wrap;">
+        <span style="font-size:11px;color:var(--muted);">Отображать регионы, где соревнований:</span>
+        ${modeBtn('regModeAny','any','хотя бы одно')}
+        ${modeBtn('regModeAll','all','все выбранные')}
+      </div>`;
+
+    // ── Rows ─────────────────────────────────────────────────────────
+    let rowsHtml = '';
+    for (const { props } of filtered) {
+      const rk  = normRegion(props.name);
+      const mro = regionMROMap[rk] || '';
+      const mc  = MRO_COLORS[mro] || '#64748b';
+      const swg = Number(props.schools_with_girls || 0);
+      const girls = Number(props.total_girls || 0);
+
+      // Competition badges present in this region
+      const badges = comps
+        .filter(c => (c.byRegion[rk] || []).length > 0)
+        .map(c => `<span style="font-size:9px;background:${c.color}22;color:${c.color};
+                      border:1px solid ${c.color}44;border-radius:5px;padding:1px 6px;
+                      font-weight:700;white-space:nowrap;">${escapeHTML(c.label)}</span>`)
+        .join('');
+
+      // If no comps checked, show all available competitions for region
+      const allBadges = (!filterActive)
+        ? [
+            (superByRegion[rk]||[]).length > 0 ? `<span style="font-size:9px;background:${superBrand.color}22;color:${superBrand.color};border:1px solid ${superBrand.color}44;border-radius:5px;padding:1px 6px;font-weight:700;white-space:nowrap;">Суперлига</span>` : '',
+            (firstByRegion[rk]||[]).length > 0 ? `<span style="font-size:9px;background:${firstBrand.color}22;color:${firstBrand.color};border:1px solid ${firstBrand.color}44;border-radius:5px;padding:1px 6px;font-weight:700;white-space:nowrap;">Первая лига</span>` : '',
+          ].filter(Boolean).join('')
+        : badges;
+
+      rowsHtml += `
+        <div class="region-row" data-region="${escapeHTML(props.name)}"
+             style="display:flex;align-items:center;gap:10px;padding:8px 14px;
+                    border-bottom:1px solid var(--stroke);cursor:pointer;transition:background .12s;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${escapeHTML(props.name)}
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;">
+              ${mro ? `<span style="font-size:9px;background:${mc}18;color:${mc};border:1px solid ${mc}33;
+                           border-radius:4px;padding:0 5px;font-weight:600;">${escapeHTML(mro)}</span>` : ''}
+              ${allBadges}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;font-size:11px;color:var(--muted);min-width:60px;">
+            ${swg > 0
+              ? `<div style="font-weight:700;color:#1d4ed8;">${swg} <span style="font-weight:400;">СШ</span></div>
+                 <div>${fmt.format(girls)} дев.</div>`
+              : '<div style="color:#9ca3af;">нет данных</div>'}
+          </div>
+        </div>`;
+    }
+
+    if (!filtered.length) {
+      rowsHtml = `<div style="padding:20px;color:var(--muted);text-align:center;">
+        Нет регионов, удовлетворяющих фильтру.<br>
+        <small>Включите соревнования в разделе «Соревнования» или измените режим.</small>
+      </div>`;
+    }
+
+    schoolsList.innerHTML = modeBar + rowsHtml;
+
+    // Toggle events
+    document.getElementById('regModeAny')?.addEventListener('click', () => { regionsMatchMode = 'any'; renderRegionsList(); });
+    document.getElementById('regModeAll')?.addEventListener('click', () => { regionsMatchMode = 'all'; renderRegionsList(); });
+
+    // Row click → open region panel + fly map
+    schoolsList.querySelectorAll('.region-row').forEach(el => {
+      el.addEventListener('mouseover', () => { el.style.background = 'rgba(255,255,255,0.85)'; });
+      el.addEventListener('mouseout',  () => { el.style.background = ''; });
+      el.addEventListener('click', () => {
+        const rName = el.dataset.region;
+        if (!regionsFillLayer) return;
+        regionsFillLayer.eachLayer(l => {
+          if (l.feature?.properties?.name === rName) {
+            openRegionPanel(l.feature.properties || {});
+            try { map.flyToBounds(l.getBounds(), { padding: [30, 30], duration: 0.6 }); } catch(e){}
+          }
+        });
+      });
+    });
+  }
+
   // ---- Schools list ----
   function renderSchoolsList(){
-    if (activeListTab === 'fvsh')  { renderFvshList();  return; }
-    if (activeListTab === 'clubs') { renderClubsList(); return; }
+    if (activeListTab === 'fvsh')    { renderFvshList();    return; }
+    if (activeListTab === 'clubs')   { renderClubsList();   return; }
+    if (activeListTab === 'regions') { renderRegionsList(); return; }
     const search = (searchInput.value || "").trim().toLowerCase();
     let rows = currentFilteredPointFeatures.slice();
     if (activeListRegion) {
@@ -2584,20 +2723,23 @@ ${schoolRows.length?`
     firstCheckbox.addEventListener('change', () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); });
 
     // ---- List tabs ----
-    const tabSchoolsBtn = document.getElementById('tabSchools');
-    const tabFvshBtn    = document.getElementById('tabFvsh');
-    const tabClubsBtn   = document.getElementById('tabClubs');
+    const tabSchoolsBtn  = document.getElementById('tabSchools');
+    const tabFvshBtn     = document.getElementById('tabFvsh');
+    const tabClubsBtn    = document.getElementById('tabClubs');
+    const tabRegionsBtn  = document.getElementById('tabRegions');
 
     function setListTab(tab) {
       activeListTab = tab;
-      tabSchoolsBtn?.classList.toggle('active', tab === 'schools');
-      tabFvshBtn?.classList.toggle('active',    tab === 'fvsh');
-      tabClubsBtn?.classList.toggle('active',   tab === 'clubs');
+      tabSchoolsBtn?.classList.toggle('active',  tab === 'schools');
+      tabFvshBtn?.classList.toggle('active',     tab === 'fvsh');
+      tabClubsBtn?.classList.toggle('active',    tab === 'clubs');
+      tabRegionsBtn?.classList.toggle('active',  tab === 'regions');
       renderSchoolsList();
     }
-    tabSchoolsBtn?.addEventListener('click', () => setListTab('schools'));
-    tabFvshBtn?.addEventListener('click',    () => setListTab('fvsh'));
-    tabClubsBtn?.addEventListener('click',   () => setListTab('clubs'));
+    tabSchoolsBtn?.addEventListener('click',  () => setListTab('schools'));
+    tabFvshBtn?.addEventListener('click',     () => setListTab('fvsh'));
+    tabClubsBtn?.addEventListener('click',    () => setListTab('clubs'));
+    tabRegionsBtn?.addEventListener('click',  () => setListTab('regions'));
 
     sportsCheckbox?.addEventListener('change', () => {
       if (sportsCheckbox.checked) {
