@@ -2877,7 +2877,6 @@ ${schoolRows.length?`
     fetchJSON('./data/extra_regions.geojson').catch(() => null)   // Crimea, Donbas, etc.
   ])
   .then(([regions, points, extraRegions]) => {
-    regionsData = regions;
     pointsData  = points;
 
     // Merge extra regions (politically absent from main GeoJSON) into the same layer
@@ -2887,6 +2886,7 @@ ${schoolRows.length?`
         features: [...(regions.features || []), ...extraRegions.features]
       };
     }
+    regionsData = regions; // must be after merge so getEnabledRegionSet() includes extra regions
 
     if (sportsStatus) sportsStatus.textContent = `(${fmt.format(points.features?.length ?? 0)})`;
     updateKPIs(new Set());
