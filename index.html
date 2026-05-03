@@ -713,16 +713,62 @@
       <!-- Leagues -->
       <div class="section">
         <h4>Соревнования</h4>
-        <div style="display:flex;gap:8px;">
-          <label class="chip" style="flex:1;margin-bottom:0;" title="Подсветить регионы Суперлиги">
+
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">Женские</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;" title="Подсветить регионы Суперлиги">
             <input type="checkbox" id="toggleSuperleague" />
             <img src="./assets/superleague_logo.png" alt="Суперлига" />
             <span>Суперлига</span>
           </label>
-          <label class="chip" style="flex:1;margin-bottom:0;" title="Подсветить регионы Первой лиги">
+          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;" title="Подсветить регионы Первой лиги">
             <input type="checkbox" id="toggleFirstLeague" />
             <img src="./assets/firstleague_logo_orange.png" alt="Первая лига" />
             <span>Первая лига</span>
+          </label>
+          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;">
+            <input type="checkbox" id="toggleMolodezh" />
+            <span class="dot" style="background:#d97706;flex-shrink:0;"></span>
+            <span>Молодёжная</span>
+          </label>
+          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;">
+            <input type="checkbox" id="toggleYuflU18" />
+            <span class="dot" style="background:#7c3aed;flex-shrink:0;"></span>
+            <span>ЮФЛД U-18</span>
+          </label>
+          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;">
+            <input type="checkbox" id="toggleYuflU16" />
+            <span class="dot" style="background:#9333ea;flex-shrink:0;"></span>
+            <span>ЮФЛД U-16</span>
+          </label>
+          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;">
+            <input type="checkbox" id="toggleYuflU14" />
+            <span class="dot" style="background:#a855f7;flex-shrink:0;"></span>
+            <span>ЮФЛД U-14</span>
+          </label>
+          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;">
+            <input type="checkbox" id="toggleFyuflU16" />
+            <span class="dot" style="background:#c026d3;flex-shrink:0;"></span>
+            <span>ФЮФЛ U-16</span>
+          </label>
+        </div>
+
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">Мужские</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <label class="chip" style="flex:1;min-width:calc(33% - 4px);margin-bottom:0;">
+            <input type="checkbox" id="toggleRPL" />
+            <span class="dot" style="background:#1a56db;flex-shrink:0;"></span>
+            <span>РПЛ</span>
+          </label>
+          <label class="chip" style="flex:1;min-width:calc(33% - 4px);margin-bottom:0;">
+            <input type="checkbox" id="toggleFNL1" />
+            <span class="dot" style="background:#0891b2;flex-shrink:0;"></span>
+            <span>ФНЛ</span>
+          </label>
+          <label class="chip" style="flex:1;min-width:calc(33% - 4px);margin-bottom:0;">
+            <input type="checkbox" id="toggleFNL2" />
+            <span class="dot" style="background:#0369a1;flex-shrink:0;"></span>
+            <span>ФНЛ-2</span>
           </label>
         </div>
       </div>
@@ -1164,8 +1210,16 @@
   }
 
   // ---- UI refs ----
-  const superCheckbox  = document.getElementById('toggleSuperleague');
-  const firstCheckbox  = document.getElementById('toggleFirstLeague');
+  const superCheckbox   = document.getElementById('toggleSuperleague');
+  const firstCheckbox   = document.getElementById('toggleFirstLeague');
+  const molodezhCheck   = document.getElementById('toggleMolodezh');
+  const yuflU18Check    = document.getElementById('toggleYuflU18');
+  const yuflU16Check    = document.getElementById('toggleYuflU16');
+  const yuflU14Check    = document.getElementById('toggleYuflU14');
+  const fyuflU16Check   = document.getElementById('toggleFyuflU16');
+  const rplCheck        = document.getElementById('toggleRPL');
+  const fnl1Check       = document.getElementById('toggleFNL1');
+  const fnl2Check       = document.getElementById('toggleFNL2');
   const slStatus       = document.getElementById('slStatus');
   const flStatus       = document.getElementById('flStatus');
   const fvshCheckbox   = document.getElementById('toggleFVSH');
@@ -2039,33 +2093,35 @@
 
   // ---- Clubs list ----
   function renderClubsList(){
-    const slChecked = superCheckbox?.checked;
-    const flChecked = firstCheckbox?.checked;
+    // All competition sources in display order
+    const allLeagues = [
+      { check: superCheckbox,  byRegion: superByRegion,    nameMap: superByRegionName, label: 'Суперлига',     color: superBrand.color },
+      { check: firstCheckbox,  byRegion: firstByRegion,    nameMap: firstByRegionName, label: 'Первая лига',   color: firstBrand.color },
+      { check: molodezhCheck,  byRegion: molodezhByRegion, nameMap: null, label: molodezhBrand.name, color: molodezhBrand.color },
+      { check: yuflU18Check,   byRegion: yuflU18ByRegion,  nameMap: null, label: yuflU18Brand.name,  color: yuflU18Brand.color },
+      { check: yuflU16Check,   byRegion: yuflU16ByRegion,  nameMap: null, label: yuflU16Brand.name,  color: yuflU16Brand.color },
+      { check: yuflU14Check,   byRegion: yuflU14ByRegion,  nameMap: null, label: yuflU14Brand.name,  color: yuflU14Brand.color },
+      { check: fyuflU16Check,  byRegion: fyuflU16ByRegion, nameMap: null, label: fyuflU16Brand.name, color: fyuflU16Brand.color },
+      { check: rplCheck,       byRegion: rplByRegion,      nameMap: null, label: rplBrand.name,      color: rplBrand.color },
+      { check: fnl1Check,      byRegion: fnl1ByRegion,     nameMap: null, label: fnl1Brand.name,     color: fnl1Brand.color },
+      { check: fnl2Check,      byRegion: fnl2ByRegion,     nameMap: null, label: fnl2Brand.name,     color: fnl2Brand.color },
+    ];
 
-    if (!slChecked && !flChecked) {
+    const active = allLeagues.filter(l => l.check?.checked);
+    if (!active.length) {
       listSub.textContent = '0 клубов';
-      schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Включите Суперлигу или Первую лигу в разделе «Соревнования».</div>`;
+      schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Включите соревнования в разделе «Соревнования».</div>`;
       return;
     }
 
     const rows = [];
-    if (slChecked) {
-      for (const [rKey, clubs] of Object.entries(superByRegion)) {
-        const regionDisplay = superByRegionName[rKey] || rKey;
+    for (const league of active) {
+      for (const [rKey, clubs] of Object.entries(league.byRegion)) {
+        const regionDisplay = (league.nameMap && league.nameMap[rKey]) || rKey;
         for (const c of clubs) {
           const name = typeof c === 'string' ? c : (c.club || '');
           const city = typeof c === 'string' ? '' : (c.city || '');
-          rows.push({ region: regionDisplay, name, city, competition: 'Суперлига', color: superBrand.color });
-        }
-      }
-    }
-    if (flChecked) {
-      for (const [rKey, clubs] of Object.entries(firstByRegion)) {
-        const regionDisplay = firstByRegionName[rKey] || rKey;
-        for (const c of clubs) {
-          const name = typeof c === 'string' ? c : (c.club || '');
-          const city = typeof c === 'string' ? '' : (c.city || '');
-          rows.push({ region: regionDisplay, name, city, competition: 'Первая лига', color: firstBrand.color });
+          rows.push({ region: regionDisplay, name, city, competition: league.label, color: league.color });
         }
       }
     }
@@ -2102,8 +2158,16 @@
   function renderRegionsList() {
     // Active competitions with their data maps
     const comps = [];
-    if (superCheckbox?.checked) comps.push({ label: 'Суперлига',    color: superBrand.color, byRegion: superByRegion });
-    if (firstCheckbox?.checked) comps.push({ label: 'Первая лига',  color: firstBrand.color, byRegion: firstByRegion });
+    if (superCheckbox?.checked)  comps.push({ label: 'Суперлига',         color: superBrand.color,    byRegion: superByRegion });
+    if (firstCheckbox?.checked)  comps.push({ label: 'Первая лига',        color: firstBrand.color,    byRegion: firstByRegion });
+    if (molodezhCheck?.checked)  comps.push({ label: molodezhBrand.name,   color: molodezhBrand.color, byRegion: molodezhByRegion });
+    if (yuflU18Check?.checked)   comps.push({ label: yuflU18Brand.name,    color: yuflU18Brand.color,  byRegion: yuflU18ByRegion });
+    if (yuflU16Check?.checked)   comps.push({ label: yuflU16Brand.name,    color: yuflU16Brand.color,  byRegion: yuflU16ByRegion });
+    if (yuflU14Check?.checked)   comps.push({ label: yuflU14Brand.name,    color: yuflU14Brand.color,  byRegion: yuflU14ByRegion });
+    if (fyuflU16Check?.checked)  comps.push({ label: fyuflU16Brand.name,   color: fyuflU16Brand.color, byRegion: fyuflU16ByRegion });
+    if (rplCheck?.checked)       comps.push({ label: rplBrand.name,        color: rplBrand.color,      byRegion: rplByRegion });
+    if (fnl1Check?.checked)      comps.push({ label: fnl1Brand.name,       color: fnl1Brand.color,     byRegion: fnl1ByRegion });
+    if (fnl2Check?.checked)      comps.push({ label: fnl2Brand.name,       color: fnl2Brand.color,     byRegion: fnl2ByRegion });
 
     // Gather all regions from GeoJSON layer
     const geoList = [];
@@ -2772,8 +2836,15 @@ ${schoolRows.length?`
     ageChks.forEach(x => x.addEventListener('change', rerunAll));
     compChks.forEach(x => x.addEventListener('change', rerunAll));
 
-    superCheckbox.addEventListener('change', () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); });
-    firstCheckbox.addEventListener('change', () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); });
+    superCheckbox.addEventListener('change', () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); if (activeListTab === 'regions') renderRegionsList(); });
+    firstCheckbox.addEventListener('change',  () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); if (activeListTab === 'regions') renderRegionsList(); });
+
+    // Youth & men leagues — no map outline, but refresh clubs/regions tabs
+    [molodezhCheck, yuflU18Check, yuflU16Check, yuflU14Check, fyuflU16Check, rplCheck, fnl1Check, fnl2Check]
+      .forEach(cb => cb?.addEventListener('change', () => {
+        if (activeListTab === 'clubs')   renderSchoolsList();
+        if (activeListTab === 'regions') renderRegionsList();
+      }));
 
     // ---- List tabs ----
     const tabSchoolsBtn  = document.getElementById('tabSchools');
@@ -2828,6 +2899,8 @@ ${schoolRows.length?`
     resetAllBtn.addEventListener('click', () => {
       superCheckbox.checked = false;
       firstCheckbox.checked = false;
+      [molodezhCheck, yuflU18Check, yuflU16Check, yuflU14Check, fyuflU16Check, rplCheck, fnl1Check, fnl2Check]
+        .forEach(cb => { if (cb) cb.checked = false; });
       if (sportsCheckbox) sportsCheckbox.checked = true;
       if (fvshCheckbox) fvshCheckbox.checked = true;
       if (noGirlsCheckbox) noGirlsCheckbox.checked = true;
