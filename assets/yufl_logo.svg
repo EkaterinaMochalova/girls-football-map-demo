@@ -1,5 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <circle cx="24" cy="24" r="22" fill="#7c3aed"/>
-  <text x="24" y="19" font-family="Arial,sans-serif" font-size="9" font-weight="800" fill="white" text-anchor="middle" dominant-baseline="middle">ЮФЛД</text>
-  <text x="24" y="31" font-family="Arial,sans-serif" font-size="8" font-weight="600" fill="rgba(255,255,255,0.85)" text-anchor="middle" dominant-baseline="middle">⚽</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 130" width="120" height="130">
+  <!-- ЮФЛД logo — geometric Y shape in green -->
+  <!-- Left diagonal arm (top-left → center) -->
+  <polygon points="0,0 28,0 62,58 34,58" fill="#3db82e"/>
+  <!-- Right diagonal arm (top-right → center, thinner, angled) -->
+  <polygon points="120,0 96,0 62,58 76,58" fill="#3db82e"/>
+  <!-- Stem (center → bottom) -->
+  <polygon points="34,58 76,58 76,130 34,130" fill="#3db82e"/>
 </svg>

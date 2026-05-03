@@ -1,6 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <circle cx="24" cy="24" r="22" fill="#d97706"/>
-  <text x="24" y="17" font-family="Arial,sans-serif" font-size="7.5" font-weight="800" fill="white" text-anchor="middle" dominant-baseline="middle">МОЛ.</text>
-  <text x="24" y="27" font-family="Arial,sans-serif" font-size="7" font-weight="600" fill="rgba(255,255,255,0.85)" text-anchor="middle" dominant-baseline="middle">ЛИГА</text>
-  <text x="24" y="37" font-family="Arial,sans-serif" font-size="7" fill="rgba(255,255,255,0.7)" text-anchor="middle" dominant-baseline="middle">⚽</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 110" width="140" height="110">
+  <!-- Молодёжная лига logo — stylised M, left=green, right=navy -->
+  <!-- Green left half of M -->
+  <polygon points="0,0 32,0 32,110 0,110" fill="#00c800"/>
+  <polygon points="32,0 70,55 70,110 32,110" fill="#00c800"/>
+  <!-- Navy right half of M -->
+  <polygon points="70,55 108,0 140,0 140,110 108,110" fill="#1a1464"/>
+  <polygon points="70,55 108,110 70,110" fill="#1a1464"/>
 </svg>
