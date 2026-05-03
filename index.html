@@ -136,6 +136,11 @@
     .chip span{ font-weight: 700; font-size: 13px; }
     .chip small{ margin-left: auto; color: var(--muted); font-size: 12px; }
     .chip .dot{ width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    /* Compact competition chips */
+    .comp-chip{ padding: 7px 8px; gap: 6px; border-radius: 10px; margin-bottom: 0; }
+    .comp-chip span{ font-size: 11px; line-height: 1.2; }
+    .comp-logo{ width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
+    .comp-dot{ width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
     .select{
       width: 100%;
@@ -714,60 +719,68 @@
       <div class="section">
         <h4>Соревнования</h4>
 
-        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">Женские</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;" title="Подсветить регионы Суперлиги">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Женские</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;">
+          <label class="chip comp-chip" title="Подсветить регионы Суперлиги">
             <input type="checkbox" id="toggleSuperleague" />
-            <img src="./assets/superleague_logo.png" alt="Суперлига" />
+            <img src="./assets/superleague_logo.png" alt="" class="comp-logo" />
             <span>Суперлига</span>
           </label>
-          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;" title="Подсветить регионы Первой лиги">
+          <label class="chip comp-chip" title="Подсветить регионы Первой лиги">
             <input type="checkbox" id="toggleFirstLeague" />
-            <img src="./assets/firstleague_logo_orange.png" alt="Первая лига" />
+            <img src="./assets/firstleague_logo_orange.png" alt="" class="comp-logo" />
             <span>Первая лига</span>
           </label>
-          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;">
+          <label class="chip comp-chip">
             <input type="checkbox" id="toggleMolodezh" />
-            <span class="dot" style="background:#d97706;flex-shrink:0;"></span>
+            <img src="./assets/molodezhnaya_logo.svg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+            <span class="dot comp-dot" style="background:#d97706;display:none;"></span>
             <span>Молодёжная</span>
           </label>
-          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;">
+          <label class="chip comp-chip">
             <input type="checkbox" id="toggleYuflU18" />
-            <span class="dot" style="background:#7c3aed;flex-shrink:0;"></span>
+            <img src="./assets/yufl_logo.svg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+            <span class="dot comp-dot" style="background:#7c3aed;display:none;"></span>
             <span>ЮФЛД U-18</span>
           </label>
-          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;">
+          <label class="chip comp-chip">
             <input type="checkbox" id="toggleYuflU16" />
-            <span class="dot" style="background:#9333ea;flex-shrink:0;"></span>
+            <img src="./assets/yufl_logo.svg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+            <span class="dot comp-dot" style="background:#9333ea;display:none;"></span>
             <span>ЮФЛД U-16</span>
           </label>
-          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;">
+          <label class="chip comp-chip">
             <input type="checkbox" id="toggleYuflU14" />
-            <span class="dot" style="background:#a855f7;flex-shrink:0;"></span>
+            <img src="./assets/yufl_logo.svg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+            <span class="dot comp-dot" style="background:#a855f7;display:none;"></span>
             <span>ЮФЛД U-14</span>
           </label>
-          <label class="chip" style="flex:1;min-width:calc(50% - 3px);margin-bottom:0;">
+          <label class="chip comp-chip">
             <input type="checkbox" id="toggleFyuflU16" />
-            <span class="dot" style="background:#c026d3;flex-shrink:0;"></span>
+            <img src="./assets/fyufl_logo.svg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+            <span class="dot comp-dot" style="background:#c026d3;display:none;"></span>
             <span>ФЮФЛ U-16</span>
           </label>
         </div>
 
-        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">Мужские</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <label class="chip" style="flex:1;min-width:calc(33% - 4px);margin-bottom:0;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Мужские</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;">
+          <label class="chip comp-chip">
             <input type="checkbox" id="toggleRPL" />
-            <span class="dot" style="background:#1a56db;flex-shrink:0;"></span>
+            <img src="./assets/rpl_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+            <span class="dot comp-dot" style="background:#1a56db;display:none;"></span>
             <span>РПЛ</span>
           </label>
-          <label class="chip" style="flex:1;min-width:calc(33% - 4px);margin-bottom:0;">
+          <label class="chip comp-chip">
             <input type="checkbox" id="toggleFNL1" />
-            <span class="dot" style="background:#0891b2;flex-shrink:0;"></span>
+            <img src="./assets/fnl1_logo.jpg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+            <span class="dot comp-dot" style="background:#0891b2;display:none;"></span>
             <span>ФНЛ</span>
           </label>
-          <label class="chip" style="flex:1;min-width:calc(33% - 4px);margin-bottom:0;">
+          <label class="chip comp-chip">
             <input type="checkbox" id="toggleFNL2" />
-            <span class="dot" style="background:#0369a1;flex-shrink:0;"></span>
+            <img src="./assets/fnl2_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+            <span class="dot comp-dot" style="background:#0369a1;display:none;"></span>
             <span>ФНЛ-2</span>
           </label>
         </div>
@@ -1331,6 +1344,7 @@
     return (b1||b2) ? `<div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;">${b1}${b2}</div>` : '';
   }
   let regionsFillLayer = null, superOutlineLayer = null, firstOutlineLayer = null;
+  let competitionOutlineLayers = []; // for all competitions beyond super/first
   let superBrand = { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
   let firstBrand = { color: "#ff4b00", colorDark: "#111111", logo: "./assets/firstleague_logo_orange.png" };
   let superByRegion = {}, firstByRegion = {};
@@ -1846,35 +1860,44 @@
 
   function rebuildOutlines() {
     if (!regionsData) return;
+    // Remove all existing outline layers
     if (superOutlineLayer) map.removeLayer(superOutlineLayer);
     if (firstOutlineLayer) map.removeLayer(firstOutlineLayer);
     superOutlineLayer = null;
     firstOutlineLayer = null;
+    competitionOutlineLayers.forEach(l => map.removeLayer(l));
+    competitionOutlineLayers = [];
+
     const enabled = getEnabledRegionSet();
 
-    if (superCheckbox?.checked) {
-      superOutlineLayer = L.geoJSON(regionsData, {
-        interactive: false,
-        style: (feature) => {
-          const key = normRegion(feature?.properties?.name);
-          if (!enabled.has(key) || !(superByRegion[key] || []).length) return { opacity: 0, fillOpacity: 0 };
-          return { color: superBrand.color, weight: 3, opacity: 1, fillOpacity: 0 };
-        }
-      }).addTo(map);
-      superOutlineLayer.bringToFront();
-    }
+    // All competitions that can highlight the map
+    const activeComps = [
+      { check: superCheckbox,  byRegion: superByRegion,    color: superBrand.color,    dash: null },
+      { check: firstCheckbox,  byRegion: firstByRegion,    color: firstBrand.color,    dash: "7 5" },
+      { check: molodezhCheck,  byRegion: molodezhByRegion, color: molodezhBrand.color, dash: "4 4" },
+      { check: yuflU18Check,   byRegion: yuflU18ByRegion,  color: yuflU18Brand.color,  dash: "4 4" },
+      { check: yuflU16Check,   byRegion: yuflU16ByRegion,  color: yuflU16Brand.color,  dash: "4 4" },
+      { check: yuflU14Check,   byRegion: yuflU14ByRegion,  color: yuflU14Brand.color,  dash: "4 4" },
+      { check: fyuflU16Check,  byRegion: fyuflU16ByRegion, color: fyuflU16Brand.color, dash: "4 4" },
+      { check: rplCheck,       byRegion: rplByRegion,      color: rplBrand.color,      dash: "2 4" },
+      { check: fnl1Check,      byRegion: fnl1ByRegion,     color: fnl1Brand.color,     dash: "2 4" },
+      { check: fnl2Check,      byRegion: fnl2ByRegion,     color: fnl2Brand.color,     dash: "2 4" },
+    ].filter(c => c.check?.checked);
 
-    if (firstCheckbox?.checked) {
-      firstOutlineLayer = L.geoJSON(regionsData, {
+    activeComps.forEach((comp, i) => {
+      const layer = L.geoJSON(regionsData, {
         interactive: false,
         style: (feature) => {
           const key = normRegion(feature?.properties?.name);
-          if (!enabled.has(key) || !(firstByRegion[key] || []).length) return { opacity: 0, fillOpacity: 0 };
-          return { color: firstBrand.color, weight: 3, opacity: 1, dashArray: "7 5", lineCap: "round", lineJoin: "round", fillOpacity: 0 };
+          if (!enabled.has(key) || !(comp.byRegion[key] || []).length) return { opacity: 0, fillOpacity: 0 };
+          const style = { color: comp.color, weight: 3, opacity: 1, fillOpacity: 0, lineCap: "round", lineJoin: "round" };
+          if (comp.dash) style.dashArray = comp.dash;
+          return style;
         }
       }).addTo(map);
-      firstOutlineLayer.bringToFront();
-    }
+      layer.bringToFront();
+      competitionOutlineLayers.push(layer);
+    });
 
     if (regionsFillLayer) regionsFillLayer.bringToBack();
   }
@@ -2839,9 +2862,10 @@ ${schoolRows.length?`
     superCheckbox.addEventListener('change', () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); if (activeListTab === 'regions') renderRegionsList(); });
     firstCheckbox.addEventListener('change',  () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); if (activeListTab === 'regions') renderRegionsList(); });
 
-    // Youth & men leagues — no map outline, but refresh clubs/regions tabs
+    // Youth & men leagues — map highlight + refresh clubs/regions tabs
     [molodezhCheck, yuflU18Check, yuflU16Check, yuflU14Check, fyuflU16Check, rplCheck, fnl1Check, fnl2Check]
       .forEach(cb => cb?.addEventListener('change', () => {
+        rebuildOutlines();
         if (activeListTab === 'clubs')   renderSchoolsList();
         if (activeListTab === 'regions') renderRegionsList();
       }));
