@@ -741,25 +741,25 @@
             <input type="checkbox" id="toggleYuflU18" />
             <img src="./assets/yufl_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#3db82e;display:none;"></span>
-            <span>ЮФЛ U-18</span>
+            <span>ЮФЛ до 18</span>
           </label>
           <label class="chip comp-chip">
             <input type="checkbox" id="toggleYuflU16" />
             <img src="./assets/yufl_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#3db82e;display:none;"></span>
-            <span>ЮФЛ U-16</span>
+            <span>ЮФЛ до 16</span>
           </label>
           <label class="chip comp-chip">
             <input type="checkbox" id="toggleYuflU14" />
             <img src="./assets/yufl_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#3db82e;display:none;"></span>
-            <span>ЮФЛ U-14</span>
+            <span>ЮФЛ до 14</span>
           </label>
           <label class="chip comp-chip">
             <input type="checkbox" id="toggleFyuflU16" />
             <img src="./assets/fyufl_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#c026d3;display:none;"></span>
-            <span>ФЮФЛ U-16</span>
+            <span>ФЮФЛ до 16</span>
           </label>
         </div>
 
@@ -1351,10 +1351,10 @@
   // Women's youth leagues
   let yuflU18ByRegion = {}, yuflU16ByRegion = {}, yuflU14ByRegion = {};
   let fyuflU16ByRegion = {}, molodezhByRegion = {};
-  let yuflU18Brand = { color: "#3db82e", name: "ЮФЛ U-18" };
-  let yuflU16Brand = { color: "#3db82e", name: "ЮФЛ U-16" };
-  let yuflU14Brand = { color: "#3db82e", name: "ЮФЛ U-14" };
-  let fyuflU16Brand = { color: "#c026d3", name: "ФЮФЛ U-16" };
+  let yuflU18Brand = { color: "#3db82e", name: "ЮФЛ до 18" };
+  let yuflU16Brand = { color: "#3db82e", name: "ЮФЛ до 16" };
+  let yuflU14Brand = { color: "#3db82e", name: "ЮФЛ до 14" };
+  let fyuflU16Brand = { color: "#c026d3", name: "ФЮФЛ до 16" };
   let molodezhBrand = { color: "#1a1464", name: "Молодёжная лига" };
   // Men's clubs
   let rplByRegion = {}, fnl1ByRegion = {}, fnl2ByRegion = {};
@@ -1731,10 +1731,10 @@
       { brand: superBrand,   clubs: sl,  label: 'Суперлига' },
       { brand: firstBrand,   clubs: fl,  label: 'Первая лига' },
       { brand: molodezhBrand, clubs: mol, label: 'Молодёжная лига' },
-      { brand: yuflU18Brand, clubs: u18, label: 'ЮФЛ U-18' },
-      { brand: yuflU16Brand, clubs: u16, label: 'ЮФЛ U-16' },
-      { brand: yuflU14Brand, clubs: u14, label: 'ЮФЛ U-14' },
-      { brand: fyuflU16Brand, clubs: fy, label: 'ФЮФЛ U-16' },
+      { brand: yuflU18Brand, clubs: u18, label: 'ЮФЛ до 18' },
+      { brand: yuflU16Brand, clubs: u16, label: 'ЮФЛ до 16' },
+      { brand: yuflU14Brand, clubs: u14, label: 'ЮФЛ до 14' },
+      { brand: fyuflU16Brand, clubs: fy, label: 'ФЮФЛ до 16' },
     ].filter(l => l.clubs.length > 0);
 
     if (womenLeagues.length > 0) {
