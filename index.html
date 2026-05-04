@@ -994,6 +994,67 @@
     return REGION_ALIASES[n] ?? n;
   }
 
+  // ── Abbreviate long Russian institutional names ───────────────────────────
+  function abbrevName(raw) {
+    if (!raw) return '';
+    let s = String(raw);
+    // ── 1. Full-form org-type prefixes → abbreviation (longest first) ────
+    const ORG = [
+      // Federal / regional
+      [/Краевое\s+государственное\s+бюджетное\s+учреждение\s+дополнительного\s+образования/gi,  'КГБУДО'],
+      [/Областное\s+государственное\s+бюджетное\s+учреждение\s+дополнительного\s+образования/gi, 'ОГБУДО'],
+      [/Региональное\s+государственное\s+автономное\s+учреждение\s+дополнительного\s+образования/gi,'РГАУДО'],
+      [/Государственное\s+бюджетное\s+образовательное\s+учреждение\s+дополнительного\s+образования/gi,'ГБОУДО'],
+      [/Государственное\s+бюджетное\s+учреждение\s+дополнительного\s+образования/gi,  'ГБУДО'],
+      [/Государственное\s+автономное\s+учреждение\s+дополнительного\s+образования/gi,  'ГАУДО'],
+      [/Государственное\s+казён{1,2}ое\s+учреждение\s+дополнительного\s+образования/gi,'ГКУДО'],
+      [/Государственное\s+бюджетное\s+общеобразовательное\s+учреждение/gi, 'ГБОУ'],
+      [/Государственное\s+автономное\s+общеобразовательное\s+учреждение/gi,'ГАОУ'],
+      // Municipal
+      [/Муниципальное\s+бюджетное\s+образовательное\s+учреждение\s+дополнительного\s+образования/gi,'МБОУДО'],
+      [/Муниципальное\s+бюджетное\s+учреждение\s+дополнительного\s+образования/gi,  'МБУДО'],
+      [/Муниципальное\s+автономное\s+учреждение\s+дополнительного\s+образования/gi,  'МАУДО'],
+      [/Муниципальное\s+казён{1,2}ое\s+учреждение\s+дополнительного\s+образования/gi,'МКУДО'],
+      [/Муниципальное\s+учреждение\s+дополнительного\s+образования/gi, 'МУДО'],
+      [/Муниципальное\s+бюджетное\s+общеобразовательное\s+учреждение/gi, 'МБОУ'],
+      [/Муниципальное\s+автономное\s+общеобразовательное\s+учреждение/gi,'МАОУ'],
+      // Other
+      [/Частное\s+учреждение\s+дополнительного\s+образования/gi, 'ЧУДО'],
+      [/Автономная\s+некоммерческая\s+организация\s+дополнительного\s+образования/gi,'АНО ДО'],
+      [/Автономная\s+некоммерческая\s+организация/gi,'АНО'],
+      // Space-separated partial abbrevs → compact
+      [/\bМБУ\s+ДО\b/g, 'МБУДО'],
+      [/\bМАУ\s+ДО\b/g, 'МАУДО'],
+      [/\bМКУ\s+ДО\b/g, 'МКУДО'],
+      [/\bГАУ\s+ДО\b/g, 'ГАУДО'],
+      [/\bАНО\s+ДО\b/g, 'АНО ДО'],
+      [/\bМБОУ\s+ДО\b/g, 'МБОУДО'],
+    ];
+    for (const [rx, abbr] of ORG) s = s.replace(rx, abbr);
+
+    // ── 2. Sub-institution types within name (longest first) ────────────
+    const SUB = [
+      [/детско-юношеская\s+спортивная\s+школа\s+олимпийского\s+резерва/gi, 'ДЮСШОР'],
+      [/детско-юношеская\s+спортивная\s+школа/gi,          'ДЮСШ'],
+      [/спортивная\s+школа\s+олимпийского\s+резерва/gi,    'СШОР'],
+      [/средняя\s+общеобразовательная\s+школа/gi,          'СОШ'],
+      [/общеобразовательная\s+школа/gi,                    'ОШ'],
+      [/футбольный\s+клуб/gi,                              'ФК'],
+      [/спортивный\s+клуб/gi,                              'СК'],
+      [/спортивная\s+школа/gi,                             'СШ'],
+    ];
+    for (const [rx, abbr] of SUB) s = s.replace(rx, abbr);
+
+    // ── 3. Tidy up quotes and whitespace ────────────────────────────────
+    s = s
+      .replace(/«/g, '"').replace(/»/g, '"')
+      .replace(/"{2,}/g, '"')
+      .replace(/"\s*"/g, '"')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return s;
+  }
+
   function escapeHTML(s){
     return String(s ?? "")
       .replaceAll("&","&amp;")
@@ -1082,8 +1143,8 @@
     const geoQ = p.geo_quality || p.geo_kind;
     return `
       <div class="popup">
-        <h3>${escapeHTML(p.name ?? "Без названия")}</h3>
-        ${p.name_alt ? `<div style="font-size:11px;color:var(--muted);margin-top:-2px;margin-bottom:4px;">+ ${escapeHTML(p.name_alt)}</div>` : ''}
+        <h3>${escapeHTML(abbrevName(p.name) ?? "Без названия")}</h3>
+        ${p.name_alt ? `<div style="font-size:11px;color:var(--muted);margin-top:-2px;margin-bottom:4px;">+ ${escapeHTML(abbrevName(p.name_alt))}</div>` : ''}
         <span class="type-badge" style="background:rgba(59,130,246,0.12);color:#2563eb;">Спортшкола</span>
         <div class="muted">${escapeHTML([p.region, p.city].filter(Boolean).join(", "))}</div>
         ${p.address ? `<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${escapeHTML(p.address)}</div>` : ''}
@@ -1171,7 +1232,7 @@
     const nearestHtml = nearest ? `
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
         <div style="font-weight:800;font-size:12px;">Ближайший ОСП</div>
-        <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(nearest.name)}</div>
+        <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(abbrevName(nearest.name))}</div>
         <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearest.region, nearest.city].filter(Boolean).join(', '))}</div>
         <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearest.distanceKm * 10) / 10)} км</div>
       </div>` : '';
@@ -1189,7 +1250,7 @@
       nearestNoGirlsHtml = `
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
           <div style="font-weight:800;font-size:12px;">Ближайший ОСП без девушек (5ФК)</div>
-          <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(nearestNoGirls.name)}</div>
+          <div style="margin-top:4px;font-weight:700;font-size:12px;">${escapeHTML(abbrevName(nearestNoGirls.name))}</div>
           <div style="color:#666;font-size:11px;margin-top:2px;">${escapeHTML([nearestNoGirls.region, nearestNoGirls.city].filter(Boolean).join(', '))}</div>
           <div style="margin-top:4px;font-size:12px;"><b>Расстояние:</b> ${fmt.format(Math.round(nearestNoGirls.distanceKm * 10) / 10)} км</div>
         </div>`;
@@ -1203,7 +1264,7 @@
 
     return `
       <div class="popup">
-        <h3>${escapeHTML(p.name || 'Футбол в Школе')}</h3>
+        <h3>${escapeHTML(abbrevName(p.name) || 'Футбол в Школе')}</h3>
         <span class="type-badge" style="background:rgba(22,163,74,0.12);color:#15803d;">Футбол в Школе</span>
         <div class="muted">${escapeHTML([p.region, p.CITY || p.city].filter(Boolean).join(', '))}</div>
         ${p.Address || p.address ? `<div style="font-size:12px;color:var(--muted);">${escapeHTML(p.Address || p.address)}</div>` : ''}
@@ -2089,7 +2150,7 @@
           const geoQ = p.geo_quality || p.geo_kind;
           const html = `
             <div class="popup">
-              <h3>${escapeHTML(p.name ?? 'Без названия')}</h3>
+              <h3>${escapeHTML(abbrevName(p.name) ?? 'Без названия')}</h3>
               <span class="type-badge" style="background:rgba(239,68,68,0.12);color:#dc2626;">ОСП без девушек</span>
               <div class="muted">${escapeHTML([p.region, p.city].filter(Boolean).join(', '))}</div>
               ${p.address ? `<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${escapeHTML(p.address)}</div>` : ''}
@@ -2134,7 +2195,7 @@
       el.className = 'row';
       el.innerHTML = `
         <div>
-          <div class="name">${escapeHTML(p.name ?? 'Без названия')}</div>
+          <div class="name">${escapeHTML(abbrevName(p.name) ?? 'Без названия')}</div>
           <div class="meta">${escapeHTML([p.region, city].filter(Boolean).join(', '))}</div>
         </div>
         <div class="addr">${escapeHTML(address)}</div>
@@ -2382,7 +2443,7 @@
       el.className = 'row';
       el.innerHTML = `
         <div>
-          <div class="name">${escapeHTML(p.name ?? "Без названия")}</div>
+          <div class="name">${escapeHTML(abbrevName(p.name) ?? "Без названия")}</div>
           <div class="meta">${escapeHTML([p.region, p.city].filter(Boolean).join(", "))}</div>
         </div>
         <div class="addr">${escapeHTML(p.address ?? "")}</div>
@@ -2537,8 +2598,8 @@
     // SHEET 2 — Schools with girls
     // ════════════════════════════════════════════════════════════════════
     const COLS1 = [
-      { h: 'Название',              w: 44, fn: p     => p.name     ?? '' },
-      { h: 'Альт. название',        w: 28, fn: p     => p.name_alt ?? '' },
+      { h: 'Название',              w: 44, fn: p     => abbrevName(p.name)     ?? '' },
+      { h: 'Альт. название',        w: 28, fn: p     => abbrevName(p.name_alt) ?? '' },
       { h: 'МРО',                   w: 18, fn: p     => p.mro      ?? '' },
       { h: 'Регион',                w: 22, fn: p     => p.region   ?? '' },
       { h: 'Город',                 w: 18, fn: p     => p.city     ?? '' },
@@ -2590,7 +2651,7 @@
       });
 
       const COLS2 = [
-        { h: 'Название',            w: 60, fn: p     => p.name    ?? '' },
+        { h: 'Название',            w: 60, fn: p     => abbrevName(p.name) ?? '' },
         { h: 'Регион',              w: 24, fn: p     => p.region  ?? '' },
         { h: 'Адрес',               w: 40, fn: p     => p.address ?? '' },
         { h: 'Источник',            w: 13, fn: p     => p.source  ?? '' },
@@ -2621,7 +2682,7 @@
       );
 
       const COLS3 = [
-        { h: 'Название',  w: 60, fn: p     => p.name                  ?? '' },
+        { h: 'Название',  w: 60, fn: p     => abbrevName(p.name)        ?? '' },
         { h: 'Регион',    w: 24, fn: p     => p.region                 ?? '' },
         { h: 'Город',     w: 18, fn: p     => p.CITY || p.city         || '' },
         { h: 'Адрес',     w: 40, fn: p     => p.Address || p.address   || '' },
@@ -2791,7 +2852,7 @@ ${schoolRows.length?`
 <h2>Список ОСП с девушками (${schoolRows.length}${d.regionMasterSchools.length>60?' из '+d.regionMasterSchools.length:''})</h2>
 <table class="schools">
   <thead><tr><th>Название</th><th>Город</th><th style="text-align:right">Девушек</th></tr></thead>
-  <tbody>${schoolRows.map(f=>{const p=f.properties||{};return`<tr><td>${esc(p.name||'')}</td><td>${esc(p.city||'')}</td><td style="text-align:right;font-weight:700;">${fmtN(p.girls_total)}</td></tr>`;}).join('')}</tbody>
+  <tbody>${schoolRows.map(f=>{const p=f.properties||{};return`<tr><td>${esc(abbrevName(p.name)||'')}</td><td>${esc(p.city||'')}</td><td style="text-align:right;font-weight:700;">${fmtN(p.girls_total)}</td></tr>`;}).join('')}</tbody>
 </table>`:''}
 
 <div class="footer">Карта женского футбола России · ${new Date().toLocaleDateString('ru-RU','ru')} · girls-football-map-demo</div>
