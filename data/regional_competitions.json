@@ -1,0 +1,523 @@
+{
+  "season": "2025",
+  "by_region": {
+    "Алтайский край": {
+      "mixed_u10": true,
+      "mixed_u12": true,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Архангельская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Астраханская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": false,
+      "u17": false
+    },
+    "Белгородская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Брянская область": {
+      "mixed_u10": true,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Владимирская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Волгоградская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": false,
+      "u17": true
+    },
+    "Вологодская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Воронежская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": true,
+      "u17": true
+    },
+    "Забайкальский край": {
+      "mixed_u10": true,
+      "mixed_u12": true,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Ивановская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Иркутская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Кабардино-Балкарская Республика": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Калининградская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Калужская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Карачаево-Черкесская Республика": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Кемеровская область — Кузбасс": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Кировская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Костромская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Краснодарский край": {
+      "mixed_u10": true,
+      "mixed_u12": true,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Красноярский край": {
+      "mixed_u10": true,
+      "mixed_u12": true,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Курганская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Курская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Ленинградская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Липецкая область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": false,
+      "u17": false
+    },
+    "Москва": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Московская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Мурманская область": {
+      "mixed_u10": false,
+      "mixed_u12": true,
+      "u13": true,
+      "u15": false,
+      "u17": false
+    },
+    "Ненецкий автономный округ": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Нижегородская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Новгородская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Новосибирская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Омская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Оренбургская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Орловская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": true,
+      "u17": false
+    },
+    "Пензенская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Пермский край": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Псковская область": {
+      "mixed_u10": false,
+      "mixed_u12": true,
+      "u13": false,
+      "u15": false,
+      "u17": true
+    },
+    "Республика Адыгея (Адыгея)": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Республика Алтай": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Республика Башкортостан": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Республика Бурятия": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Республика Дагестан": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Республика Ингушетия": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Республика Калмыкия": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Республика Карелия": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Республика Коми": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Республика Марий Эл": {
+      "mixed_u10": true,
+      "mixed_u12": true,
+      "u13": true,
+      "u15": false,
+      "u17": false
+    },
+    "Республика Мордовия": {
+      "mixed_u10": false,
+      "mixed_u12": true,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Республика Северная Осетия — Алания": {
+      "mixed_u10": true,
+      "mixed_u12": true,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Республика Татарстан (Татарстан)": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Республика Тыва": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Республика Хакасия": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Ростовская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Рязанская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Самарская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Санкт-Петербург": {
+      "mixed_u10": true,
+      "mixed_u12": true,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Саратовская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": false,
+      "u17": false
+    },
+    "Свердловская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": true
+    },
+    "Смоленская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Ставропольский край": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Тамбовская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Тверская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Томская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Тульская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Тюменская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Удмуртская Республика": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Ульяновская область": {
+      "mixed_u10": true,
+      "mixed_u12": true,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Ханты-Мансийский автономный округ — Югра": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Челябинская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Чеченская Республика": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Чувашская Республика — Чувашия": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    },
+    "Ямало-Ненецкий автономный округ": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": false,
+      "u15": false,
+      "u17": false
+    },
+    "Ярославская область": {
+      "mixed_u10": false,
+      "mixed_u12": false,
+      "u13": true,
+      "u15": true,
+      "u17": false
+    }
+  }
+}

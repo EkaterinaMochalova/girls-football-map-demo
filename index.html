@@ -11,32 +11,25 @@
 
   <style>
     :root{
-      --bg: #f6f7fb;
-      --card: rgba(255,255,255,0.65);
-      --card-strong: rgba(255,255,255,0.78);
-      --stroke: rgba(0,0,0,0.08);
-      --stroke-strong: rgba(0,0,0,0.12);
-      --shadow: 0 18px 45px rgba(0,0,0,0.12);
-      --shadow-soft: 0 10px 30px rgba(0,0,0,0.08);
-      --text: rgba(20,20,25,0.92);
-      --muted: rgba(20,20,25,0.55);
-      --radius-lg: 18px;
-      --radius-md: 14px;
-      --blur: 18px;
+      --navy:   #0d1937;
+      --navy2:  #162248;
+      --blue:   #1c4db5;
+      --blue-lt:#e8eef8;
+      --bg:     #edf0f6;
+      --card:   #ffffff;
+      --card-strong: #ffffff;
+      --stroke: rgba(0,0,0,0.10);
+      --stroke-strong: rgba(0,0,0,0.18);
+      --shadow: 0 2px 14px rgba(0,0,0,0.09);
+      --shadow-soft: 0 1px 6px rgba(0,0,0,0.06);
+      --text:   #1a1f2e;
+      --muted:  rgba(26,31,46,0.52);
+      --radius-lg: 10px;
+      --radius-md: 7px;
+      --blur: 0px;
     }
 
     html, body { height: 100%; overflow: hidden; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: var(--text); background: var(--bg); }
-
-    body:before{
-      content:"";
-      position: fixed; inset: 0;
-      background:
-        radial-gradient(900px 500px at 20% -10%, rgba(255,75,0,0.12), transparent 55%),
-        radial-gradient(700px 450px at 90% 10%, rgba(208,0,224,0.12), transparent 55%),
-        radial-gradient(900px 600px at 40% 120%, rgba(59,130,246,0.14), transparent 60%);
-      pointer-events:none;
-      z-index:0;
-    }
 
     #app { height: 100%; display: grid; grid-template-columns: 340px 1fr; grid-template-rows: 1fr 14px 200px; gap: 0 14px; padding: 14px; position: relative; z-index: 1; }
 
@@ -702,7 +695,10 @@
   <!-- Sidebar -->
   <aside id="sidebar">
     <div id="sidebarHeader">
-      <div class="title">Girls Football Map · demo</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div class="title">Girls Football Map · demo</div>
+        <button id="resetAll" style="flex-shrink:0;border:1px solid var(--stroke);background:transparent;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;margin-top:1px;" title="Сбросить все фильтры">Сбросить фильтры</button>
+      </div>
       <div class="subtitle">Карта женского футбола в регионах РФ. Кликните на регион для просмотра подробной статистики.</div>
     </div>
 
@@ -728,7 +724,7 @@
           </label>
           <label class="chip comp-chip" title="Подсветить регионы Первой лиги">
             <input type="checkbox" id="toggleFirstLeague" />
-            <img src="./assets/firstleague_logo_orange.png" alt="" class="comp-logo" />
+            <img src="./assets/firstleague_logo.jpg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span>Первая лига</span>
           </label>
           <label class="chip comp-chip">
@@ -741,25 +737,25 @@
             <input type="checkbox" id="toggleYuflU18" />
             <img src="./assets/yufl_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#3db82e;display:none;"></span>
-            <span>ЮФЛ до 18</span>
+            <span>ЮФЛ до 18 лет</span>
           </label>
           <label class="chip comp-chip">
             <input type="checkbox" id="toggleYuflU16" />
             <img src="./assets/yufl_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#3db82e;display:none;"></span>
-            <span>ЮФЛ до 16</span>
+            <span>ЮФЛ до 16 лет</span>
           </label>
           <label class="chip comp-chip">
             <input type="checkbox" id="toggleYuflU14" />
             <img src="./assets/yufl_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#3db82e;display:none;"></span>
-            <span>ЮФЛ до 14</span>
+            <span>ЮФЛ до 14 лет</span>
           </label>
           <label class="chip comp-chip">
             <input type="checkbox" id="toggleFyuflU16" />
             <img src="./assets/yufl_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#c026d3;display:none;"></span>
-            <span>ФЮФЛ до 16</span>
+            <span>ФЮФЛ до 16 лет лет</span>
           </label>
         </div>
 
@@ -797,10 +793,10 @@
           <small id="sportsStatus">(…)</small>
         </label>
 
-        <label class="chip" title="Показать/скрыть общеобразовательные школы ФвШ">
+        <label class="chip" title="Показать/скрыть школы Футбол в Школе">
           <input type="checkbox" id="toggleFVSH" checked />
           <span class="dot" style="background:#16a34a;"></span>
-          <span>Школы ФвШ</span>
+          <span>Футбол в Школе</span>
           <small id="fvshStatus">(…)</small>
         </label>
 
@@ -879,20 +875,13 @@
         <div class="hint">Данные о соревнованиях будут добавлены позже.</div>
       </div>
 
-      <!-- Service -->
-      <div class="section">
-        <h4>Сервис</h4>
-        <div class="btnRow">
-          <button class="btn secondary" id="resetAll">Сбросить всё</button>
-          <button class="btn" id="fitRussia">Показать РФ</button>
-        </div>
-      </div>
     </div>
   </aside>
 
   <!-- Map -->
   <main id="mapCard">
     <div id="map"></div>
+    <button id="fitRussia" title="Показать всю Россию" style="position:absolute;bottom:24px;left:12px;z-index:450;background:#fff;border:1px solid rgba(0,0,0,0.18);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,0.15);color:#1a1f2e;">🗺 Вся Россия</button>
 
     <!-- Region detail panel (slide-in over map) -->
     <div id="regionPanel">
@@ -928,7 +917,7 @@
       </div>
       <div class="tab-btns">
         <button class="tab-btn active" id="tabSchools">ОСП</button>
-        <button class="tab-btn" id="tabFvsh">ФвШ</button>
+        <button class="tab-btn" id="tabFvsh">Футбол в Школе</button>
         <button class="tab-btn" id="tabClubs">Клубы</button>
         <button class="tab-btn" id="tabRegions">Регионы</button>
       </div>
@@ -1214,8 +1203,8 @@
 
     return `
       <div class="popup">
-        <h3>${escapeHTML(p.name || 'Школа ФвШ')}</h3>
-        <span class="type-badge" style="background:rgba(22,163,74,0.12);color:#15803d;">Школа ФвШ</span>
+        <h3>${escapeHTML(p.name || 'Футбол в Школе')}</h3>
+        <span class="type-badge" style="background:rgba(22,163,74,0.12);color:#15803d;">Футбол в Школе</span>
         <div class="muted">${escapeHTML([p.region, p.CITY || p.city].filter(Boolean).join(', '))}</div>
         ${p.Address || p.address ? `<div style="font-size:12px;color:var(--muted);">${escapeHTML(p.Address || p.address)}</div>` : ''}
         ${nearestHtml}
@@ -1347,18 +1336,21 @@
   let regionsFillLayer = null, superOutlineLayer = null, firstOutlineLayer = null;
   let competitionOutlineLayers = []; // for all competitions beyond super/first
   let superBrand = { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
-  let firstBrand = { color: "#ff4b00", colorDark: "#111111", logo: "./assets/firstleague_logo_orange.png" };
+  let firstBrand = { color: "#ff0066", colorDark: "#8b0038", logo: "./assets/firstleague_logo.jpg" };
   let superByRegion = {}, firstByRegion = {};
   // Women's youth leagues
   let yuflU18ByRegion = {}, yuflU16ByRegion = {}, yuflU14ByRegion = {};
   let fyuflU16ByRegion = {}, molodezhByRegion = {};
-  let yuflU18Brand = { color: "#3db82e", name: "ЮФЛ до 18" };
-  let yuflU16Brand = { color: "#3db82e", name: "ЮФЛ до 16" };
-  let yuflU14Brand = { color: "#3db82e", name: "ЮФЛ до 14" };
-  let fyuflU16Brand = { color: "#c026d3", name: "ФЮФЛ до 16" };
+  let yuflU18NameMap = {}, yuflU16NameMap = {}, yuflU14NameMap = {};
+  let fyuflU16NameMap = {}, molodezhNameMap = {};
+  let yuflU18Brand = { color: "#3db82e", name: "ЮФЛ до 18 лет" };
+  let yuflU16Brand = { color: "#3db82e", name: "ЮФЛ до 16 лет" };
+  let yuflU14Brand = { color: "#3db82e", name: "ЮФЛ до 14 лет" };
+  let fyuflU16Brand = { color: "#c026d3", name: "ФЮФЛ до 16 лет лет" };
   let molodezhBrand = { color: "#1a1464", name: "Молодёжная лига" };
   // Men's clubs
   let rplByRegion = {}, fnl1ByRegion = {}, fnl2ByRegion = {};
+  let rplNameMap = {}, fnl1NameMap = {}, fnl2NameMap = {};
   let rplBrand = { color: "#1a56db", name: "РПЛ" };
   let fnl1Brand = { color: "#0891b2", name: "ФНЛ" };
   let fnl2Brand = { color: "#0369a1", name: "ФНЛ-2" };
@@ -1398,7 +1390,7 @@
               <span class="dot-swatch" style="background:#3b82f6"></span><span class="lbl">ОСП с дев.</span>
             </div>
             <div class="item clickable" id="leg-fvsh" title="Нажмите, чтобы скрыть/показать слой">
-              <span class="dot-swatch" style="background:#16a34a"></span><span class="lbl">ФвШ</span>
+              <span class="dot-swatch" style="background:#16a34a"></span><span class="lbl">Футбол в Школе</span>
             </div>
             <div class="item clickable" id="leg-nogirls" title="Нажмите, чтобы скрыть/показать слой">
               <span class="dot-swatch" style="background:#ef4444"></span><span class="lbl">ОСП без дев.</span>
@@ -1470,8 +1462,8 @@
     else if (coverage >= 10 && coverage < 25) risks.push(`Охват ${coverage.toFixed(1)} дев./100 тыс. жит. — ниже среднего`);
     else if (coverage >= 50)                  strengths.push(`Высокий охват: ${coverage.toFixed(1)} на 100 тыс. жит.`);
     // ФвШ
-    if (fvshCnt === 0) risks.push('Нет школ ФвШ — нет точек входа в массовый футбол');
-    else strengths.push(`${fvshCnt} школ ФвШ — массовый вход в футбол`);
+    if (fvshCnt === 0) risks.push('Нет школ Футбол в Школе — нет точек входа в массовый футбол');
+    else strengths.push(`${fvshCnt} школ Футбол в Школе — массовый вход в футбол`);
 
     if (!risks.length && !strengths.length) return '';
     let h = `<div class="panel-section-title" style="margin-top:12px;">Зоны внимания</div>`;
@@ -1497,7 +1489,7 @@
     const fl        = firstByRegion[rk]||[];
     const clubNames = [...sl.map(c=>typeof c==='string'?c:c.club||''), ...fl.map(c=>typeof c==='string'?c:c.club||'')].filter(Boolean);
     const steps = [
-      { icon:'🏫', label:'Развивайся',  caption:'массовый футбол',         ok: fvshCnt>0,          desc: fvshCnt>0  ? `${fvshCnt} школ ФвШ` : 'Нет школ ФвШ' },
+      { icon:'🏫', label:'Развивайся',  caption:'массовый футбол',         ok: fvshCnt>0,          desc: fvshCnt>0  ? `${fvshCnt} школ Футбол в Школе` : 'Нет школ Футбол в Школе' },
       { icon:'⚽', label:'Играй',       caption:'подготовка резерва',       ok: sswg>0,             desc: sswg>0     ? `${sswg} ОСП с девушками` : 'Нет ОСП с девушками' },
       { icon:'🏆', label:'Побеждай',    caption:'профессиональный футбол',  ok: clubNames.length>0, desc: clubNames.length>0 ? clubNames.slice(0,2).join(', ')+(clubNames.length>2?'…':'') : 'Нет клуба' },
     ];
@@ -1535,8 +1527,8 @@
     else if (sng >= 3) { score+=15; factors.push({t:`${sng} ОСП без девушек — есть потенциал`,ok:true}); }
     else if (sng === 0 && swg > 0) { factors.push({t:'Все ОСП уже охвачены девушками',ok:true}); score+=5; }
 
-    if (fvshCnt>0) { score+=20; factors.push({t:`${fvshCnt} ФвШ — есть точки входа`,ok:true}); }
-    else { factors.push({t:'Нет ФвШ — отсутствует массовый вход',ok:false}); }
+    if (fvshCnt>0) { score+=20; factors.push({t:`${fvshCnt} школ Футбол в Школе — есть точки входа`,ok:true}); }
+    else { factors.push({t:'Нет школ Футбол в Школе — отсутствует массовый вход',ok:false}); }
 
     if (hasClub) { score+=25; factors.push({t:'Есть клуб Суперлиги / Первой лиги',ok:true}); }
 
@@ -1646,7 +1638,7 @@
         </div>
         <div style="background:rgba(240,253,244,0.9);border:1px solid rgba(22,163,74,0.2);border-radius:12px;padding:9px 8px;text-align:center;">
           <div style="font-size:20px;font-weight:800;color:#15803d;line-height:1.1;">${countFvshKpi}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">школ ФвШ</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">школ Футбол в Школе</div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:10px;">
@@ -1732,10 +1724,10 @@
       { brand: superBrand,   clubs: sl,  label: 'Суперлига' },
       { brand: firstBrand,   clubs: fl,  label: 'Первая лига' },
       { brand: molodezhBrand, clubs: mol, label: 'Молодёжная лига' },
-      { brand: yuflU18Brand, clubs: u18, label: 'ЮФЛ до 18' },
-      { brand: yuflU16Brand, clubs: u16, label: 'ЮФЛ до 16' },
-      { brand: yuflU14Brand, clubs: u14, label: 'ЮФЛ до 14' },
-      { brand: fyuflU16Brand, clubs: fy, label: 'ФЮФЛ до 16' },
+      { brand: yuflU18Brand, clubs: u18, label: 'ЮФЛ до 18 лет' },
+      { brand: yuflU16Brand, clubs: u16, label: 'ЮФЛ до 16 лет' },
+      { brand: yuflU14Brand, clubs: u14, label: 'ЮФЛ до 14 лет' },
+      { brand: fyuflU16Brand, clubs: fy, label: 'ФЮФЛ до 16 лет лет' },
     ].filter(l => l.clubs.length > 0);
 
     if (womenLeagues.length > 0) {
@@ -2133,7 +2125,7 @@
     });
     rows.sort((a,b) => String(a.properties?.region || '').localeCompare(String(b.properties?.region || ''), 'ru'));
 
-    listSub.textContent = `${fmt.format(rows.length)} школ ФвШ`;
+    listSub.textContent = `${fmt.format(rows.length)} школ Футбол в Школе`;
     schoolsList.innerHTML = '';
     if (!rows.length) {
       schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено.</div>`;
@@ -2151,7 +2143,7 @@
           <div class="meta">${escapeHTML([p.region, city].filter(Boolean).join(', '))}</div>
         </div>
         <div class="addr">${escapeHTML(address)}</div>
-        <div style="font-size:11px;background:rgba(22,163,74,0.12);color:#15803d;border-radius:6px;padding:2px 7px;align-self:center;font-weight:700;white-space:nowrap;">ФвШ</div>
+        <div style="font-size:11px;background:rgba(22,163,74,0.12);color:#15803d;border-radius:6px;padding:2px 7px;align-self:center;font-weight:700;white-space:nowrap;">Футбол в Школе</div>
         <div></div>
       `;
       el.addEventListener('click', () => {
@@ -2168,14 +2160,14 @@
     const allLeagues = [
       { check: superCheckbox,  byRegion: superByRegion,    nameMap: superByRegionName, label: 'Суперлига',     color: superBrand.color },
       { check: firstCheckbox,  byRegion: firstByRegion,    nameMap: firstByRegionName, label: 'Первая лига',   color: firstBrand.color },
-      { check: molodezhCheck,  byRegion: molodezhByRegion, nameMap: null, label: molodezhBrand.name, color: molodezhBrand.color },
-      { check: yuflU18Check,   byRegion: yuflU18ByRegion,  nameMap: null, label: yuflU18Brand.name,  color: yuflU18Brand.color },
-      { check: yuflU16Check,   byRegion: yuflU16ByRegion,  nameMap: null, label: yuflU16Brand.name,  color: yuflU16Brand.color },
-      { check: yuflU14Check,   byRegion: yuflU14ByRegion,  nameMap: null, label: yuflU14Brand.name,  color: yuflU14Brand.color },
-      { check: fyuflU16Check,  byRegion: fyuflU16ByRegion, nameMap: null, label: fyuflU16Brand.name, color: fyuflU16Brand.color },
-      { check: rplCheck,       byRegion: rplByRegion,      nameMap: null, label: rplBrand.name,      color: rplBrand.color },
-      { check: fnl1Check,      byRegion: fnl1ByRegion,     nameMap: null, label: fnl1Brand.name,     color: fnl1Brand.color },
-      { check: fnl2Check,      byRegion: fnl2ByRegion,     nameMap: null, label: fnl2Brand.name,     color: fnl2Brand.color },
+      { check: molodezhCheck,  byRegion: molodezhByRegion, nameMap: molodezhNameMap, label: molodezhBrand.name, color: molodezhBrand.color },
+      { check: yuflU18Check,   byRegion: yuflU18ByRegion,  nameMap: yuflU18NameMap,  label: yuflU18Brand.name,  color: yuflU18Brand.color },
+      { check: yuflU16Check,   byRegion: yuflU16ByRegion,  nameMap: yuflU16NameMap,  label: yuflU16Brand.name,  color: yuflU16Brand.color },
+      { check: yuflU14Check,   byRegion: yuflU14ByRegion,  nameMap: yuflU14NameMap,  label: yuflU14Brand.name,  color: yuflU14Brand.color },
+      { check: fyuflU16Check,  byRegion: fyuflU16ByRegion, nameMap: fyuflU16NameMap, label: fyuflU16Brand.name, color: fyuflU16Brand.color },
+      { check: rplCheck,       byRegion: rplByRegion,      nameMap: rplNameMap,      label: rplBrand.name,      color: rplBrand.color },
+      { check: fnl1Check,      byRegion: fnl1ByRegion,     nameMap: fnl1NameMap,     label: fnl1Brand.name,     color: fnl1Brand.color },
+      { check: fnl2Check,      byRegion: fnl2ByRegion,     nameMap: fnl2NameMap,     label: fnl2Brand.name,     color: fnl2Brand.color },
     ];
 
     const active = allLeagues.filter(l => l.check?.checked);
@@ -2651,7 +2643,7 @@
       ws3['!rows'] = [{ hpt: 30 }];
       applyStyles(ws3, COLS3, rows3, '15803D', false);
       freezeRow(ws3);
-      XLSX.utils.book_append_sheet(wb, ws3, 'Школы ФвШ');
+      XLSX.utils.book_append_sheet(wb, ws3, 'Футбол в Школе');
     }
 
     XLSX.writeFile(wb, `girls_football_${ts}.xlsx`);
@@ -2673,11 +2665,11 @@
     else if (d.countNoGirlsKpi>d.countWithGirlsKpi) risks.push(`${d.countNoGirlsKpi} ОСП без девушек — больше, чем с девушками`);
     if (d.coverageIndex>0&&d.coverageIndex<25) risks.push(`Охват ${d.coverageIndex.toFixed(1)} дев./100 тыс. — ниже среднего`);
     else if (d.coverageIndex>=50) strengths.push(`Высокий охват: ${d.coverageIndex.toFixed(1)} на 100 тыс.`);
-    if (d.countFvshKpi===0) risks.push('Нет школ ФвШ'); else strengths.push(`${d.countFvshKpi} школ ФвШ`);
+    if (d.countFvshKpi===0) risks.push('Нет школ Футбол в Школе'); else strengths.push(`${d.countFvshKpi} школ Футбол в Школе`);
 
     // ── Путь футболистки ─────────────────────────────────────────────
     const pathSteps = [
-      { label:'Развивайся', caption:'массовый футбол',        ok: d.countFvshKpi>0,         info: d.countFvshKpi>0?`${d.countFvshKpi} школ ФвШ`:'отсутствует' },
+      { label:'Развивайся', caption:'массовый футбол',        ok: d.countFvshKpi>0,         info: d.countFvshKpi>0?`${d.countFvshKpi} школ Футбол в Школе`:'отсутствует' },
       { label:'Играй',      caption:'подготовка резерва',     ok: d.countWithGirlsKpi>0,    info: d.countWithGirlsKpi>0?`${d.countWithGirlsKpi} ОСП`:'отсутствует' },
       { label:'Побеждай',   caption:'профессиональный футбол', ok: d.sl.length+d.fl.length>0, info: [...d.sl,...d.fl].map(c=>typeof c==='string'?c:c.club||'').join(', ')||'отсутствует' },
     ];
@@ -2749,7 +2741,7 @@ table.schools tr:nth-child(even) td{background:#f8faff}
 <div class="grid3">
   <div class="kpi"><div class="v" style="color:#1d4ed8">${d.countWithGirlsKpi}</div><div class="l">ОСП с девушками</div></div>
   <div class="kpi"><div class="v" style="color:#dc2626">${d.countNoGirlsKpi}</div><div class="l">ОСП без девушек</div></div>
-  <div class="kpi"><div class="v" style="color:#15803d">${d.countFvshKpi}</div><div class="l">Школ ФвШ</div></div>
+  <div class="kpi"><div class="v" style="color:#15803d">${d.countFvshKpi}</div><div class="l">Футбол в Школе</div></div>
 </div>
 
 <h2>Охват девушек</h2>
@@ -3161,11 +3153,13 @@ ${schoolRows.length?`
   })
   .then(([sl, fl, yuflU18, yuflU16, yuflU14, fyuflU16, molodezh, rpl, fnl1, fnl2]) => {
     function buildByRegion(data) {
-      const map = {};
+      const map = {}, nameMap = {};
       for (const [rName, clubs] of Object.entries(data?.by_region || {})) {
-        map[normRegion(rName)] = (clubs || []).filter(Boolean);
+        const key = normRegion(rName);
+        map[key] = (clubs || []).filter(Boolean);
+        nameMap[key] = rName;
       }
-      return map;
+      return { byRegion: map, nameMap };
     }
 
     if (sl) {
@@ -3189,15 +3183,15 @@ ${schoolRows.length?`
     } else if (flStatus) flStatus.textContent = "(нет данных)";
 
     // Women's youth leagues
-    if (yuflU18) { yuflU18Brand = { ...yuflU18Brand, ...yuflU18.brand }; yuflU18ByRegion = buildByRegion(yuflU18); }
-    if (yuflU16) { yuflU16Brand = { ...yuflU16Brand, ...yuflU16.brand }; yuflU16ByRegion = buildByRegion(yuflU16); }
-    if (yuflU14) { yuflU14Brand = { ...yuflU14Brand, ...yuflU14.brand }; yuflU14ByRegion = buildByRegion(yuflU14); }
-    if (fyuflU16) { fyuflU16Brand = { ...fyuflU16Brand, ...fyuflU16.brand }; fyuflU16ByRegion = buildByRegion(fyuflU16); }
-    if (molodezh) { molodezhBrand = { ...molodezhBrand, ...molodezh.brand }; molodezhByRegion = buildByRegion(molodezh); }
+    if (yuflU18)  { yuflU18Brand  = { ...yuflU18Brand,  ...yuflU18.brand  }; ({ byRegion: yuflU18ByRegion,  nameMap: yuflU18NameMap  } = buildByRegion(yuflU18));  }
+    if (yuflU16)  { yuflU16Brand  = { ...yuflU16Brand,  ...yuflU16.brand  }; ({ byRegion: yuflU16ByRegion,  nameMap: yuflU16NameMap  } = buildByRegion(yuflU16));  }
+    if (yuflU14)  { yuflU14Brand  = { ...yuflU14Brand,  ...yuflU14.brand  }; ({ byRegion: yuflU14ByRegion,  nameMap: yuflU14NameMap  } = buildByRegion(yuflU14));  }
+    if (fyuflU16) { fyuflU16Brand = { ...fyuflU16Brand, ...fyuflU16.brand }; ({ byRegion: fyuflU16ByRegion, nameMap: fyuflU16NameMap } = buildByRegion(fyuflU16)); }
+    if (molodezh) { molodezhBrand = { ...molodezhBrand, ...molodezh.brand }; ({ byRegion: molodezhByRegion, nameMap: molodezhNameMap } = buildByRegion(molodezh)); }
     // Men's clubs
-    if (rpl)  { rplBrand  = { ...rplBrand,  ...rpl.brand  }; rplByRegion  = buildByRegion(rpl);  }
-    if (fnl1) { fnl1Brand = { ...fnl1Brand, ...fnl1.brand }; fnl1ByRegion = buildByRegion(fnl1); }
-    if (fnl2) { fnl2Brand = { ...fnl2Brand, ...fnl2.brand }; fnl2ByRegion = buildByRegion(fnl2); }
+    if (rpl)  { rplBrand  = { ...rplBrand,  ...rpl.brand  }; ({ byRegion: rplByRegion,  nameMap: rplNameMap  } = buildByRegion(rpl));  }
+    if (fnl1) { fnl1Brand = { ...fnl1Brand, ...fnl1.brand }; ({ byRegion: fnl1ByRegion, nameMap: fnl1NameMap } = buildByRegion(fnl1)); }
+    if (fnl2) { fnl2Brand = { ...fnl2Brand, ...fnl2.brand }; ({ byRegion: fnl2ByRegion, nameMap: fnl2NameMap } = buildByRegion(fnl2)); }
 
     computeGlobalStats();   // build national / MRO benchmarks
     applyRegionFilterStyles();
