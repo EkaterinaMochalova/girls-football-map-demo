@@ -872,7 +872,7 @@
           <label class="check"><input type="checkbox" class="compChk" value="u15"><span>До 15 лет</span></label>
           <label class="check"><input type="checkbox" class="compChk" value="u17"><span>До 17 лет</span></label>
         </div>
-        <div class="hint">Данные о соревнованиях будут добавлены позже.</div>
+        <div class="hint">Данные за сезон 2025. Фильтрует регионы с активными соревнованиями.</div>
       </div>
 
     </div>
@@ -1335,6 +1335,7 @@
   }
   let regionsFillLayer = null, superOutlineLayer = null, firstOutlineLayer = null;
   let competitionOutlineLayers = []; // for all competitions beyond super/first
+  let regionCompData = {}; // normRegion → {mixed_u10, mixed_u12, u13, u15, u17}
   let superBrand = { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
   let firstBrand = { color: "#ff0066", colorDark: "#8b0038", logo: "./assets/firstleague_logo.jpg" };
   let superByRegion = {}, firstByRegion = {};
@@ -1867,13 +1868,20 @@
     const compRegions  = getActiveCompetitionRegions();
     const minGirlsR = Number(minGirlsRegion.value || 0);
     const minSWG    = Number(minSchoolsWithGirls.value || 0);
+    // Regional competition filter (compChks)
+    const selComps = compChks.filter(x => x.checked).map(x => x.value);
     const enabled   = new Set();
     (regionsData?.features || []).forEach(f => {
       const p   = f.properties || {};
       const key = normRegion(p.name);
-      const inSelected = !selectedSet  || selectedSet.has(key);
-      const inComp     = !compRegions  || compRegions.has(key);
-      const pass = inSelected && inComp && (Number(p.total_girls ?? 0) >= minGirlsR) && (Number(p.schools_with_girls ?? 0) >= minSWG);
+      const inSelected  = !selectedSet || selectedSet.has(key);
+      const inLeagueComp = !compRegions || compRegions.has(key);
+      // Regional competition filter: if any compChk checked, region must have that competition
+      const flags = regionCompData[key];
+      const inRegComp = selComps.length === 0 || !flags || selComps.some(c => flags[c] === true);
+      const pass = inSelected && inLeagueComp && inRegComp
+                && (Number(p.total_girls ?? 0) >= minGirlsR)
+                && (Number(p.schools_with_girls ?? 0) >= minSWG);
       if (pass) enabled.add(key);
     });
     return enabled;
@@ -1959,26 +1967,13 @@
 
   function schoolMatchesCompetitions(p, selectedComps){
     if (selectedComps.length === 0) return true;
-    const mapNeedles = {
-      mixed_u10: /смешан.*10|mixed.*u10|до.10.*смеш/i,
-      mixed_u12: /смешан.*12|mixed.*u12|до.12.*смеш/i,
-      u13: /до.13|u.?13/i,
-      u15: /до.15|u.?15/i,
-      u17: /до.17|u.?17/i,
-    };
-    const keys = Object.keys(p || {});
-    const anyKnown = keys.some(k => Object.values(mapNeedles).some(rx => rx.test(k)));
-    // If no competition fields in data yet — don't filter out
-    if (!anyKnown) return true;
-    for (const c of selectedComps){
-      const rx = mapNeedles[c];
-      if (!rx) continue;
-      const matching = keys.filter(k => rx.test(k));
-      if (matching.length === 0) return false;
-      const ok = matching.some(k => { const v = p[k]; if (v === true) return true; const n = Number(v); return Number.isFinite(n) && n > 0; });
-      if (!ok) return false;
-    }
-    return true;
+    // Regional competitions are keyed by region — look up by the school's region
+    const rKey = normRegion(p.region || p.Region || p.name_region || p.subject || '');
+    const flags = regionCompData[rKey];
+    // If region not in competition data → don't filter out (data may be incomplete)
+    if (!flags) return true;
+    // Show school if its region has ANY of the selected competition types
+    return selectedComps.some(c => flags[c] === true);
   }
 
   function readUIState(){
@@ -3149,9 +3144,10 @@ ${schoolRows.length?`
       fetchJSON('./data/rpl_clubs.json').catch(() => null),
       fetchJSON('./data/fnl1_clubs.json').catch(() => null),
       fetchJSON('./data/fnl2_clubs.json').catch(() => null),
+      fetchJSON('./data/regional_competitions.json').catch(() => null),
     ]);
   })
-  .then(([sl, fl, yuflU18, yuflU16, yuflU14, fyuflU16, molodezh, rpl, fnl1, fnl2]) => {
+  .then(([sl, fl, yuflU18, yuflU16, yuflU14, fyuflU16, molodezh, rpl, fnl1, fnl2, regComps]) => {
     function buildByRegion(data) {
       const map = {}, nameMap = {};
       for (const [rName, clubs] of Object.entries(data?.by_region || {})) {
@@ -3192,6 +3188,14 @@ ${schoolRows.length?`
     if (rpl)  { rplBrand  = { ...rplBrand,  ...rpl.brand  }; ({ byRegion: rplByRegion,  nameMap: rplNameMap  } = buildByRegion(rpl));  }
     if (fnl1) { fnl1Brand = { ...fnl1Brand, ...fnl1.brand }; ({ byRegion: fnl1ByRegion, nameMap: fnl1NameMap } = buildByRegion(fnl1)); }
     if (fnl2) { fnl2Brand = { ...fnl2Brand, ...fnl2.brand }; ({ byRegion: fnl2ByRegion, nameMap: fnl2NameMap } = buildByRegion(fnl2)); }
+
+    // Regional competitions
+    if (regComps?.by_region) {
+      regionCompData = {};
+      for (const [rName, flags] of Object.entries(regComps.by_region)) {
+        regionCompData[normRegion(rName)] = flags;
+      }
+    }
 
     computeGlobalStats();   // build national / MRO benchmarks
     applyRegionFilterStyles();
