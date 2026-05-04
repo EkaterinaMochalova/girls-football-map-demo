@@ -3165,7 +3165,7 @@ ${schoolRows.length?`
             const geoQ = p.geo_quality || p.geo_kind;
             const html = `
               <div class="popup">
-                <h3>${escapeHTML(p.name ?? 'Без названия')}</h3>
+                <h3>${escapeHTML(abbrevName(p.name) ?? 'Без названия')}</h3>
                 <span class="type-badge" style="background:rgba(239,68,68,0.12);color:#dc2626;">ОСП без девушек</span>
                 <div class="muted">${escapeHTML([p.region, p.city].filter(Boolean).join(', '))}</div>
                 ${p.address ? `<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${escapeHTML(p.address)}</div>` : ''}
