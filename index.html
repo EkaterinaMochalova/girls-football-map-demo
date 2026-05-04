@@ -1836,6 +1836,32 @@
 
 
 
+  // ---- Competition region filter ----
+  // Returns Set of region keys covered by active competition checkboxes, or null if none checked.
+  function getActiveCompetitionRegions() {
+    const allLeagues = [
+      { check: superCheckbox,  byRegion: superByRegion },
+      { check: firstCheckbox,  byRegion: firstByRegion },
+      { check: molodezhCheck,  byRegion: molodezhByRegion },
+      { check: yuflU18Check,   byRegion: yuflU18ByRegion },
+      { check: yuflU16Check,   byRegion: yuflU16ByRegion },
+      { check: yuflU14Check,   byRegion: yuflU14ByRegion },
+      { check: fyuflU16Check,  byRegion: fyuflU16ByRegion },
+      { check: rplCheck,       byRegion: rplByRegion },
+      { check: fnl1Check,      byRegion: fnl1ByRegion },
+      { check: fnl2Check,      byRegion: fnl2ByRegion },
+    ];
+    const active = allLeagues.filter(l => l.check?.checked);
+    if (!active.length) return null; // no competition filter
+    const regions = new Set();
+    for (const league of active) {
+      for (const [rKey, clubs] of Object.entries(league.byRegion)) {
+        if ((clubs || []).length > 0) regions.add(rKey);
+      }
+    }
+    return regions;
+  }
+
   // ---- Region filter helpers ----
   function getSelectedRegionNormSetFromUI(){
     const selected = Array.from(regionSelect.querySelectorAll('input:checked')).map(cb => cb.value);
@@ -1844,15 +1870,17 @@
   }
 
   function getEnabledRegionSet(){
-    const selectedSet = getSelectedRegionNormSetFromUI();
+    const selectedSet  = getSelectedRegionNormSetFromUI();
+    const compRegions  = getActiveCompetitionRegions();
     const minGirlsR = Number(minGirlsRegion.value || 0);
     const minSWG    = Number(minSchoolsWithGirls.value || 0);
     const enabled   = new Set();
     (regionsData?.features || []).forEach(f => {
       const p   = f.properties || {};
       const key = normRegion(p.name);
-      const inSelected = !selectedSet || selectedSet.has(key);
-      const pass = inSelected && (Number(p.total_girls ?? 0) >= minGirlsR) && (Number(p.schools_with_girls ?? 0) >= minSWG);
+      const inSelected = !selectedSet  || selectedSet.has(key);
+      const inComp     = !compRegions  || compRegions.has(key);
+      const pass = inSelected && inComp && (Number(p.total_girls ?? 0) >= minGirlsR) && (Number(p.schools_with_girls ?? 0) >= minSWG);
       if (pass) enabled.add(key);
     });
     return enabled;
@@ -1962,6 +1990,7 @@
   function applySchoolsFilter(){
     if (!pointsData) return;
     const enabledRegions = getEnabledRegionSet();
+    const compRegions    = getActiveCompetitionRegions();
     const state   = readUIState();
     const anyRegionChecked = regionSelect.querySelectorAll('input:checked').length > 0;
     const minGirlsR = Number(minGirlsRegion.value || 0);
@@ -1972,7 +2001,8 @@
     for (const f of (pointsData.features || [])){
       const p = f.properties || {};
       const regionKey = normRegion(p.region || p.Region || p.name_region || p.subject || "");
-      const regionOK  = !regionFilterActive || enabledRegions.has(regionKey);
+      const regionOK  = (!regionFilterActive || enabledRegions.has(regionKey))
+                     && (!compRegions || compRegions.has(regionKey));
       const girls     = Number(p.girls_total ?? p.girls ?? p["Численность занимающихся футболом девочек"] ?? 0);
       const girlsOK   = girls >= state.minGS;
       const agesOK    = schoolHasAnySelectedAges(p, state.selectedAges);
@@ -2021,12 +2051,14 @@
     const minGirlsR = Number(minGirlsRegion.value || 0);
     const minSWG    = Number(minSchoolsWithGirls.value || 0);
     const filterActive = anyRegionChecked || minGirlsR > 0 || minSWG > 0;
+    const compRegions  = getActiveCompetitionRegions();
 
     if (fvshData && fvshCluster) {
       fvshCluster.clearLayers();
-      const features = !filterActive
-        ? fvshData.features || []
-        : (fvshData.features || []).filter(f => enabledSet.has(normRegion(f.properties?.region || "")));
+      const features = (fvshData.features || []).filter(f => {
+        const rk = normRegion(f.properties?.region || "");
+        return (!filterActive || enabledSet.has(rk)) && (!compRegions || compRegions.has(rk));
+      });
       if (fvshStatus) fvshStatus.textContent = `(${fmt.format(features.length)})`;
       const filtered = { type: "FeatureCollection", features };
       fvshCluster.addLayer(L.geoJSON(filtered, {
@@ -2043,9 +2075,10 @@
 
     if (noGirlsData && noGirlsCluster) {
       noGirlsCluster.clearLayers();
-      const features = !filterActive
-        ? noGirlsData.features || []
-        : (noGirlsData.features || []).filter(f => enabledSet.has(normRegion(f.properties?.region || "")));
+      const features = (noGirlsData.features || []).filter(f => {
+        const rk = normRegion(f.properties?.region || "");
+        return (!filterActive || enabledSet.has(rk)) && (!compRegions || compRegions.has(rk));
+      });
       currentFilteredNoGirlsCount = features.length;
       if (noGirlsStatus) noGirlsStatus.textContent = `(${fmt.format(features.length)})`;
       const filtered = { type: "FeatureCollection", features };
@@ -2074,10 +2107,14 @@
   // ---- ФвШ list ----
   function renderFvshList(){
     const search = (searchInput.value || "").trim().toLowerCase();
+    const compRegions = getActiveCompetitionRegions();
     let rows = fvshData ? [...(fvshData.features || [])] : [];
     if (activeListRegion) {
       const rk = normRegion(activeListRegion);
       rows = rows.filter(f => normRegion(f.properties?.region || '') === rk);
+    }
+    if (compRegions) {
+      rows = rows.filter(f => compRegions.has(normRegion(f.properties?.region || '')));
     }
     if (search) rows = rows.filter(f => {
       const p = f.properties || {};
@@ -2859,13 +2896,10 @@ ${schoolRows.length?`
     ageChks.forEach(x => x.addEventListener('change', rerunAll));
     compChks.forEach(x => x.addEventListener('change', rerunAll));
 
-    superCheckbox.addEventListener('change', () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); if (activeListTab === 'regions') renderRegionsList(); });
-    firstCheckbox.addEventListener('change',  () => { rebuildOutlines(); if (activeListTab === 'clubs') renderSchoolsList(); if (activeListTab === 'regions') renderRegionsList(); });
-
-    // Youth & men leagues — map highlight + refresh clubs/regions tabs
-    [molodezhCheck, yuflU18Check, yuflU16Check, yuflU14Check, fyuflU16Check, rplCheck, fnl1Check, fnl2Check]
+    // All competition checkboxes: full rerun (map filter + lists) + outline rebuild
+    [superCheckbox, firstCheckbox, molodezhCheck, yuflU18Check, yuflU16Check, yuflU14Check, fyuflU16Check, rplCheck, fnl1Check, fnl2Check]
       .forEach(cb => cb?.addEventListener('change', () => {
-        rebuildOutlines();
+        rerunAll();
         if (activeListTab === 'clubs')   renderSchoolsList();
         if (activeListTab === 'regions') renderRegionsList();
       }));
