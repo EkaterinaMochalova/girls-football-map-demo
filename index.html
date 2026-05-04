@@ -868,12 +868,13 @@
 
       <!-- Competition level -->
       <div class="section">
-        <h4>Соревновательная практика</h4>
+        <h4>Региональные соревнования</h4>
         <div class="checks">
-          <label class="check"><input type="checkbox" class="compChk" value="school"><span>школьные</span></label>
-          <label class="check"><input type="checkbox" class="compChk" value="muni"><span>муниципальные</span></label>
-          <label class="check"><input type="checkbox" class="compChk" value="region"><span>региональные</span></label>
-          <label class="check"><input type="checkbox" class="compChk" value="inter"><span>межрегиональные</span></label>
+          <label class="check"><input type="checkbox" class="compChk" value="mixed_u10"><span>Смешанные до 10 лет</span></label>
+          <label class="check"><input type="checkbox" class="compChk" value="mixed_u12"><span>Смешанные до 12 лет</span></label>
+          <label class="check"><input type="checkbox" class="compChk" value="u13"><span>До 13 лет</span></label>
+          <label class="check"><input type="checkbox" class="compChk" value="u15"><span>До 15 лет</span></label>
+          <label class="check"><input type="checkbox" class="compChk" value="u17"><span>До 17 лет</span></label>
         </div>
         <div class="hint">Данные о соревнованиях будут добавлены позже.</div>
       </div>
@@ -1966,11 +1967,21 @@
 
   function schoolMatchesCompetitions(p, selectedComps){
     if (selectedComps.length === 0) return true;
-    const mapNeedles = { school: /школьн/i, muni: /муницип/i, region: /регионал/i, inter: /межрегион/i };
+    const mapNeedles = {
+      mixed_u10: /смешан.*10|mixed.*u10|до.10.*смеш/i,
+      mixed_u12: /смешан.*12|mixed.*u12|до.12.*смеш/i,
+      u13: /до.13|u.?13/i,
+      u15: /до.15|u.?15/i,
+      u17: /до.17|u.?17/i,
+    };
     const keys = Object.keys(p || {});
-    if (!keys.some(k => /(школьн|муницип|регионал|межрегион)/i.test(k))) return true;
+    const anyKnown = keys.some(k => Object.values(mapNeedles).some(rx => rx.test(k)));
+    // If no competition fields in data yet — don't filter out
+    if (!anyKnown) return true;
     for (const c of selectedComps){
-      const matching = keys.filter(k => mapNeedles[c].test(k));
+      const rx = mapNeedles[c];
+      if (!rx) continue;
+      const matching = keys.filter(k => rx.test(k));
       if (matching.length === 0) return false;
       const ok = matching.some(k => { const v = p[k]; if (v === true) return true; const n = Number(v); return Number.isFinite(n) && n > 0; });
       if (!ok) return false;
