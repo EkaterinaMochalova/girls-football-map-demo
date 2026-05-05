@@ -1714,8 +1714,8 @@
     else if (coverage >= 10 && coverage < 25) risks.push(`Охват ${coverage.toFixed(1)} дев./100 тыс. жит. — ниже среднего`);
     else if (coverage >= 50)                  strengths.push(`Высокий охват: ${coverage.toFixed(1)} на 100 тыс. жит.`);
     // ФвШ
-    if (fvshCnt === 0) risks.push('Нет школ Футбол в Школе — нет точек входа в массовый футбол');
-    else strengths.push(`${fvshCnt} ${plur(fvshCnt,'школа','школы','школ')} «Футбол в Школе» — массовый вход в футбол`);
+    if (fvshCnt === 0) risks.push('Нет школ «Футбол в Школе»');
+    else strengths.push(`${fvshCnt} ${plur(fvshCnt,'школа','школы','школ')} «Футбол в Школе»`);
 
     if (!risks.length && !strengths.length) return '';
     let h = `<div class="panel-section-title" style="margin-top:12px;">Зоны внимания</div>`;
@@ -1780,8 +1780,8 @@
     else if (sng >= 3) { score+=15; factors.push({t:`${sng} ОСП без девушек — есть потенциал`,ok:true}); }
     else if (sng === 0 && swg > 0) { factors.push({t:'Все ОСП уже охвачены девушками',ok:true}); score+=5; }
 
-    if (fvshCnt>0) { score+=20; factors.push({t:`${fvshCnt} ${plur(fvshCnt,'школа','школы','школ')} «Футбол в Школе» — есть точки входа`,ok:true}); }
-    else { factors.push({t:'Нет школ «Футбол в Школе» — отсутствует массовый вход',ok:false}); }
+    if (fvshCnt>0) { score+=20; factors.push({t:`${fvshCnt} ${plur(fvshCnt,'школа','школы','школ')} «Футбол в Школе»`,ok:true}); }
+    else { factors.push({t:'Нет школ «Футбол в Школе»',ok:false}); }
 
     if (hasWomenClub) { score+=25; factors.push({t:'Есть клуб Суперлиги / Первой лиги',ok:true}); }
     if (hasRpl)       { score+=10; factors.push({t:'Есть клуб РПЛ — высокий бренд региона',ok:true}); }
