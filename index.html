@@ -2259,7 +2259,7 @@
     });
 
     document.getElementById('downloadPassport')?.addEventListener('click', () => {
-      printRegionPassport(props.name ?? 'Регион', {
+      printRegionPassport(fullRegionName(props.name ?? 'Регион'), {
         props, regionKey, mro, mroColor, pop, popStr,
         countWithGirlsKpi, countNoGirlsKpi, countFvshKpi,
         girls, pctBar, coverageIndex,
@@ -2283,7 +2283,7 @@
     const btn = document.getElementById('resetRegionFilter');
     if (btn) {
       btn.style.display = '';
-      btn.textContent = `✕ ${regionName}`;
+      btn.textContent = `✕ ${fullRegionName(regionName)}`;
     }
     renderSchoolsList();
   }
@@ -2861,7 +2861,7 @@
                     border-bottom:1px solid var(--stroke);cursor:pointer;transition:background .12s;">
           <div style="flex:1;min-width:0;">
             <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-              ${escapeHTML(props.name)}
+              ${escapeHTML(fullRegionName(props.name))}
             </div>
             <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;">
               ${mro ? `<span style="font-size:9px;background:${mc}18;color:${mc};border:1px solid ${mc}33;
@@ -3382,7 +3382,7 @@ ${schoolRows.length?`
       const cb = document.createElement('input');
       cb.type = 'checkbox'; cb.value = r;
       label.appendChild(cb);
-      label.appendChild(document.createTextNode(r));
+      label.appendChild(document.createTextNode(fullRegionName(r)));
       regionSelect.appendChild(label);
     }
   }
