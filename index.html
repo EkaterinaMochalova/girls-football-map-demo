@@ -519,8 +519,9 @@
     }
     .mobileTab.active { color: var(--text); border-bottom-color: #e4002b; }
 
-    /* Desktop: mobileSheet is invisible — children join #app grid directly */
-    #mobileSheet { display: contents; }
+    /* Desktop: mobileSheet/sheetContent invisible — children join #app grid directly */
+    #mobileSheet  { display: contents; }
+    #sheetContent { display: contents; }
     #sheetHandle  { display: none; }
     .sheet-pill   { display: none; }
 
@@ -548,8 +549,10 @@
       /* Desktop-only resizer hidden */
       #mapListResizer { display: none; }
 
-      /* Bottom sheet overlay */
+      /* Bottom sheet overlay — flex column, handle fixed, content scrolls */
       #mobileSheet {
+        display: flex;
+        flex-direction: column;
         position: absolute;
         bottom: 0; left: 0; right: 0;
         height: var(--sheet-h, 38vh);
@@ -559,16 +562,13 @@
         border-bottom: none;
         box-shadow: 0 -6px 32px rgba(0,0,0,0.18);
         z-index: 400;
-        overflow-y: auto;
-        overflow-x: hidden;
+        overflow: hidden;
       }
 
-      /* Drag handle sticks to top while sheet scrolls */
+      /* Drag handle — fixed at top, never scrolls away */
       #sheetHandle {
-        position: sticky;
-        top: 0;
-        z-index: 1;
         display: flex;
+        flex-shrink: 0;
         align-items: center;
         justify-content: center;
         height: 22px;
@@ -586,13 +586,21 @@
         border-radius: 2px;
       }
 
-      /* Mobile tabs hidden — filters and list scroll together */
+      /* Scrollable area below handle */
+      #sheetContent {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      /* Mobile tabs hidden */
       #mobileTabs { display: none; }
 
-      /* Hide the blue logo/KPI header — redundant on mobile */
+      /* Hide blue logo/KPI header */
       #sidebarHeader, #kpis { display: none; }
 
-      /* Sidebar: natural height inside scrollable sheet */
+      /* Sidebar: natural height inside sheetContent */
       #sidebar {
         max-height: none;
         overflow: visible;
@@ -603,9 +611,8 @@
         grid-row: unset;
       }
 
-      /* List: give it enough height so its inner table can scroll */
+      /* List: natural height, inner scroll handled by sheetContent */
       #listCard {
-        height: 60vh;
         border-radius: 0;
         border: none;
         box-shadow: none;
@@ -961,6 +968,7 @@
        draggable bottom-sheet overlay on mobile -->
   <div id="mobileSheet">
   <div id="sheetHandle"><div class="sheet-pill"></div></div>
+  <div id="sheetContent">
 
   <!-- Sidebar -->
   <aside id="sidebar">
@@ -1180,6 +1188,8 @@
     </div>
     <div id="schoolsList"></div>
   </section>
+
+  </div><!-- /#sheetContent -->
 
   </div><!-- /#mobileSheet -->
 
