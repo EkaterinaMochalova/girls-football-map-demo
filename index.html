@@ -570,7 +570,7 @@
       -webkit-backdrop-filter: blur(14px);
       box-shadow: 0 6px 18px rgba(0,0,0,0.10);
       width: fit-content;
-      max-width: min(620px, calc(100vw - 420px));
+      max-width: 190px;
       pointer-events: auto;
     }
     .legend-compact .legend-header{
@@ -1060,7 +1060,7 @@
       </div>
       <div class="tab-btns">
         <button class="tab-btn active" id="tabSchools">ОСП с девочками</button>
-        <button class="tab-btn" id="tabNoGirls">ОСП без девочек</button>
+        <button class="tab-btn" id="tabNoGirls">ОСП без девушек</button>
         <button class="tab-btn" id="tabFvsh">«Футбол в Школе»</button>
         <button class="tab-btn" id="tabClubs">Клубы</button>
         <button class="tab-btn" id="tabRegions">Регионы</button>
@@ -1831,6 +1831,31 @@
     const normName = (regionName || '').trim();
     let hist = historyData.regions[normName];
     if (!hist) {
+      // Map short GeoJSON names → full names used in history JSON
+      const shortToFull = {
+        'Адыгея':                         'Республика Адыгея',
+        'Алтай':                          'Республика Алтай',
+        'Башкортостан':                   'Республика Башкортостан',
+        'Бурятия':                        'Республика Бурятия',
+        'Дагестан':                       'Республика Дагестан',
+        'Марий Эл':                       'Республика Марий Эл',
+        'Северная Осетия - Алания':       'Республика Северная Осетия — Алания',
+        'Северная Осетия — Алания':       'Республика Северная Осетия — Алания',
+        'Татарстан':                      'Республика Татарстан',
+        'Тыва':                           'Республика Тыва',
+        'Чувашия':                        'Чувашская Республика',
+        'Хакасия':                        'Республика Хакасия',
+        'Карелия':                        'Республика Карелия',
+        'Коми':                           'Республика Коми',
+        'Мордовия':                       'Республика Мордовия',
+        'Калмыкия':                       'Республика Калмыкия',
+        'Удмуртия':                       'Удмуртская Республика',
+        'Ханты-Мансийский автономный округ - Югра': 'Ханты-Мансийский автономный округ — Югра',
+      };
+      const mapped = shortToFull[normName];
+      if (mapped) hist = historyData.regions[mapped];
+    }
+    if (!hist) {
       // Fuzzy match: try normalizing dashes and case
       const normalize = s => s.toLowerCase().replace(/[—–-]/g, '-').replace(/\s+/g,' ').trim();
       const norm = normalize(normName);
@@ -2392,7 +2417,6 @@
     }
 
     currentFilteredPointFeatures = filtered;
-    document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(filtered.length);
     document.getElementById('kpiSchools').textContent = fmt.format(filtered.length + currentFilteredNoGirlsCount);
     if (sportsStatus) sportsStatus.textContent = `(${fmt.format(filtered.length)})`;
 
@@ -2566,7 +2590,7 @@
     });
     rows.sort((a,b) => String(a.properties?.region||'').localeCompare(String(b.properties?.region||''), 'ru'));
 
-    listSub.textContent = `${fmt.format(rows.length)} ${plur(rows.length,'ОСП','ОСП','ОСП')} без девочек`;
+    listSub.textContent = `${fmt.format(rows.length)} ${plur(rows.length,'ОСП','ОСП','ОСП')} без девушек`;
     schoolsList.innerHTML = '';
     if (!rows.length) {
       schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено.</div>`;
@@ -2603,7 +2627,7 @@
           ${nearFvshHtml}${nearOspWithHtml}
         </div>
         <div class="addr">${escapeHTML(p.address ?? '')}</div>
-        <div style="font-size:11px;background:rgba(220,38,38,0.10);color:#dc2626;border-radius:6px;padding:2px 7px;align-self:center;font-weight:700;white-space:nowrap;">Нет девочек</div>
+        <div style="font-size:11px;background:rgba(220,38,38,0.10);color:#dc2626;border-radius:6px;padding:2px 7px;align-self:center;font-weight:700;white-space:nowrap;">Нет девушек</div>
         <div></div>
       `;
       el.addEventListener('click', () => {
@@ -3339,7 +3363,6 @@ ${schoolRows.length?`
       applyOverlayRegionFilter(enabled);
       updateKPIs(enabled);
       document.getElementById('kpiSchools').textContent = fmt.format(currentFilteredPointFeatures.length + currentFilteredNoGirlsCount);
-      document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(currentFilteredPointFeatures.length);
     };
 
     regionSelect.addEventListener('change', rerunAll);
