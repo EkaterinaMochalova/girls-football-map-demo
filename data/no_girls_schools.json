@@ -3086,26 +3086,6 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          47.989584,
-          46.308658
-        ]
-      },
-      "properties": {
-        "name": "ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ УЧРЕЖДЕНИЕ АСТРАХАНСКОЙ ОБЛАСТИ \"СПОРТИВНЫЙ КЛУБ \"АСТРАХАНЬ\"",
-        "region": "Астраханская область",
-        "address": "414018, Астраханская область, город Астрахань, ул. Ползунова, д.1б",
-        "girls_total": 0,
-        "has_girls": false,
-        "source": "5fk_2023",
-        "geo_quality": "exact",
-        "geo_kind": "house"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
           46.168636,
           48.281874
         ]
