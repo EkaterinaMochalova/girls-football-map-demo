@@ -4,7 +4,7 @@
   "brand": {
     "color": "#0891b2",
     "colorDark": "#164e63",
-    "logo": "./assets/fnl1_logo.jpg"
+    "logo": "./assets/fnl1_logo.svg"
   },
   "by_region": {
     "Тульская область": ["Арсенал"],

@@ -769,7 +769,7 @@
           </label>
           <label class="chip comp-chip">
             <input type="checkbox" id="toggleFNL1" />
-            <img src="./assets/fnl1_logo.jpg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+            <img src="./assets/fnl1_logo.svg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#0891b2;display:none;"></span>
             <span>1 Лига</span>
           </label>
@@ -974,6 +974,16 @@
     'чувашская':               'чувашия',
     'северная осетия-алания':  'северная осетия алания',
   };
+
+  // ── Russian plural form: plur(n, 'школа', 'школы', 'школ') ─────────────
+  function plur(n, one, few, many) {
+    n = Math.abs(Math.floor(n));
+    const m10 = n % 10, m100 = n % 100;
+    if (m100 >= 11 && m100 <= 19) return many;
+    if (m10 === 1) return one;
+    if (m10 >= 2 && m10 <= 4) return few;
+    return many;
+  }
 
   function normRegion(s) {
     if (!s) return "";
@@ -1335,7 +1345,31 @@
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
 
-  const cluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
+  // IP-based centering: if Russian IP → fly to user's region; otherwise keep Russia overview
+  fetch('https://ipapi.co/json/')
+    .then(r => r.json())
+    .then(d => {
+      if (d.country_code === 'RU' && d.latitude && d.longitude) {
+        map.setView([d.latitude, d.longitude], 6);
+      }
+    })
+    .catch(() => {}); // silent fail
+
+  function makeClusterIcon(bg, border) {
+    return function(c) {
+      const n = c.getChildCount();
+      const sz = n < 10 ? 28 : n < 100 ? 34 : 40;
+      return L.divIcon({
+        html: `<div style="background:${bg};border:2px solid ${border};border-radius:50%;width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${n<10?12:10}px;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);">${n}</div>`,
+        className: '', iconSize: [sz, sz], iconAnchor: [sz/2, sz/2]
+      });
+    };
+  }
+
+  const cluster = L.markerClusterGroup({
+    chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false,
+    iconCreateFunction: makeClusterIcon('rgba(37,99,235,0.85)', '#1d4ed8')
+  });
 
   // ---- Data holders ----
   let regionsData = null, pointsData = null;
@@ -1525,7 +1559,7 @@
     else if (coverage >= 50)                  strengths.push(`Высокий охват: ${coverage.toFixed(1)} на 100 тыс. жит.`);
     // ФвШ
     if (fvshCnt === 0) risks.push('Нет школ Футбол в Школе — нет точек входа в массовый футбол');
-    else strengths.push(`${fvshCnt} школ Футбол в Школе — массовый вход в футбол`);
+    else strengths.push(`${fvshCnt} ${plur(fvshCnt,'школа','школы','школ')} «Футбол в Школе» — массовый вход в футбол`);
 
     if (!risks.length && !strengths.length) return '';
     let h = `<div class="panel-section-title" style="margin-top:12px;">Зоны внимания</div>`;
@@ -1551,7 +1585,7 @@
     const fl        = firstByRegion[rk]||[];
     const clubNames = [...sl.map(c=>typeof c==='string'?c:c.club||''), ...fl.map(c=>typeof c==='string'?c:c.club||'')].filter(Boolean);
     const steps = [
-      { icon:'🏫', label:'Развивайся',  caption:'массовый футбол',         ok: fvshCnt>0,          desc: fvshCnt>0  ? `${fvshCnt} школ Футбол в Школе` : 'Нет школ Футбол в Школе' },
+      { icon:'🏫', label:'Развивайся',  caption:'массовый футбол',         ok: fvshCnt>0,          desc: fvshCnt>0  ? `${fvshCnt} ${plur(fvshCnt,'школа','школы','школ')} «Футбол в Школе»` : 'Нет школ «Футбол в Школе»' },
       { icon:'⚽', label:'Играй',       caption:'подготовка резерва',       ok: sswg>0,             desc: sswg>0     ? `${sswg} ОСП с девушками` : 'Нет ОСП с девушками' },
       { icon:'🏆', label:'Побеждай',    caption:'профессиональный футбол',  ok: clubNames.length>0, desc: clubNames.length>0 ? clubNames.slice(0,2).join(', ')+(clubNames.length>2?'…':'') : 'Нет клуба' },
     ];
@@ -2181,7 +2215,7 @@
     });
     rows.sort((a,b) => String(a.properties?.region || '').localeCompare(String(b.properties?.region || ''), 'ru'));
 
-    listSub.textContent = `${fmt.format(rows.length)} школ Футбол в Школе`;
+    listSub.textContent = `${fmt.format(rows.length)} ${plur(rows.length,'школа','школы','школ')} «Футбол в Школе»`;
     schoolsList.innerHTML = '';
     if (!rows.length) {
       schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено.</div>`;
@@ -2228,7 +2262,7 @@
 
     const active = allLeagues.filter(l => l.check?.checked);
     if (!active.length) {
-      listSub.textContent = '0 клубов';
+      listSub.textContent = '0 клубов'; // zero
       schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Включите соревнования в разделе «Соревнования».</div>`;
       return;
     }
@@ -2251,7 +2285,7 @@
       ? rows.filter(r => [r.name, r.region, r.city, r.competition].join(' ').toLowerCase().includes(search))
       : rows;
 
-    listSub.textContent = `${fmt.format(filtered.length)} клубов`;
+    listSub.textContent = `${fmt.format(filtered.length)} ${plur(filtered.length,'клуб','клуба','клубов')}`;
     schoolsList.innerHTML = '';
     if (!filtered.length) {
       schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено.</div>`;
@@ -2317,7 +2351,7 @@
     const search = (searchInput.value || '').trim().toLowerCase();
     if (search) filtered = filtered.filter(({ props }) => props.name.toLowerCase().includes(search));
 
-    listSub.textContent = `${fmt.format(filtered.length)} регионов`;
+    listSub.textContent = `${fmt.format(filtered.length)} ${plur(filtered.length,'регион','региона','регионов')}`;
 
     // ── Any/All toggle bar ────────────────────────────────────────────
     function modeBtn(id, mode, label) {
@@ -2431,7 +2465,7 @@
     });
     rows.sort((a,b) => Number(b.properties?.girls_total ?? 0) - Number(a.properties?.girls_total ?? 0));
 
-    listSub.textContent = `${fmt.format(rows.length)} ОСП`;
+    listSub.textContent = `${fmt.format(rows.length)} ${plur(rows.length,'ОСП','ОСП','ОСП')}`;
     schoolsList.innerHTML = "";
     if (!rows.length){
       schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено по текущим фильтрам.</div>`;
@@ -2721,7 +2755,7 @@
     else if (d.countNoGirlsKpi>d.countWithGirlsKpi) risks.push(`${d.countNoGirlsKpi} ОСП без девушек — больше, чем с девушками`);
     if (d.coverageIndex>0&&d.coverageIndex<25) risks.push(`Охват ${d.coverageIndex.toFixed(1)} дев./100 тыс. — ниже среднего`);
     else if (d.coverageIndex>=50) strengths.push(`Высокий охват: ${d.coverageIndex.toFixed(1)} на 100 тыс.`);
-    if (d.countFvshKpi===0) risks.push('Нет школ Футбол в Школе'); else strengths.push(`${d.countFvshKpi} школ Футбол в Школе`);
+    if (d.countFvshKpi===0) risks.push('Нет школ «Футбол в Школе»'); else strengths.push(`${d.countFvshKpi} школ Футбол в Школе`);
 
     // ── Путь футболистки ─────────────────────────────────────────────
     const pathSteps = [
@@ -3119,7 +3153,10 @@ ${schoolRows.length?`
         fvshData = data;
         if (fvshStatus) fvshStatus.textContent = `(${fmt.format(data.features?.length || 0)})`;
 
-        fvshCluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
+        fvshCluster = L.markerClusterGroup({
+          chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false,
+          iconCreateFunction: makeClusterIcon('rgba(22,163,74,0.85)', '#15803d')
+        });
 
         fvshLayer = L.geoJSON(fvshData, {
           pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
@@ -3164,7 +3201,10 @@ ${schoolRows.length?`
         currentFilteredNoGirlsCount = cnt;
         document.getElementById('kpiSchools').textContent = fmt.format(currentFilteredPointFeatures.length + cnt);
 
-        noGirlsCluster = L.markerClusterGroup({ chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false });
+        noGirlsCluster = L.markerClusterGroup({
+          chunkedLoading: true, spiderfyOnMaxZoom: true, showCoverageOnHover: false,
+          iconCreateFunction: makeClusterIcon('rgba(220,38,38,0.85)', '#b91c1c')
+        });
 
         noGirlsLayer = L.geoJSON(noGirlsData, {
           pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
