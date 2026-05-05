@@ -550,8 +550,6 @@
 
       /* Bottom sheet overlay */
       #mobileSheet {
-        display: flex;
-        flex-direction: column;
         position: absolute;
         bottom: 0; left: 0; right: 0;
         height: var(--sheet-h, 38vh);
@@ -561,16 +559,20 @@
         border-bottom: none;
         box-shadow: 0 -6px 32px rgba(0,0,0,0.18);
         z-index: 400;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
 
-      /* Drag handle pill */
+      /* Drag handle sticks to top while sheet scrolls */
       #sheetHandle {
+        position: sticky;
+        top: 0;
+        z-index: 1;
         display: flex;
         align-items: center;
         justify-content: center;
         height: 22px;
-        flex-shrink: 0;
+        background: var(--card);
         cursor: ns-resize;
         touch-action: none;
         -webkit-user-select: none;
@@ -584,25 +586,32 @@
         border-radius: 2px;
       }
 
-      /* Mobile tabs hidden — sheet shows list only */
+      /* Mobile tabs hidden — filters and list scroll together */
       #mobileTabs { display: none; }
 
-      /* Sidebar, header, KPIs hidden on mobile */
-      #sidebar, #sidebarHeader, #kpis { display: none; }
+      /* Hide the blue logo/KPI header — redundant on mobile */
+      #sidebarHeader, #kpis { display: none; }
 
-      /* List inside sheet */
-
-      /* List inside sheet */
-      #listCard {
-        flex: 1;
-        min-height: 0;
+      /* Sidebar: natural height inside scrollable sheet */
+      #sidebar {
+        max-height: none;
+        overflow: visible;
         border-radius: 0;
         border: none;
         box-shadow: none;
         grid-column: unset;
         grid-row: unset;
       }
-      #listCard.tab-hidden { display: none; }
+
+      /* List: give it enough height so its inner table can scroll */
+      #listCard {
+        height: 60vh;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        grid-column: unset;
+        grid-row: unset;
+      }
 
       #search{ width: 140px; max-width: none; }
       .row{ grid-template-columns: 1.4fr 1fr 80px; }
