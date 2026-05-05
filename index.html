@@ -1927,7 +1927,7 @@
             ${schools.map((v,i) => `<td style="${colStyle(i)}">${v > 0 ? v : '—'}</td>`).join('')}
           </tr>
           <tr>
-            <td style="padding:3px 4px;color:rgba(0,0,0,0.45);white-space:nowrap;font-size:10px;">Девочек ${arrow(girls)}</td>
+            <td style="padding:3px 4px;color:rgba(0,0,0,0.45);white-space:nowrap;font-size:10px;">Девушек ${arrow(girls)}</td>
             ${girls.map((v,i) => `<td style="${colStyle(i)}">${v > 0 ? v.toLocaleString('ru-RU') : '—'}</td>`).join('')}
           </tr>
         </tbody>
@@ -1974,8 +1974,8 @@
     }
 
     const metrics = [
-      { label: 'Девочек всего',  r: rankOf('total_girls') },
-      { label: 'В секциях ФвШ', r: rankFvsh() },
+      { label: 'Девушек всего',           r: rankOf('total_girls') },
+      { label: 'Девушек в секциях ФвШ',  r: rankFvsh() },
     ].filter(m => m.r);
 
     if (!metrics.length) return '';
