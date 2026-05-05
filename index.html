@@ -715,8 +715,9 @@
 
     /* Шапка */
     #sidebarHeader {
-      background: #fff;
-      border-bottom-color: rgba(0,0,0,0.08);
+      background: url('assets/rfs-pattern-blue.svg') repeat, #0a2245 !important;
+      background-size: 36px auto !important;
+      border-bottom-color: rgba(255,255,255,0.12);
     }
     #sidebar .title { color: #fff !important; }
 
@@ -3424,7 +3425,7 @@ ${schoolRows.length?`
   }
 
   function fitToRussia(){
-    if (regionsFillLayer) map.fitBounds(regionsFillLayer.getBounds().pad(0.1));
+    map.setView([62, 55], 3);
   }
 
   // ---- Wire events ----
@@ -3725,7 +3726,7 @@ ${schoolRows.length?`
 
     cluster.addLayer(pointsGeoLayer);
     map.addLayer(cluster);
-    map.fitBounds(regionsFillLayer.getBounds().pad(0.1));
+    map.setView([62, 55], 3);
     fillRegionSelectFromGeoJSON();
     setRangesFromData();
     currentFilteredPointFeatures = (pointsData.features || []);
