@@ -600,8 +600,10 @@
       /* Hide blue logo/KPI header */
       #sidebarHeader, #kpis { display: none; }
 
-      /* Sidebar: natural height inside sheetContent */
+      /* Sidebar: block layout so children expand to natural height */
       #sidebar {
+        display: block;
+        height: auto;
         max-height: none;
         overflow: visible;
         border-radius: 0;
@@ -610,11 +612,11 @@
         grid-column: unset;
         grid-row: unset;
       }
-      /* #filters collapses to 0 on desktop (overflow:auto, min-height:0) — fix on mobile */
       #filters {
+        display: block;
+        height: auto;
         overflow: visible;
         min-height: unset;
-        flex: unset;
       }
 
       /* List: natural height, inner scroll handled by sheetContent */
