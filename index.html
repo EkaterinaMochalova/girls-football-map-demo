@@ -3389,7 +3389,7 @@ ${schoolRows.length?`
   function fillRegionSelectFromGeoJSON(){
     const regions = (regionsData?.features || [])
       .map(f => f.properties?.name).filter(Boolean)
-      .sort((a,b) => String(a).localeCompare(String(b), 'ru'));
+      .sort((a,b) => fullRegionName(a).localeCompare(fullRegionName(b), 'ru'));
     regionSelect.innerHTML = "";
     for (const r of regions){
       const label = document.createElement('label');
