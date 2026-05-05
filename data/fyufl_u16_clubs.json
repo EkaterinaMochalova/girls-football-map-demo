@@ -2,8 +2,8 @@
   "competition": "fyufl_u16",
   "name": "ФЮФЛ до 16 лет",
   "brand": {
-    "color": "#c026d3",
-    "colorDark": "#701a75",
+    "color": "#22c55e",
+    "colorDark": "#15803d",
     "logo": "./assets/yufl_logo.png"
   },
   "by_region": {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Карта девичьего футбола — демо</title>
+  <title>Карта женского футбола</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
@@ -696,7 +696,7 @@
   <aside id="sidebar">
     <div id="sidebarHeader">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
-        <div class="title">Girls Football Map · demo</div>
+        <div class="title">Карта женского футбола</div>
         <button id="resetAll" style="flex-shrink:0;border:1px solid var(--stroke);background:transparent;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;margin-top:1px;" title="Сбросить все фильтры">Сбросить фильтры</button>
       </div>
       <div class="subtitle">Карта женского футбола в регионах РФ. Кликните на регион для просмотра подробной статистики.</div>
@@ -755,7 +755,7 @@
             <input type="checkbox" id="toggleFyuflU16" />
             <img src="./assets/yufl_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#c026d3;display:none;"></span>
-            <span>ФЮФЛ до 16 лет лет</span>
+            <span>ФЮФЛ до 16 лет</span>
           </label>
         </div>
 
@@ -771,13 +771,13 @@
             <input type="checkbox" id="toggleFNL1" />
             <img src="./assets/fnl1_logo.jpg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#0891b2;display:none;"></span>
-            <span>ФНЛ</span>
+            <span>1 Лига</span>
           </label>
           <label class="chip comp-chip">
             <input type="checkbox" id="toggleFNL2" />
             <img src="./assets/fnl2_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span class="dot comp-dot" style="background:#0369a1;display:none;"></span>
-            <span>ФНЛ-2</span>
+            <span>2 Лига</span>
           </label>
         </div>
       </div>
@@ -796,7 +796,7 @@
         <label class="chip" title="Показать/скрыть школы Футбол в Школе">
           <input type="checkbox" id="toggleFVSH" checked />
           <span class="dot" style="background:#16a34a;"></span>
-          <span>Футбол в Школе</span>
+          <span>«Футбол в Школе»</span>
           <small id="fvshStatus">(…)</small>
         </label>
 
@@ -917,7 +917,7 @@
       </div>
       <div class="tab-btns">
         <button class="tab-btn active" id="tabSchools">ОСП</button>
-        <button class="tab-btn" id="tabFvsh">Футбол в Школе</button>
+        <button class="tab-btn" id="tabFvsh">«Футбол в Школе»</button>
         <button class="tab-btn" id="tabClubs">Клубы</button>
         <button class="tab-btn" id="tabRegions">Регионы</button>
       </div>
@@ -1408,14 +1408,14 @@
   let yuflU18Brand = { color: "#3db82e", name: "ЮФЛ до 18 лет" };
   let yuflU16Brand = { color: "#3db82e", name: "ЮФЛ до 16 лет" };
   let yuflU14Brand = { color: "#3db82e", name: "ЮФЛ до 14 лет" };
-  let fyuflU16Brand = { color: "#c026d3", name: "ФЮФЛ до 16 лет лет" };
+  let fyuflU16Brand = { color: "#c026d3", name: "ФЮФЛ до 16 лет" };
   let molodezhBrand = { color: "#1a1464", name: "Молодёжная лига" };
   // Men's clubs
   let rplByRegion = {}, fnl1ByRegion = {}, fnl2ByRegion = {};
   let rplNameMap = {}, fnl1NameMap = {}, fnl2NameMap = {};
   let rplBrand = { color: "#1a56db", name: "РПЛ" };
-  let fnl1Brand = { color: "#0891b2", name: "ФНЛ" };
-  let fnl2Brand = { color: "#0369a1", name: "ФНЛ-2" };
+  let fnl1Brand = { color: "#0891b2", name: "1 Лига" };
+  let fnl2Brand = { color: "#0369a1", name: "2 Лига" };
   let pointsGeoLayer = null;
   let currentFilteredPointFeatures = [];
   let currentFilteredNoGirlsCount = 0;
@@ -1789,7 +1789,7 @@
       { brand: yuflU18Brand, clubs: u18, label: 'ЮФЛ до 18 лет' },
       { brand: yuflU16Brand, clubs: u16, label: 'ЮФЛ до 16 лет' },
       { brand: yuflU14Brand, clubs: u14, label: 'ЮФЛ до 14 лет' },
-      { brand: fyuflU16Brand, clubs: fy, label: 'ФЮФЛ до 16 лет лет' },
+      { brand: fyuflU16Brand, clubs: fy, label: 'ФЮФЛ до 16 лет' },
     ].filter(l => l.clubs.length > 0);
 
     if (womenLeagues.length > 0) {
@@ -2981,6 +2981,17 @@ ${schoolRows.length?`
     tabFvshBtn?.addEventListener('click',     () => setListTab('fvsh'));
     tabClubsBtn?.addEventListener('click',    () => setListTab('clubs'));
     tabRegionsBtn?.addEventListener('click',  () => setListTab('regions'));
+
+    // Auto-switch bottom tab when filter category is selected
+    [superCheckbox, firstCheckbox, molodezhCheck,
+     yuflU18Check, yuflU16Check, yuflU14Check, fyuflU16Check,
+     rplCheck, fnl1Check, fnl2Check]
+      .forEach(cb => cb?.addEventListener('change', () => {
+        if (cb.checked) setListTab('clubs');
+      }));
+    compChks.forEach(x => x.addEventListener('change', () => {
+      if (x.checked) setListTab('regions');
+    }));
 
     sportsCheckbox?.addEventListener('change', () => {
       if (sportsCheckbox.checked) {

@@ -2,8 +2,8 @@
   "competition": "yufl_u18",
   "name": "ЮФЛ до 18 лет",
   "brand": {
-    "color": "#7c3aed",
-    "colorDark": "#4c1d95",
+    "color": "#16a34a",
+    "colorDark": "#14532d",
     "logo": "./assets/yufl_logo.png"
   },
   "by_region": {

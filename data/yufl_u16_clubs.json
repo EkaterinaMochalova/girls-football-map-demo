@@ -2,8 +2,8 @@
   "competition": "yufl_u16",
   "name": "ЮФЛ до 16 лет",
   "brand": {
-    "color": "#9333ea",
-    "colorDark": "#581c87",
+    "color": "#22c55e",
+    "colorDark": "#15803d",
     "logo": "./assets/yufl_logo.png"
   },
   "by_region": {
