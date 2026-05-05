@@ -1565,7 +1565,7 @@
 
 
   // ---- Map init ----
-  const map = L.map('map', { preferCanvas: true }).setView([62, 55], 3);
+  const map = L.map('map', { preferCanvas: true }).setView([62, 100], 3);
   map.attributionControl.setPrefix('');
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
@@ -3444,7 +3444,7 @@ ${schoolRows.length?`
   }
 
   function fitToRussia(){
-    map.setView([62, 55], 3);
+    map.setView([62, 100], 3);
   }
 
   // ---- Wire events ----
@@ -3745,7 +3745,7 @@ ${schoolRows.length?`
 
     cluster.addLayer(pointsGeoLayer);
     map.addLayer(cluster);
-    map.setView([62, 55], 3);
+    map.setView([62, 100], 3);
     fillRegionSelectFromGeoJSON();
     setRangesFromData();
     currentFilteredPointFeatures = (pointsData.features || []);
