@@ -2546,10 +2546,7 @@
       : features.filter(f => enabledSet.has(normRegion(f.properties?.name || "")));
     const nRegions   = inScope.length;
     const nGirls     = inScope.reduce((s,f) => s + Number(f.properties?.total_girls ?? 0), 0);
-    const enabledRegionKeys = new Set([...inScope].map(f => normRegion(f.properties?.name || '')));
-    const nWithGirls = (pointsData?.features || []).filter(f =>
-      enabledSet.size === 0 || enabledRegionKeys.has(normRegion(f.properties?.region || ''))
-    ).length;
+    const nWithGirls = inScope.reduce((s,f) => s + Number(f.properties?.schools_with_girls ?? 0), 0);
     document.getElementById('kpiRegions').textContent          = fmt.format(nRegions);
     document.getElementById('kpiGirls').textContent            = fmt.format(nGirls);
     document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(nWithGirls);
