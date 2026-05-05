@@ -2431,11 +2431,14 @@
     document.getElementById('downloadPassport')?.addEventListener('click', () => {
       printRegionPassport(fullRegionName(props.name ?? 'Регион'), {
         props, regionKey, mro, mroColor, pop, popStr,
-        countWithGirlsKpi, countNoGirlsKpi, countFvshKpi,
+        countWithGirlsKpi, countNoGirlsKpi, countFvshKpi, fvshGirls,
         girls, pctBar, coverageIndex,
         coachesTotal, coachesFemale, pctFemale,
         ageGroups, schoolsWithCoachData: schoolsWithCoachData.length,
-        sl, fl,
+        // women's leagues
+        sl, fl, sl2, mol, u18, u16, u14, fy,
+        // men's leagues
+        mr, mf1, mf2,
         regionMasterSchools,
       });
     });
@@ -3426,32 +3429,39 @@
     const html = `<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"/>
 <title>Паспорт: ${esc(regionName)}</title>
 <style>
-@page{size:A4;margin:18mm 14mm 16mm}
+@page{size:A4;margin:12mm 12mm 10mm}
 *{box-sizing:border-box}
-body{font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;color:#111;line-height:1.45;margin:0}
-h1{font-size:17pt;font-weight:900;margin:0 0 4px;color:#1d4ed8}
-h2{font-size:11pt;font-weight:800;margin:14px 0 6px;border-bottom:2px solid #2563eb;padding-bottom:3px;color:#1d4ed8;page-break-after:avoid}
-.badges{margin-bottom:10px}
-.badge{display:inline-flex;align-items:center;line-height:1;border-radius:5px;padding:2px 9px;font-size:8.5pt;font-weight:700;margin-right:4px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
-.kpi{border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 6px;text-align:center}
-.kpi .v{font-size:20pt;font-weight:900;line-height:1.1}
-.kpi .l{font-size:8pt;color:#6b7280;margin-top:2px}
-.kpi .c{font-size:8pt;margin-top:3px}
-table.age{width:100%;border-collapse:collapse;font-size:10pt}
-table.age td{padding:3px 4px}
-.risk{display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-size:10pt}
-.path-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;margin-bottom:4px;font-size:10pt}
+body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#111;line-height:1.3;margin:0}
+h1{font-size:14pt;font-weight:900;margin:0 0 2px;color:#1d4ed8}
+h2{font-size:9.5pt;font-weight:800;margin:8px 0 4px;border-bottom:1.5px solid #2563eb;padding-bottom:2px;color:#1d4ed8;page-break-after:avoid;text-transform:uppercase;letter-spacing:0.04em}
+.badges{margin-bottom:6px}
+.badge{display:inline-flex;align-items:center;line-height:1;border-radius:4px;padding:1.5px 7px;font-size:7.5pt;font-weight:700;margin-right:3px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px}
+.kpi{border:1px solid #e5e7eb;border-radius:6px;padding:5px 5px;text-align:center}
+.kpi .v{font-size:14pt;font-weight:900;line-height:1.05}
+.kpi .l{font-size:7.5pt;color:#6b7280;margin-top:1px;line-height:1.2}
+.kpi .c{font-size:7pt;margin-top:2px}
+table.age{width:100%;border-collapse:collapse;font-size:8.5pt}
+table.age td{padding:1.5px 3px}
+.risk{display:flex;gap:5px;align-items:flex-start;margin-bottom:2px;font-size:8.5pt}
+.path-row{display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;margin-bottom:3px;font-size:8.5pt}
 .path-ok{background:#f0fdf4;border:1px solid #bbf7d0}
 .path-gap{background:#fef2f2;border:1px solid #fecaca}
-table.schools{width:100%;border-collapse:collapse;font-size:9pt;margin-top:4px}
-table.schools th{background:#eff6ff;color:#1d4ed8;font-weight:700;padding:5px 6px;text-align:left;border-bottom:2px solid #bfdbfe}
-table.schools td{padding:4px 6px;border-bottom:1px solid #f3f4f6;vertical-align:top}
+.league-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:3px;font-size:8.5pt;line-height:1.3}
+.league-name{font-weight:700;flex-shrink:0;min-width:78px}
+.league-clubs{color:#374151;flex:1}
+.dyn-table{width:100%;border-collapse:collapse;font-size:8.5pt;margin-top:2px}
+.dyn-table td,.dyn-table th{padding:2px 4px;text-align:right}
+.dyn-table .lbl{text-align:left;color:#6b7280;font-weight:400}
+.dyn-table .cur{color:#dc2626;font-weight:700}
+table.schools{width:100%;border-collapse:collapse;font-size:8pt;margin-top:3px}
+table.schools th{background:#eff6ff;color:#1d4ed8;font-weight:700;padding:3px 5px;text-align:left;border-bottom:1.5px solid #bfdbfe}
+table.schools td{padding:2.5px 5px;border-bottom:1px solid #f3f4f6;vertical-align:top}
 table.schools tr:nth-child(even) td{background:#f8faff}
-.bar-bg{background:#e5e7eb;border-radius:3px;height:9px}
-.bar-fill{background:#3b82f6;border-radius:3px;height:9px}
-.footer{margin-top:18px;font-size:8pt;color:#9ca3af;text-align:center;border-top:1px solid #e5e7eb;padding-top:6px}
-.no-print{background:#dbeafe;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:10pt}
+.bar-bg{background:#e5e7eb;border-radius:2px;height:7px}
+.bar-fill{background:#3b82f6;border-radius:2px;height:7px}
+.footer{margin-top:10px;font-size:7pt;color:#9ca3af;text-align:center;border-top:1px solid #e5e7eb;padding-top:4px}
+.no-print{background:#dbeafe;padding:6px 10px;border-radius:5px;margin-bottom:8px;font-size:9pt}
 @media print{.no-print{display:none}}
 </style></head><body>
 
@@ -3470,15 +3480,15 @@ table.schools tr:nth-child(even) td{background:#f8faff}
 <div class="grid3">
   <div class="kpi"><div class="v" style="color:#1d4ed8">${d.countWithGirlsKpi}</div><div class="l">ОСП с девушками</div></div>
   <div class="kpi"><div class="v" style="color:#dc2626">${d.countNoGirlsKpi}</div><div class="l">ОСП без девушек</div></div>
-  <div class="kpi"><div class="v" style="color:#15803d">${d.countFvshKpi}</div><div class="l">Футбол в Школе</div></div>
+  <div class="kpi"><div class="v" style="color:#15803d">${d.fvshGirls!=null?fmtN(d.fvshGirls):(d.countFvshKpi>0?d.countFvshKpi:'—')}</div><div class="l">${d.fvshGirls!=null?'в секциях ФвШ':'школ «ФвШ»'}</div></div>
 </div>
 
 <h2>Охват девушек</h2>
 <div class="grid3">
-  <div class="kpi"><div class="v">${fmtN(d.girls)}</div><div class="l">девушек всего</div></div>
+  <div class="kpi"><div class="v">${fmtN(d.girls)}</div><div class="l">девушек в ОСП</div></div>
   <div class="kpi">
     <div class="v" style="color:${d.pctBar>=60?'#15803d':d.pctBar>=30?'#ca8a04':'#dc2626'}">${d.pctBar>0?d.pctBar+'%':'—'}</div>
-    <div class="l">% ОСП с девушками</div>
+    <div class="l">% ОСП с дев.</div>
     <div class="c">${compRow(d.pctBar, natS?.avgPctWithGirls, mroS?.avgPctWithGirls)}</div>
   </div>
   <div class="kpi">
@@ -3489,22 +3499,45 @@ table.schools tr:nth-child(even) td{background:#f8faff}
 </div>
 
 ${ageGroups.some(g=>g.count>0)?`
-<h2>Возрастная структура</h2>
+<h2>Возрастные группы</h2>
 <table class="age">${ageBars}</table>`:''}
 
 ${d.coachesTotal>0?`
-<h2>Тренерский ресурс</h2>
+<h2>Тренеры (${d.schoolsWithCoachData} ОСП ответили)</h2>
 <div class="grid3">
-  <div class="kpi"><div class="v" style="color:#1d4ed8">${fmtN(d.coachesTotal)}</div><div class="l">тренеров всего<br><small style="color:#9ca3af">${d.schoolsWithCoachData} ОСП ответили</small></div></div>
+  <div class="kpi"><div class="v" style="color:#1d4ed8">${fmtN(d.coachesTotal)}</div><div class="l">тренеров всего</div></div>
   <div class="kpi"><div class="v" style="color:#7c3aed">${fmtN(d.coachesFemale)}</div><div class="l">тренеров-женщин</div></div>
   <div class="kpi"><div class="v" style="color:${d.pctFemale>=30?'#15803d':d.pctFemale>=15?'#ca8a04':'#dc2626'}">${d.pctFemale}%</div><div class="l">доля женщин</div></div>
 </div>`:''}
 
-${d.sl.length+d.fl.length>0?`
-<h2>Клубы</h2>
-${d.sl.length?`<p style="margin:4px 0;font-size:10pt;"><b style="color:#d000e0;">Суперлига:</b> ${esc(d.sl.map(c=>typeof c==='string'?c:c.club).join(', '))}</p>`:''}
-${d.fl.length?`<p style="margin:4px 0;font-size:10pt;"><b style="color:#ff4b00;">Первая лига:</b> ${esc(d.fl.map(c=>typeof c==='string'?c:(c.club+(c.city?` (${c.city})`:''))).join(', '))}</p>`:''}
-`:''}
+${(()=>{
+  const wlist = [
+    {n:'Суперлига',     c:d.sl,  col:'#d000e0'},
+    {n:'Первая лига',   c:d.fl,  col:'#ff4b00'},
+    {n:'Вторая лига',   c:d.sl2, col:'#f97316'},
+    {n:'Молодёжная',    c:d.mol, col:'#1a1464'},
+    {n:'ЮФЛ до 18',     c:d.u18, col:'#3db82e'},
+    {n:'ЮФЛ до 16',     c:d.u16, col:'#3db82e'},
+    {n:'ЮФЛ до 14',     c:d.u14, col:'#3db82e'},
+    {n:'ФЮФЛ до 16',    c:d.fy,  col:'#c026d3'},
+  ].filter(x=>x.c&&x.c.length>0);
+  const mlist = [
+    {n:'РПЛ',   c:d.mr,  col:'#1a56db'},
+    {n:'1 Лига',c:d.mf1, col:'#0891b2'},
+    {n:'2 Лига',c:d.mf2, col:'#0369a1'},
+  ].filter(x=>x.c&&x.c.length>0);
+  const fmtClubs = arr => arr.map(c=>typeof c==='string'?c:(c.club||c.name||'')).filter(Boolean).map(esc).join(' · ');
+  let out = '';
+  if (wlist.length) {
+    out += `<h2>Женские клубы</h2>`;
+    out += wlist.map(x=>`<div class="league-row"><span class="league-name" style="color:${x.col};">${esc(x.n)}</span><span class="league-clubs">${fmtClubs(x.c)}</span></div>`).join('');
+  }
+  if (mlist.length) {
+    out += `<h2>Мужские клубы</h2>`;
+    out += mlist.map(x=>`<div class="league-row"><span class="league-name" style="color:${x.col};">${esc(x.n)}</span><span class="league-clubs">${fmtClubs(x.c)}</span></div>`).join('');
+  }
+  return out;
+})()}
 
 <h2>Путь футболистки в регионе</h2>
 ${pathSteps.map(s=>`<div class="path-row ${s.ok?'path-ok':'path-gap'}">
