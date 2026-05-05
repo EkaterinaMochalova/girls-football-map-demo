@@ -584,29 +584,13 @@
         border-radius: 2px;
       }
 
-      /* Mobile tabs bar */
-      #mobileTabs {
-        display: flex;
-        flex-shrink: 0;
-        border-bottom: 1px solid var(--stroke);
-      }
+      /* Mobile tabs hidden — sheet shows list only */
+      #mobileTabs { display: none; }
 
-      /* Hide the blue logo/KPI header — redundant on mobile */
-      #sidebarHeader, #kpis { display: none; }
+      /* Sidebar, header, KPIs hidden on mobile */
+      #sidebar, #sidebarHeader, #kpis { display: none; }
 
-      /* Sidebar inside sheet: scrollable, no extra chrome */
-      #sidebar {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        max-height: none;
-        border-radius: 0;
-        border: none;
-        box-shadow: none;
-        grid-column: unset;
-        grid-row: unset;
-      }
-      #sidebar.tab-hidden { display: none; }
+      /* List inside sheet */
 
       /* List inside sheet */
       #listCard {
