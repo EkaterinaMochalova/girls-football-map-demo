@@ -872,6 +872,11 @@
             <img src="./assets/firstleague_logo.jpg" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
             <span>Первая лига</span>
           </label>
+          <label class="chip comp-chip" title="Подсветить регионы Второй лиги">
+            <input type="checkbox" id="toggleSecondLeague" />
+            <span class="dot comp-dot" style="background:#f97316;"></span>
+            <span>Вторая лига</span>
+          </label>
           <label class="chip comp-chip">
             <input type="checkbox" id="toggleMolodezh" />
             <img src="./assets/molodezhnaya_logo.png" alt="" class="comp-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
@@ -1432,7 +1437,7 @@
       nearestNoGirlsHtml = `
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);">
           <div style="font-weight:800;font-size:12px;">Ближайший ОСП без девушек (5ФК)</div>
-          <div style="margin-top:4px;font-size:12px;color:var(--muted);">В регионе все ОСП охвачены девушками</div>
+          <div style="margin-top:4px;font-size:12px;color:var(--muted);">Во всех ОСП региона занимаются девушки</div>
         </div>`;
     }
 
@@ -1458,6 +1463,7 @@
   const rplCheck        = document.getElementById('toggleRPL');
   const fnl1Check       = document.getElementById('toggleFNL1');
   const fnl2Check       = document.getElementById('toggleFNL2');
+  const secondLeagueCheck = document.getElementById('toggleSecondLeague');
   const slStatus       = document.getElementById('slStatus');
   const flStatus       = document.getElementById('flStatus');
   const fvshCheckbox   = document.getElementById('toggleFVSH');
@@ -1589,7 +1595,9 @@
   let regionCompData = {}; // normRegion → {mixed_u10, mixed_u12, u13, u15, u17}
   let superBrand = { color: "#d000e0", colorDark: "#501070", logo: "./assets/superleague_logo.png" };
   let firstBrand = { color: "#ff0066", colorDark: "#8b0038", logo: "./assets/firstleague_logo.jpg" };
-  let superByRegion = {}, firstByRegion = {};
+  let secondBrand = { color: "#f97316", colorDark: "#c2410c", name: "Вторая лига" };
+  let superByRegion = {}, firstByRegion = {}, secondByRegion = {};
+  let secondNameMap = {};
   // Women's youth leagues
   let yuflU18ByRegion = {}, yuflU16ByRegion = {}, yuflU14ByRegion = {};
   let fyuflU16ByRegion = {}, molodezhByRegion = {};
@@ -1708,7 +1716,7 @@
     // Schools balance
     if (swg === 0) risks.push('Нет ОСП с секцией для девушек');
     else if (sng > swg) risks.push(`${sng} ОСП без девушек — больше чем с девушками (${swg})`);
-    else if (totalSch > 0 && Math.round(swg/totalSch*100) >= 60) strengths.push(`${Math.round(swg/totalSch*100)}% ОСП охвачены девушками`);
+    else if (totalSch > 0 && Math.round(swg/totalSch*100) >= 60) strengths.push(`в ${Math.round(swg/totalSch*100)}% ОСП занимаются девушки`);
     // Coverage
     if (coverage > 0 && coverage < 10)       risks.push(`Охват ${coverage.toFixed(1)} дев./100 тыс. жит. — очень низкий`);
     else if (coverage >= 10 && coverage < 25) risks.push(`Охват ${coverage.toFixed(1)} дев./100 тыс. жит. — ниже среднего`);
@@ -1778,7 +1786,7 @@
 
     if (sng >= 10) { score+=25; factors.push({t:`${sng} ОСП без девушек — высокий потенциал конверсии`,ok:true}); }
     else if (sng >= 3) { score+=15; factors.push({t:`${sng} ОСП без девушек — есть потенциал`,ok:true}); }
-    else if (sng === 0 && swg > 0) { factors.push({t:'Все ОСП уже охвачены девушками',ok:true}); score+=5; }
+    else if (sng === 0 && swg > 0) { factors.push({t:'Во всех ОСП занимаются девушки',ok:true}); score+=5; }
 
     if (fvshCnt>0) { score+=20; factors.push({t:`${fvshCnt} ${plur(fvshCnt,'школа','школы','школ')} «Футбол в Школе»`,ok:true}); }
     else { factors.push({t:'Нет школ «Футбол в Школе»',ok:false}); }
@@ -2261,8 +2269,9 @@
       { check: yuflU14Check,   byRegion: yuflU14ByRegion },
       { check: fyuflU16Check,  byRegion: fyuflU16ByRegion },
       { check: rplCheck,       byRegion: rplByRegion },
-      { check: fnl1Check,      byRegion: fnl1ByRegion },
-      { check: fnl2Check,      byRegion: fnl2ByRegion },
+      { check: fnl1Check,         byRegion: fnl1ByRegion },
+      { check: fnl2Check,         byRegion: fnl2ByRegion },
+      { check: secondLeagueCheck, byRegion: secondByRegion },
     ];
     const active = allLeagues.filter(l => l.check?.checked);
     if (!active.length) return null; // no competition filter
@@ -2328,8 +2337,9 @@
       { check: yuflU14Check,   byRegion: yuflU14ByRegion,  color: yuflU14Brand.color,  dash: "4 4" },
       { check: fyuflU16Check,  byRegion: fyuflU16ByRegion, color: fyuflU16Brand.color, dash: "4 4" },
       { check: rplCheck,       byRegion: rplByRegion,      color: rplBrand.color,      dash: "2 4" },
-      { check: fnl1Check,      byRegion: fnl1ByRegion,     color: fnl1Brand.color,     dash: "2 4" },
-      { check: fnl2Check,      byRegion: fnl2ByRegion,     color: fnl2Brand.color,     dash: "2 4" },
+      { check: fnl1Check,         byRegion: fnl1ByRegion,      color: fnl1Brand.color,      dash: "2 4" },
+      { check: fnl2Check,         byRegion: fnl2ByRegion,      color: fnl2Brand.color,      dash: "2 4" },
+      { check: secondLeagueCheck, byRegion: secondByRegion,    color: secondBrand.color,    dash: "6 4" },
     ].filter(c => c.check?.checked);
 
     activeComps.forEach((comp, i) => {
@@ -2660,8 +2670,9 @@
       { check: yuflU14Check,   byRegion: yuflU14ByRegion,  nameMap: yuflU14NameMap,  label: yuflU14Brand.name,  color: yuflU14Brand.color },
       { check: fyuflU16Check,  byRegion: fyuflU16ByRegion, nameMap: fyuflU16NameMap, label: fyuflU16Brand.name, color: fyuflU16Brand.color },
       { check: rplCheck,       byRegion: rplByRegion,      nameMap: rplNameMap,      label: rplBrand.name,      color: rplBrand.color },
-      { check: fnl1Check,      byRegion: fnl1ByRegion,     nameMap: fnl1NameMap,     label: fnl1Brand.name,     color: fnl1Brand.color },
-      { check: fnl2Check,      byRegion: fnl2ByRegion,     nameMap: fnl2NameMap,     label: fnl2Brand.name,     color: fnl2Brand.color },
+      { check: fnl1Check,         byRegion: fnl1ByRegion,      nameMap: fnl1NameMap,     label: fnl1Brand.name,      color: fnl1Brand.color },
+      { check: fnl2Check,         byRegion: fnl2ByRegion,      nameMap: fnl2NameMap,     label: fnl2Brand.name,      color: fnl2Brand.color },
+      { check: secondLeagueCheck, byRegion: secondByRegion,    nameMap: secondNameMap,   label: secondBrand.name,    color: secondBrand.color },
     ];
 
     const active = allLeagues.filter(l => l.check?.checked);
@@ -2723,8 +2734,9 @@
     if (yuflU14Check?.checked)   comps.push({ label: yuflU14Brand.name,    color: yuflU14Brand.color,  byRegion: yuflU14ByRegion });
     if (fyuflU16Check?.checked)  comps.push({ label: fyuflU16Brand.name,   color: fyuflU16Brand.color, byRegion: fyuflU16ByRegion });
     if (rplCheck?.checked)       comps.push({ label: rplBrand.name,        color: rplBrand.color,      byRegion: rplByRegion });
-    if (fnl1Check?.checked)      comps.push({ label: fnl1Brand.name,       color: fnl1Brand.color,     byRegion: fnl1ByRegion });
-    if (fnl2Check?.checked)      comps.push({ label: fnl2Brand.name,       color: fnl2Brand.color,     byRegion: fnl2ByRegion });
+    if (fnl1Check?.checked)         comps.push({ label: fnl1Brand.name,    color: fnl1Brand.color,    byRegion: fnl1ByRegion });
+    if (fnl2Check?.checked)         comps.push({ label: fnl2Brand.name,    color: fnl2Brand.color,    byRegion: fnl2ByRegion });
+    if (secondLeagueCheck?.checked) comps.push({ label: secondBrand.name,  color: secondBrand.color,  byRegion: secondByRegion });
 
     // Gather all regions from GeoJSON layer
     const geoList = [];
@@ -3405,7 +3417,7 @@ ${schoolRows.length?`
     compChks.forEach(x => x.addEventListener('change', rerunAll));
 
     // All competition checkboxes: full rerun (map filter + lists) + outline rebuild
-    [superCheckbox, firstCheckbox, molodezhCheck, yuflU18Check, yuflU16Check, yuflU14Check, fyuflU16Check, rplCheck, fnl1Check, fnl2Check]
+    [superCheckbox, firstCheckbox, secondLeagueCheck, molodezhCheck, yuflU18Check, yuflU16Check, yuflU14Check, fyuflU16Check, rplCheck, fnl1Check, fnl2Check]
       .forEach(cb => cb?.addEventListener('change', () => {
         rerunAll();
         if (activeListTab === 'clubs')   renderSchoolsList();
@@ -3674,12 +3686,13 @@ ${schoolRows.length?`
       fetchJSON('./data/rpl_clubs.json').catch(() => null),
       fetchJSON('./data/fnl1_clubs.json').catch(() => null),
       fetchJSON('./data/fnl2_clubs.json').catch(() => null),
+      fetchJSON('./data/secondleague_clubs.json').catch(() => null),
       fetchJSON('./data/regional_competitions.json').catch(() => null),
       fetchJSON('./data/regions_history.json').catch(() => null),
       fetchJSON('./data/fvsh_stats.json').catch(() => null),
     ]);
   })
-  .then(([sl, fl, yuflU18, yuflU16, yuflU14, fyuflU16, molodezh, rpl, fnl1, fnl2, regComps, histJson, fvshStatsJson]) => {
+  .then(([sl, fl, yuflU18, yuflU16, yuflU14, fyuflU16, molodezh, rpl, fnl1, fnl2, sl2, regComps, histJson, fvshStatsJson]) => {
     if (histJson) historyData = histJson;
     if (fvshStatsJson) fvshStatsData = fvshStatsJson;
     function buildByRegion(data) {
@@ -3722,6 +3735,7 @@ ${schoolRows.length?`
     if (rpl)  { rplBrand  = { ...rplBrand,  ...rpl.brand  }; ({ byRegion: rplByRegion,  nameMap: rplNameMap  } = buildByRegion(rpl));  }
     if (fnl1) { fnl1Brand = { ...fnl1Brand, ...fnl1.brand }; ({ byRegion: fnl1ByRegion, nameMap: fnl1NameMap } = buildByRegion(fnl1)); }
     if (fnl2) { fnl2Brand = { ...fnl2Brand, ...fnl2.brand }; ({ byRegion: fnl2ByRegion, nameMap: fnl2NameMap } = buildByRegion(fnl2)); }
+    if (sl2)  { secondBrand = { ...secondBrand, ...sl2.brand }; ({ byRegion: secondByRegion, nameMap: secondNameMap } = buildByRegion(sl2)); }
 
     // Regional competitions
     if (regComps?.by_region) {
