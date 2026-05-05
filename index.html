@@ -555,6 +555,9 @@
     }
 
     /* ===== Compact horizontal legend ===== */
+    /* push the Leaflet bottom-left container above the "Вся Россия" button */
+    .leaflet-bottom.leaflet-left { margin-bottom: 56px !important; }
+
     .legend-compact{
       background: rgba(255,255,255,0.72);
       border: 1px solid rgba(0,0,0,0.10);
@@ -686,6 +689,145 @@
       display:none;
     }
     #err strong{ display:block; margin-bottom:6px; }
+
+    /* ================================================================
+       РФС-стиль: тёмный боковой сайдбар
+       ================================================================ */
+
+    /* Сам сайдбар — тёмно-синий */
+    #sidebar {
+      background: #0d1937;
+      border-color: #0d1937;
+      color: rgba(255,255,255,0.92);
+    }
+
+    /* Шапка сайдбара — чуть светлее */
+    #sidebarHeader {
+      background: #162248;
+      border-bottom-color: rgba(255,255,255,0.08);
+    }
+    #sidebar .title { color: #fff; }
+
+    /* Кнопка «Сбросить фильтры» */
+    #resetAll {
+      border-color: rgba(255,255,255,0.14) !important;
+      color: rgba(255,255,255,0.45) !important;
+      background: transparent !important;
+    }
+    #resetAll:hover { border-color: rgba(255,255,255,0.30) !important; color: rgba(255,255,255,0.70) !important; }
+
+    /* KPI-плитки */
+    #sidebar #kpis { border-bottom-color: rgba(255,255,255,0.08); }
+    #sidebar .kpi  {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,255,255,0.10);
+      box-shadow: none;
+    }
+    #sidebar .kpi .v { color: #fff; }
+    #sidebar .kpi .t { color: rgba(255,255,255,0.48); }
+
+    /* Разделы фильтров */
+    #sidebar .section { border-bottom-color: rgba(255,255,255,0.07); }
+    #sidebar .section h4 { color: rgba(255,255,255,0.38); }
+
+    /* Чипы (чекбоксы-карточки соревнований) */
+    #sidebar .chip {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.09);
+      color: #fff;
+      box-shadow: none;
+    }
+    #sidebar .chip:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.18);
+    }
+    #sidebar .chip small { color: rgba(255,255,255,0.42); }
+
+    /* Обычные чекбоксы (возраст, компетиции) */
+    #sidebar .check {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.09);
+      box-shadow: none;
+    }
+    #sidebar .check span { color: rgba(255,255,255,0.88); }
+    #sidebar .check input { accent-color: #E4002B; }
+
+    /* Список регионов */
+    #sidebar .region-checkbox-list {
+      background: rgba(0,0,0,0.20);
+      border-color: rgba(255,255,255,0.09);
+      box-shadow: none;
+    }
+    #sidebar .region-checkbox-list label { color: rgba(255,255,255,0.80); }
+    #sidebar .region-checkbox-list label:hover { background: rgba(255,255,255,0.06); }
+    #sidebar .region-checkbox-list input[type=checkbox] { accent-color: #E4002B; }
+
+    /* Слайдеры */
+    #sidebar .rangeWrap {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.09);
+      box-shadow: none;
+    }
+    #sidebar .rangeWrap .labelLine b   { color: rgba(255,255,255,0.88); }
+    #sidebar .rangeWrap .labelLine span { color: rgba(255,255,255,0.45); }
+
+    /* Select */
+    #sidebar .select {
+      background: rgba(0,0,0,0.22);
+      border-color: rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.88);
+      box-shadow: none;
+    }
+    #sidebar .select option { background: #162248; }
+
+    /* Кнопки внутри сайдбара */
+    #sidebar .btn {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.78);
+      box-shadow: none;
+    }
+    #sidebar .btn:hover {
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(255,255,255,0.20);
+    }
+
+    /* Hint-тексты */
+    #sidebar .hint { color: rgba(255,255,255,0.35); }
+
+    /* Активный таб — РФС-красный */
+    .tab-btn.active {
+      background: rgba(228,0,43,0.10);
+      border-color: rgba(228,0,43,0.35);
+      color: #E4002B;
+    }
+
+    /* Акцент на поиске и экспорте */
+    #search {
+      border-color: var(--stroke);
+      background: rgba(255,255,255,0.80);
+    }
+    #search:focus { border-color: #E4002B; outline: none; }
+
+    /* Кнопка «Вся Россия» */
+    #fitRussia:hover { border-color: #E4002B !important; color: #E4002B !important; }
+
+    /* Шапка карточки региона — тонкая красная линия сверху */
+    #regionPanelHeader {
+      border-top: 3px solid #E4002B;
+      padding-top: 9px;
+    }
+
+    /* Заголовок секции в карточке региона */
+    .panel-section-title {
+      color: #E4002B;
+      opacity: 0.75;
+    }
+
+    /* Полоски возрастных групп — красные */
+    .age-bar-fill {
+      background: linear-gradient(90deg, #E4002B, #ff4d6d);
+    }
   </style>
 </head>
 
@@ -699,7 +841,6 @@
         <div class="title">Карта женского футбола</div>
         <button id="resetAll" style="flex-shrink:0;border:1px solid var(--stroke);background:transparent;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;margin-top:1px;" title="Сбросить все фильтры">Сбросить фильтры</button>
       </div>
-      <div class="subtitle">Карта женского футбола в регионах РФ. Кликните на регион для просмотра подробной статистики.</div>
     </div>
 
     <div id="kpis">
@@ -859,7 +1000,6 @@
           <label class="check"><input type="checkbox" class="ageChk" value="13-15"><span>13–15</span></label>
           <label class="check"><input type="checkbox" class="ageChk" value="16+"><span>16+</span></label>
         </div>
-        <div class="hint">Если полей нет, фильтр мягко игнорируется.</div>
       </div>
 
       <!-- Competition level -->
@@ -872,7 +1012,6 @@
           <label class="check"><input type="checkbox" class="compChk" value="u15"><span>До 15 лет</span></label>
           <label class="check"><input type="checkbox" class="compChk" value="u17"><span>До 17 лет</span></label>
         </div>
-        <div class="hint">Данные за сезон 2025. Фильтрует регионы с активными соревнованиями.</div>
       </div>
 
     </div>
@@ -917,6 +1056,7 @@
       </div>
       <div class="tab-btns">
         <button class="tab-btn active" id="tabSchools">ОСП</button>
+        <button class="tab-btn" id="tabNoGirls">Без девочек</button>
         <button class="tab-btn" id="tabFvsh">«Футбол в Школе»</button>
         <button class="tab-btn" id="tabClubs">Клубы</button>
         <button class="tab-btn" id="tabRegions">Регионы</button>
@@ -976,6 +1116,26 @@
   };
 
   // ── Russian plural form: plur(n, 'школа', 'школы', 'школ') ─────────────
+  // ── Geo helpers ───────────────────────────────────────────────────────
+  function haversineKm(lat1, lon1, lat2, lon2) {
+    const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.asin(Math.sqrt(a));
+  }
+  function nearestFeature(lat, lon, features) {
+    let best = null, bestDist = Infinity;
+    for (const f of features) {
+      const c = f.geometry?.coordinates;
+      if (!c || c.length < 2) continue;
+      const d = haversineKm(lat, lon, c[1], c[0]);
+      if (d < bestDist) { bestDist = d; best = f; }
+    }
+    return best ? { feature: best, km: bestDist } : null;
+  }
+  function fmtKm(km) {
+    return km < 1 ? (km * 1000).toFixed(0) + ' м' : km < 10 ? km.toFixed(1) + ' км' : Math.round(km) + ' км';
+  }
+
   function plur(n, one, few, many) {
     n = Math.abs(Math.floor(n));
     const m10 = n % 10, m100 = n % 100;
@@ -1373,6 +1533,7 @@
 
   // ---- Data holders ----
   let regionsData = null, pointsData = null;
+  let historyData = null;
 
   // ── Global benchmark stats (computed after all data loads) ──────────
   let nationalStats = null, mroStatsMap = {}, regionMROMap = {};
@@ -1614,8 +1775,9 @@
   // ── Индекс приоритета ─────────────────────────────────────────────
   function buildPriorityBlock(rk, props, swg, sng, fvshCnt) {
     let score = 0; const factors = [];
-    const sl = superByRegion[rk]||[], fl = firstByRegion[rk]||[];
-    const hasClub    = sl.length>0||fl.length>0;
+    const sl = superByRegion[rk]||[], fl = firstByRegion[rk]||[], rl = rplByRegion[rk]||[];
+    const hasWomenClub = sl.length>0||fl.length>0;
+    const hasRpl       = rl.length>0;
     const coverage   = Number(props.coverage_index??0);
     const pctWithG   = Number(props.pct_with_girls??0);
 
@@ -1623,28 +1785,31 @@
     else if (sng >= 3) { score+=15; factors.push({t:`${sng} ОСП без девушек — есть потенциал`,ok:true}); }
     else if (sng === 0 && swg > 0) { factors.push({t:'Все ОСП уже охвачены девушками',ok:true}); score+=5; }
 
-    if (fvshCnt>0) { score+=20; factors.push({t:`${fvshCnt} школ Футбол в Школе — есть точки входа`,ok:true}); }
-    else { factors.push({t:'Нет школ Футбол в Школе — отсутствует массовый вход',ok:false}); }
+    if (fvshCnt>0) { score+=20; factors.push({t:`${fvshCnt} ${plur(fvshCnt,'школа','школы','школ')} «Футбол в Школе» — есть точки входа`,ok:true}); }
+    else { factors.push({t:'Нет школ «Футбол в Школе» — отсутствует массовый вход',ok:false}); }
 
-    if (hasClub) { score+=25; factors.push({t:'Есть клуб Суперлиги / Первой лиги',ok:true}); }
+    if (hasWomenClub) { score+=25; factors.push({t:'Есть клуб Суперлиги / Первой лиги',ok:true}); }
+    if (hasRpl)       { score+=10; factors.push({t:'Есть клуб РПЛ — высокий бренд региона',ok:true}); }
 
     if (swg >= 5)       { score+=15; factors.push({t:`${swg} ОСП с девушками — есть инфраструктура`,ok:true}); }
     else if (swg > 0)   { score+=5;  factors.push({t:`${swg} ОСП с девушками — слабая база`,ok:false}); }
 
     if (coverage>0 && coverage<30) { score+=15; factors.push({t:`Охват ${coverage.toFixed(1)}/100тыс. — большой потенциал роста`,ok:true}); }
 
+    // Если все ОСП уже с девушками — не может быть «Высокого» приоритета
+    if (sng === 0 && swg > 0) score = Math.min(score, 60);
+
     const lv = score>=70
-      ? {label:'Высокий', col:'#dc2626', bg:'rgba(254,242,242,0.9)', br:'rgba(239,68,68,0.3)', hint:'Регион готов к быстрому эффекту'}
+      ? {label:'Высокий', col:'#dc2626', bg:'rgba(254,242,242,0.9)', br:'rgba(239,68,68,0.3)'}
       : score>=40
-        ? {label:'Средний', col:'#ca8a04', bg:'rgba(254,249,235,0.9)', br:'rgba(234,179,8,0.3)',  hint:'Есть потенциал, требует развития'}
-        : {label:'Низкий',  col:'#64748b', bg:'rgba(248,250,252,0.9)', br:'rgba(148,163,184,0.3)',hint:'Требует базовой инфраструктуры'};
+        ? {label:'Средний', col:'#ca8a04', bg:'rgba(254,249,235,0.9)', br:'rgba(234,179,8,0.3)'}
+        : {label:'Низкий',  col:'#64748b', bg:'rgba(248,250,252,0.9)', br:'rgba(148,163,184,0.3)'};
 
     let h = `<div class="panel-section-title" style="margin-top:12px;">Индекс приоритета</div>`;
     h += `<div style="background:${lv.bg};border:1px solid ${lv.br};border-radius:12px;padding:10px 12px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <div>
           <span style="font-size:14px;font-weight:800;color:${lv.col};">${lv.label}</span>
-          <span style="font-size:11px;color:var(--muted);margin-left:6px;">${escapeHTML(lv.hint)}</span>
         </div>
         <span style="font-size:16px;font-weight:900;color:${lv.col};">${score}<span style="font-size:10px;font-weight:600;">/100</span></span>
       </div>`;
@@ -1652,6 +1817,108 @@
       h += `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-size:11px;">
         <span style="flex-shrink:0;">${f.ok?'✅':'⚠️'}</span><span style="color:#374151;">${escapeHTML(f.t)}</span></div>`;
     });
+    h += `</div>`;
+    return h;
+  }
+
+  // ── Динамика 2021–2025 ────────────────────────────────────────────
+  function buildHistoryBlock(regionName) {
+    if (!historyData) return '';
+    const normName = (regionName || '').trim();
+    let hist = historyData.regions[normName];
+    if (!hist) {
+      // Fuzzy match: try normalizing dashes and case
+      const normalize = s => s.toLowerCase().replace(/[—–-]/g, '-').replace(/\s+/g,' ').trim();
+      const norm = normalize(normName);
+      for (const [key, val] of Object.entries(historyData.regions)) {
+        if (normalize(key) === norm) { hist = val; break; }
+      }
+    }
+    if (!hist) return '';
+
+    const years = historyData.years;
+    const schools = hist.schools;
+    const girls = hist.girls;
+
+    function sparkBar(vals, currentColor) {
+      const maxVal = Math.max(...vals.filter(v => v > 0), 1);
+      return vals.map((v, i) => {
+        const yr = years[i];
+        const isCurrent = yr === 2025;
+        const h = v > 0 ? Math.max(3, Math.round((v / maxVal) * 36)) : 0;
+        const bg = isCurrent ? '#E4002B' : (v > 0 ? 'rgba(255,255,255,0.3)' : 'transparent');
+        const border = v === 0 ? '1px dashed rgba(255,255,255,0.12)' : 'none';
+        return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;width:18px;height:44px;" title="${yr}: ${v}">` +
+          `<div style="width:12px;height:${h}px;background:${bg};border:${border};border-radius:2px 2px 0 0;transition:height 0.2s;"></div>` +
+          `<div style="font-size:8px;color:rgba(255,255,255,0.35);line-height:1;">${String(yr).slice(2)}</div>` +
+        `</div>`;
+      }).join('');
+    }
+
+    function arrow(vals) {
+      const last = vals[vals.length - 1], prev = vals[vals.length - 2];
+      if (last > prev) return `<span style="color:#4ade80;font-size:10px;">↑</span>`;
+      if (last < prev) return `<span style="color:#f87171;font-size:10px;">↓</span>`;
+      return `<span style="color:rgba(255,255,255,0.35);font-size:10px;">→</span>`;
+    }
+
+    const sCur = schools[schools.length - 1];
+    const gCur = girls[girls.length - 1];
+
+    return `<div style="margin:10px 0 0;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);">
+      <div style="font-size:10px;font-weight:700;color:rgba(228,0,43,0.75);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Динамика 2021–2025</div>
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">ОСП с девочками ${arrow(schools)}</span>
+          <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.9);">${sCur}</span>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:2px;">${sparkBar(schools)}</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">Занимающихся девочек ${arrow(girls)}</span>
+          <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.9);">${gCur.toLocaleString('ru-RU')}</span>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:2px;">${sparkBar(girls)}</div>
+      </div>
+    </div>`;
+  }
+
+  // ── Рейтинги регионов ─────────────────────────────────────────────
+  function buildRankingsBlock(props) {
+    const feats = (regionsData?.features || []).filter(f => f.properties?.name);
+    if (feats.length < 2) return '';
+
+    function rankOf(field) {
+      const val = Number(props[field] ?? 0);
+      if (!val) return null;
+      const vals = feats.map(f => Number(f.properties?.[field] ?? 0)).filter(v => v > 0);
+      vals.sort((a, b) => b - a); // higher = better
+      const idx = vals.findIndex(v => v <= val + 0.001 && v >= val - 0.001);
+      const pos = idx >= 0 ? idx + 1 : null;
+      return pos ? { pos, total: vals.length } : null;
+    }
+
+    const metrics = [
+      { label: 'ОСП с дев.',      field: 'schools_with_girls' },
+      { label: 'Девочек',         field: 'total_girls' },
+      { label: 'Охват / 100 тыс.', field: 'coverage_index' },
+      { label: '% ОСП с дев.',    field: 'pct_with_girls' },
+    ].map(m => ({ ...m, r: rankOf(m.field) })).filter(m => m.r);
+
+    if (!metrics.length) return '';
+
+    let h = `<div class="panel-section-title">Место в России</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">`;
+    for (const { label, r } of metrics) {
+      const pct = r.pos / r.total;
+      const col = pct <= 0.25 ? '#15803d' : pct <= 0.55 ? '#ca8a04' : '#dc2626';
+      const medal = r.pos === 1 ? '🥇' : r.pos === 2 ? '🥈' : r.pos === 3 ? '🥉' : '';
+      h += `<div style="background:rgba(255,255,255,0.65);border:1px solid var(--stroke);border-radius:10px;padding:8px 10px;text-align:center;">
+        <div style="font-size:20px;font-weight:900;color:${col};line-height:1;">${medal}#${r.pos}</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px;line-height:1.3;">${label}<br>из ${r.total} рег.</div>
+      </div>`;
+    }
     h += `</div>`;
     return h;
   }
@@ -1754,6 +2021,12 @@
         </div>
       </div>`;
 
+    // ── Рейтинги ──────────────────────────────────────────────────────
+    html += buildRankingsBlock(props);
+
+    // ── Динамика ──────────────────────────────────────────────────────
+    html += buildHistoryBlock(props.name);
+
     // ── Mixed teams — hidden for now ───────────────────────────────────
     if (false && schoolsWithMixedData.length > 0) {
       const pctMixedTrain = Math.round(mixedTrainCount / schoolsWithMixedData.length * 100);
@@ -1826,12 +2099,25 @@
       { brand: fyuflU16Brand, clubs: fy, label: 'ФЮФЛ до 16 лет' },
     ].filter(l => l.clubs.length > 0);
 
+    function renderLeagueBlock(brand, clubs, label) {
+      const logoImg = brand.logo
+        ? `<img src="${brand.logo}" alt="" style="height:16px;width:auto;object-fit:contain;border-radius:2px;flex-shrink:0;">`
+        : `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${brand.color};flex-shrink:0;"></span>`;
+      const names = clubs.map(c => typeof c === 'string' ? c : (c.club || c.name || '')).filter(Boolean);
+      return `
+        <div style="margin-bottom:5px;">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
+            ${logoImg}
+            <span style="font-size:11px;font-weight:700;color:${brand.color};">${escapeHTML(brand.name||label)}</span>
+          </div>
+          <div style="font-size:11px;color:#374151;padding-left:21px;line-height:1.5;">${names.map(n=>escapeHTML(n)).join(' · ')}</div>
+        </div>`;
+    }
+
     if (womenLeagues.length > 0) {
       html += `<div class="panel-section-title">Женские клубы</div>`;
       womenLeagues.forEach(({ brand, clubs, label }) => {
-        html += `<div style="margin-bottom:6px;font-size:12px;line-height:1.4;">
-          <b style="color:${brand.color};">${escapeHTML(label)}:</b><br>${renderClubLines(clubs)}
-        </div>`;
+        html += renderLeagueBlock(brand, clubs, label);
       });
     }
 
@@ -1841,17 +2127,15 @@
     const mf2 = fnl2ByRegion[regionKey] || [];
 
     const menLeagues = [
-      { brand: rplBrand,  clubs: mr,  label: 'РПЛ' },
-      { brand: fnl1Brand, clubs: mf1, label: 'ФНЛ' },
-      { brand: fnl2Brand, clubs: mf2, label: 'ФНЛ-2' },
+      { brand: rplBrand,  clubs: mr,  label: rplBrand.name },
+      { brand: fnl1Brand, clubs: mf1, label: fnl1Brand.name },
+      { brand: fnl2Brand, clubs: mf2, label: fnl2Brand.name },
     ].filter(l => l.clubs.length > 0);
 
     if (menLeagues.length > 0) {
       html += `<div class="panel-section-title">Мужские клубы</div>`;
       menLeagues.forEach(({ brand, clubs, label }) => {
-        html += `<div style="margin-bottom:6px;font-size:12px;line-height:1.4;">
-          <b style="color:${brand.color};">${escapeHTML(label)}:</b><br>${renderClubLines(clubs)}
-        </div>`;
+        html += renderLeagueBlock(brand, clubs, label);
       });
     }
 
@@ -2221,23 +2505,104 @@
       schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено.</div>`;
       return;
     }
+    const ospWithFeatures = pointsData?.features || [];
+    const ospNoFeatures   = noGirlsData?.features || [];
     for (const f of rows.slice(0, 400)) {
       const p = f.properties || {};
       const city = p.CITY || p.city || '';
       const address = p.Address || p.address || '';
+      const c = f.geometry?.coordinates;
+      let nearOspWithHtml = '', nearOspNoHtml = '';
+      if (c?.length >= 2) {
+        if (ospWithFeatures.length > 0) {
+          const nr = nearestFeature(c[1], c[0], ospWithFeatures);
+          if (nr) {
+            const nname = abbrevName(nr.feature.properties?.name) || nr.feature.properties?.name || '—';
+            nearOspWithHtml = `<div style="font-size:10px;color:#1d4ed8;margin-top:1px;">🔵 ОСП с дев.: ${fmtKm(nr.km)} — ${escapeHTML(nname)}</div>`;
+          }
+        }
+        if (ospNoFeatures.length > 0) {
+          const nr = nearestFeature(c[1], c[0], ospNoFeatures);
+          if (nr) {
+            const nname = abbrevName(nr.feature.properties?.name) || nr.feature.properties?.name || '—';
+            nearOspNoHtml = `<div style="font-size:10px;color:#dc2626;margin-top:1px;">🔴 ОСП без дев.: ${fmtKm(nr.km)} — ${escapeHTML(nname)}</div>`;
+          }
+        }
+      }
       const el = document.createElement('div');
       el.className = 'row';
       el.innerHTML = `
         <div>
           <div class="name">${escapeHTML(abbrevName(p.name) ?? 'Без названия')}</div>
           <div class="meta">${escapeHTML([p.region, city].filter(Boolean).join(', '))}</div>
+          ${nearOspWithHtml}${nearOspNoHtml}
         </div>
         <div class="addr">${escapeHTML(address)}</div>
         <div style="font-size:11px;background:rgba(22,163,74,0.12);color:#15803d;border-radius:6px;padding:2px 7px;align-self:center;font-weight:700;white-space:nowrap;">Футбол в Школе</div>
         <div></div>
       `;
       el.addEventListener('click', () => {
-        const c = f.geometry?.coordinates;
+        if (c?.length >= 2) map.setView([c[1], c[0]], Math.max(map.getZoom(), 10), { animate: true });
+      });
+      schoolsList.appendChild(el);
+    }
+  }
+
+  // ---- ОСП без девочек list ----
+  function renderNoGirlsList(){
+    const search = (searchInput.value || '').trim().toLowerCase();
+    let rows = noGirlsData ? [...(noGirlsData.features || [])] : [];
+    if (activeListRegion) {
+      const rk = normRegion(activeListRegion);
+      rows = rows.filter(f => normRegion(f.properties?.region || '') === rk);
+    }
+    if (search) rows = rows.filter(f => {
+      const p = f.properties || {};
+      return [p.name, p.region, p.city, p.address].filter(Boolean).join(' ').toLowerCase().includes(search);
+    });
+    rows.sort((a,b) => String(a.properties?.region||'').localeCompare(String(b.properties?.region||''), 'ru'));
+
+    listSub.textContent = `${fmt.format(rows.length)} ${plur(rows.length,'ОСП','ОСП','ОСП')} без девочек`;
+    schoolsList.innerHTML = '';
+    if (!rows.length) {
+      schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено.</div>`;
+      return;
+    }
+    const fvshFeatures    = fvshData?.features    || [];
+    const ospWithFeatures = pointsData?.features  || [];
+    for (const f of rows.slice(0, 400)) {
+      const p = f.properties || {};
+      const c = f.geometry?.coordinates;
+      let nearFvshHtml = '', nearOspWithHtml = '';
+      if (c?.length >= 2) {
+        if (fvshFeatures.length > 0) {
+          const nr = nearestFeature(c[1], c[0], fvshFeatures);
+          if (nr) {
+            const nname = abbrevName(nr.feature.properties?.name) || nr.feature.properties?.name || '—';
+            nearFvshHtml = `<div style="font-size:10px;color:#15803d;margin-top:1px;">🟢 ФвШ: ${fmtKm(nr.km)} — ${escapeHTML(nname)}</div>`;
+          }
+        }
+        if (ospWithFeatures.length > 0) {
+          const nr = nearestFeature(c[1], c[0], ospWithFeatures);
+          if (nr) {
+            const nname = abbrevName(nr.feature.properties?.name) || nr.feature.properties?.name || '—';
+            nearOspWithHtml = `<div style="font-size:10px;color:#1d4ed8;margin-top:1px;">🔵 ОСП с дев.: ${fmtKm(nr.km)} — ${escapeHTML(nname)}</div>`;
+          }
+        }
+      }
+      const el = document.createElement('div');
+      el.className = 'row';
+      el.innerHTML = `
+        <div>
+          <div class="name">${escapeHTML(abbrevName(p.name) ?? 'Без названия')}</div>
+          <div class="meta">${escapeHTML([p.region, p.city].filter(Boolean).join(', '))}</div>
+          ${nearFvshHtml}${nearOspWithHtml}
+        </div>
+        <div class="addr">${escapeHTML(p.address ?? '')}</div>
+        <div style="font-size:11px;background:rgba(220,38,38,0.10);color:#dc2626;border-radius:6px;padding:2px 7px;align-self:center;font-weight:700;white-space:nowrap;">Нет девочек</div>
+        <div></div>
+      `;
+      el.addEventListener('click', () => {
         if (c?.length >= 2) map.setView([c[1], c[0]], Math.max(map.getZoom(), 10), { animate: true });
       });
       schoolsList.appendChild(el);
@@ -2450,9 +2815,10 @@
 
   // ---- Schools list ----
   function renderSchoolsList(){
-    if (activeListTab === 'fvsh')    { renderFvshList();    return; }
-    if (activeListTab === 'clubs')   { renderClubsList();   return; }
-    if (activeListTab === 'regions') { renderRegionsList(); return; }
+    if (activeListTab === 'fvsh')     { renderFvshList();     return; }
+    if (activeListTab === 'noGirls')  { renderNoGirlsList();  return; }
+    if (activeListTab === 'clubs')    { renderClubsList();    return; }
+    if (activeListTab === 'regions')  { renderRegionsList();  return; }
     const search = (searchInput.value || "").trim().toLowerCase();
     let rows = currentFilteredPointFeatures.slice();
     if (activeListRegion) {
@@ -2471,21 +2837,32 @@
       schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено по текущим фильтрам.</div>`;
       return;
     }
+    const fvshFeatures = fvshData?.features || [];
     for (const f of rows.slice(0, 400)) {
       const p = f.properties || {};
+      const c = f.geometry?.coordinates;
+      let nearFvshHtml = '';
+      if (c?.length >= 2 && fvshFeatures.length > 0) {
+        const nr = nearestFeature(c[1], c[0], fvshFeatures);
+        if (nr) {
+          const np = nr.feature.properties || {};
+          const nname = abbrevName(np.name) || np.name || '—';
+          nearFvshHtml = `<div style="font-size:10px;color:#15803d;margin-top:1px;">🟢 ФвШ: ${fmtKm(nr.km)} — ${escapeHTML(nname)}</div>`;
+        }
+      }
       const el = document.createElement('div');
       el.className = 'row';
       el.innerHTML = `
         <div>
           <div class="name">${escapeHTML(abbrevName(p.name) ?? "Без названия")}</div>
           <div class="meta">${escapeHTML([p.region, p.city].filter(Boolean).join(", "))}</div>
+          ${nearFvshHtml}
         </div>
         <div class="addr">${escapeHTML(p.address ?? "")}</div>
         <div class="girls">${fmt.format(Number(p.girls_total ?? 0))}</div>
         <div style="font-size:12px;color:var(--muted);align-self:center;text-align:right;">дев.</div>
       `;
       el.addEventListener('click', () => {
-        const c = f.geometry?.coordinates;
         if (c?.length >= 2) map.setView([c[1], c[0]], Math.max(map.getZoom(), 10), { animate: true });
       });
       schoolsList.appendChild(el);
@@ -2999,6 +3376,7 @@ ${schoolRows.length?`
 
     // ---- List tabs ----
     const tabSchoolsBtn  = document.getElementById('tabSchools');
+    const tabNoGirlsBtn  = document.getElementById('tabNoGirls');
     const tabFvshBtn     = document.getElementById('tabFvsh');
     const tabClubsBtn    = document.getElementById('tabClubs');
     const tabRegionsBtn  = document.getElementById('tabRegions');
@@ -3006,12 +3384,14 @@ ${schoolRows.length?`
     function setListTab(tab) {
       activeListTab = tab;
       tabSchoolsBtn?.classList.toggle('active',  tab === 'schools');
+      tabNoGirlsBtn?.classList.toggle('active',  tab === 'noGirls');
       tabFvshBtn?.classList.toggle('active',     tab === 'fvsh');
       tabClubsBtn?.classList.toggle('active',    tab === 'clubs');
       tabRegionsBtn?.classList.toggle('active',  tab === 'regions');
       renderSchoolsList();
     }
     tabSchoolsBtn?.addEventListener('click',  () => setListTab('schools'));
+    tabNoGirlsBtn?.addEventListener('click',  () => setListTab('noGirls'));
     tabFvshBtn?.addEventListener('click',     () => setListTab('fvsh'));
     tabClubsBtn?.addEventListener('click',    () => setListTab('clubs'));
     tabRegionsBtn?.addEventListener('click',  () => setListTab('regions'));
@@ -3257,9 +3637,11 @@ ${schoolRows.length?`
       fetchJSON('./data/fnl1_clubs.json').catch(() => null),
       fetchJSON('./data/fnl2_clubs.json').catch(() => null),
       fetchJSON('./data/regional_competitions.json').catch(() => null),
+      fetchJSON('./data/regions_history.json').catch(() => null),
     ]);
   })
-  .then(([sl, fl, yuflU18, yuflU16, yuflU14, fyuflU16, molodezh, rpl, fnl1, fnl2, regComps]) => {
+  .then(([sl, fl, yuflU18, yuflU16, yuflU14, fyuflU16, molodezh, rpl, fnl1, fnl2, regComps, histJson]) => {
+    if (histJson) historyData = histJson;
     function buildByRegion(data) {
       const map = {}, nameMap = {};
       for (const [rName, clubs] of Object.entries(data?.by_region || {})) {
