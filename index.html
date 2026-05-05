@@ -2175,6 +2175,7 @@
     // ── Women's clubs ──────────────────────────────────────────────────
     const sl  = superByRegion[regionKey]    || [];
     const fl  = firstByRegion[regionKey]    || [];
+    const sl2 = secondByRegion[regionKey]   || [];
     const u18 = yuflU18ByRegion[regionKey]  || [];
     const u16 = yuflU16ByRegion[regionKey]  || [];
     const u14 = yuflU14ByRegion[regionKey]  || [];
@@ -2182,13 +2183,14 @@
     const mol = molodezhByRegion[regionKey] || [];
 
     const womenLeagues = [
-      { brand: superBrand,   clubs: sl,  label: 'Суперлига' },
-      { brand: firstBrand,   clubs: fl,  label: 'Первая лига' },
+      { brand: superBrand,    clubs: sl,  label: 'Суперлига' },
+      { brand: firstBrand,    clubs: fl,  label: 'Первая лига' },
+      { brand: secondBrand,   clubs: sl2, label: 'Вторая лига' },
       { brand: molodezhBrand, clubs: mol, label: 'Молодёжная лига' },
-      { brand: yuflU18Brand, clubs: u18, label: 'ЮФЛ до 18 лет' },
-      { brand: yuflU16Brand, clubs: u16, label: 'ЮФЛ до 16 лет' },
-      { brand: yuflU14Brand, clubs: u14, label: 'ЮФЛ до 14 лет' },
-      { brand: fyuflU16Brand, clubs: fy, label: 'ФЮФЛ до 16 лет' },
+      { brand: yuflU18Brand,  clubs: u18, label: 'ЮФЛ до 18 лет' },
+      { brand: yuflU16Brand,  clubs: u16, label: 'ЮФЛ до 16 лет' },
+      { brand: yuflU14Brand,  clubs: u14, label: 'ЮФЛ до 14 лет' },
+      { brand: fyuflU16Brand, clubs: fy,  label: 'ФЮФЛ до 16 лет' },
     ].filter(l => l.clubs.length > 0);
 
     function renderLeagueBlock(brand, clubs, label) {
