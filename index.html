@@ -4045,7 +4045,7 @@ ${schoolRows.length?`
 (function() {
   const MOBILE_BP  = 1080;
   const LS_KEY     = 'gfm_sheetH';
-  const SNAP_PEEK  = 52;   // px  — just handle + tabs
+  const SNAP_PEEK  = Math.round(window.innerHeight * 0.05); // 5vh min
   const SNAP_HALF  = 0.38; // fraction of viewport
   const SNAP_FULL  = 0.90; // fraction of viewport
 
