@@ -586,8 +586,9 @@
         border-radius: 2px;
       }
 
-      /* Scrollable area below handle */
+      /* Scrollable area below handle — override display:contents from base CSS */
       #sheetContent {
+        display: block;
         flex: 1;
         min-height: 0;
         overflow-y: auto;
