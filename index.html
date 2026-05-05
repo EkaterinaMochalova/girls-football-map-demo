@@ -2733,12 +2733,8 @@
       { check: secondLeagueCheck, byRegion: secondByRegion,    nameMap: secondNameMap,   label: secondBrand.name,    color: secondBrand.color },
     ];
 
-    const active = allLeagues.filter(l => l.check?.checked);
-    if (!active.length) {
-      listSub.textContent = '0 клубов'; // zero
-      schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Включите соревнования в разделе «Соревнования».</div>`;
-      return;
-    }
+    const checked = allLeagues.filter(l => l.check?.checked);
+    const active = checked.length ? checked : allLeagues;
 
     const rows = [];
     for (const league of active) {
