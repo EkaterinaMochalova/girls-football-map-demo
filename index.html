@@ -1528,6 +1528,7 @@
   // ---- Data holders ----
   let regionsData = null, pointsData = null;
   let historyData = null;
+  let fvshStatsData = null;
 
   // ── Global benchmark stats (computed after all data loads) ──────────
   let nationalStats = null, mroStatsMap = {}, regionMROMap = {};
@@ -2002,6 +2003,26 @@
       .filter(f => normRegion(f.properties?.region || '') === regionKey).length;
     const countFvshKpi = (fvshData?.features || [])
       .filter(f => normRegion(f.properties?.region || '') === regionKey).length;
+
+    // ФвШ girls from monitoring stats (23/24 season)
+    const fvshGirls = (() => {
+      if (!fvshStatsData) return null;
+      const name = props.name || '';
+      // try direct match first, then fuzzy
+      const aliases = [name,
+        name.replace(/^Республика\s+/i,''), 'Республика ' + name,
+        name + 'ская республика'];
+      for (const a of aliases) {
+        if (fvshStatsData[a]) return fvshStatsData[a].fvsh_girls;
+      }
+      const normN = name.toLowerCase().replace(/[—–-]/g,'-').replace(/\s+/g,' ').trim();
+      for (const [k,v] of Object.entries(fvshStatsData)) {
+        if (k.toLowerCase().replace(/[—–-]/g,'-').replace(/\s+/g,' ').trim() === normN)
+          return v.fvsh_girls;
+      }
+      return null;
+    })();
+
     const totalAllKpi = countWithGirlsKpi + countNoGirlsKpi;
     const pctBar = totalAllKpi > 0 ? Math.round(countWithGirlsKpi / totalAllKpi * 100) : 0;
 
@@ -2018,9 +2039,9 @@
           <div style="font-size:20px;font-weight:800;color:#dc2626;line-height:1.1;">${countNoGirlsKpi}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">ОСП без девушек</div>
         </div>
-        <div style="background:rgba(240,253,244,0.9);border:1px solid rgba(22,163,74,0.2);border-radius:12px;padding:9px 8px;text-align:center;">
-          <div style="font-size:20px;font-weight:800;color:#15803d;line-height:1.1;">${countFvshKpi}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">школ Футбол в Школе</div>
+        <div style="background:rgba(240,253,244,0.9);border:1px solid rgba(22,163,74,0.2);border-radius:12px;padding:9px 8px;text-align:center;" title="Данные мониторинга 23/24">
+          <div style="font-size:20px;font-weight:800;color:#15803d;line-height:1.1;">${fvshGirls != null ? fmt.format(fvshGirls) : (countFvshKpi > 0 ? countFvshKpi : '—')}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;">${fvshGirls != null ? 'зан. в «ФвШ»' : 'школ «ФвШ»'}</div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:10px;">
@@ -3655,10 +3676,12 @@ ${schoolRows.length?`
       fetchJSON('./data/fnl2_clubs.json').catch(() => null),
       fetchJSON('./data/regional_competitions.json').catch(() => null),
       fetchJSON('./data/regions_history.json').catch(() => null),
+      fetchJSON('./data/fvsh_stats.json').catch(() => null),
     ]);
   })
-  .then(([sl, fl, yuflU18, yuflU16, yuflU14, fyuflU16, molodezh, rpl, fnl1, fnl2, regComps, histJson]) => {
+  .then(([sl, fl, yuflU18, yuflU16, yuflU14, fyuflU16, molodezh, rpl, fnl1, fnl2, regComps, histJson, fvshStatsJson]) => {
     if (histJson) historyData = histJson;
+    if (fvshStatsJson) fvshStatsData = fvshStatsJson;
     function buildByRegion(data) {
       const map = {}, nameMap = {};
       for (const [rName, clubs] of Object.entries(data?.by_region || {})) {

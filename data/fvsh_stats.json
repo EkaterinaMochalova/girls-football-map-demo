@@ -1,0 +1,334 @@
+{
+  "Республика Мордовия": {
+    "fvsh_schools": 11,
+    "fvsh_girls": 555
+  },
+  "Магаданская область": {
+    "fvsh_schools": 5,
+    "fvsh_girls": 66
+  },
+  "Карачаево-Черкесская республика": {
+    "fvsh_schools": 28,
+    "fvsh_girls": 342
+  },
+  "Республика Тыва": {
+    "fvsh_schools": 30,
+    "fvsh_girls": 871
+  },
+  "Саратовская область": {
+    "fvsh_schools": 56,
+    "fvsh_girls": 590
+  },
+  "Камчатский край": {
+    "fvsh_schools": 12,
+    "fvsh_girls": 46
+  },
+  "Рязанская область": {
+    "fvsh_schools": 36,
+    "fvsh_girls": 235
+  },
+  "Новосибирская область": {
+    "fvsh_schools": 98,
+    "fvsh_girls": 1875
+  },
+  "Республика Адыгея": {
+    "fvsh_schools": 45,
+    "fvsh_girls": 626
+  },
+  "Омская область": {
+    "fvsh_schools": 55,
+    "fvsh_girls": 935
+  },
+  "Самарская область": {
+    "fvsh_schools": 111,
+    "fvsh_girls": 1379
+  },
+  "Республика Дагестан": {
+    "fvsh_schools": 150,
+    "fvsh_girls": 2508
+  },
+  "Республика Кабардино-Балкария": {
+    "fvsh_schools": 45,
+    "fvsh_girls": 455
+  },
+  "Калужская область": {
+    "fvsh_schools": 27,
+    "fvsh_girls": 266
+  },
+  "Нижегородская область": {
+    "fvsh_schools": 139,
+    "fvsh_girls": 1555
+  },
+  "Новгородская область": {
+    "fvsh_schools": 24,
+    "fvsh_girls": 325
+  },
+  "Республика Алтай": {
+    "fvsh_schools": 29,
+    "fvsh_girls": 345
+  },
+  "Ставропольский край": {
+    "fvsh_schools": 104,
+    "fvsh_girls": 1005
+  },
+  "Тверская область": {
+    "fvsh_schools": 52,
+    "fvsh_girls": 394
+  },
+  "Челябинская область": {
+    "fvsh_schools": 131,
+    "fvsh_girls": 1923
+  },
+  "Республика Марий Эл": {
+    "fvsh_schools": 18,
+    "fvsh_girls": 158
+  },
+  "Краснодарский край": {
+    "fvsh_schools": 132,
+    "fvsh_girls": 2115
+  },
+  "Еврейская автономная область": {
+    "fvsh_schools": 14,
+    "fvsh_girls": 65
+  },
+  "Волгоградская область": {
+    "fvsh_schools": 101,
+    "fvsh_girls": 1027
+  },
+  "Ярославская область": {
+    "fvsh_schools": 58,
+    "fvsh_girls": 385
+  },
+  "Ямало-Ненецкий автономный округ": {
+    "fvsh_schools": 40,
+    "fvsh_girls": 469
+  },
+  "Чукотский автономный округ": {
+    "fvsh_schools": 14,
+    "fvsh_girls": 28
+  },
+  "Костромская область": {
+    "fvsh_schools": 38,
+    "fvsh_girls": 340
+  },
+  "Республика Башкортостан": {
+    "fvsh_schools": 151,
+    "fvsh_girls": 2105
+  },
+  "Москва": {
+    "fvsh_schools": 82,
+    "fvsh_girls": 1133
+  },
+  "Курганская область": {
+    "fvsh_schools": 46,
+    "fvsh_girls": 390
+  },
+  "Астраханская область": {
+    "fvsh_schools": 68,
+    "fvsh_girls": 713
+  },
+  "Воронежская область": {
+    "fvsh_schools": 107,
+    "fvsh_girls": 784
+  },
+  "Республика Северная Осетия-Алания": {
+    "fvsh_schools": 24,
+    "fvsh_girls": 214
+  },
+  "Калининградская область": {
+    "fvsh_schools": 65,
+    "fvsh_girls": 810
+  },
+  "Забайкальский край": {
+    "fvsh_schools": 39,
+    "fvsh_girls": 247
+  },
+  "Удмуртская Республика": {
+    "fvsh_schools": 87,
+    "fvsh_girls": 710
+  },
+  "Чувашская Республика": {
+    "fvsh_schools": 77,
+    "fvsh_girls": 781
+  },
+  "Пензенская область": {
+    "fvsh_schools": 65,
+    "fvsh_girls": 714
+  },
+  "Брянская область": {
+    "fvsh_schools": 69,
+    "fvsh_girls": 418
+  },
+  "Свердловская область": {
+    "fvsh_schools": 136,
+    "fvsh_girls": 1031
+  },
+  "Алтайский край": {
+    "fvsh_schools": 96,
+    "fvsh_girls": 778
+  },
+  "Ленинградская область": {
+    "fvsh_schools": 66,
+    "fvsh_girls": 732
+  },
+  "Оренбургская область": {
+    "fvsh_schools": 57,
+    "fvsh_girls": 550
+  },
+  "Республика Калмыкия": {
+    "fvsh_schools": 37,
+    "fvsh_girls": 188
+  },
+  "Республика Татарстан": {
+    "fvsh_schools": 123,
+    "fvsh_girls": 1493
+  },
+  "Республика Саха (Якутия)": {
+    "fvsh_schools": 20,
+    "fvsh_girls": 74
+  },
+  "Белгородская область": {
+    "fvsh_schools": 39,
+    "fvsh_girls": 280
+  },
+  "Липецкая область": {
+    "fvsh_schools": 65,
+    "fvsh_girls": 478
+  },
+  "Республика Бурятия": {
+    "fvsh_schools": 36,
+    "fvsh_girls": 305
+  },
+  "Республика Коми": {
+    "fvsh_schools": 38,
+    "fvsh_girls": 169
+  },
+  "Ненецкий автономный округ": {
+    "fvsh_schools": 4,
+    "fvsh_girls": 1
+  },
+  "Ульяновская область": {
+    "fvsh_schools": 58,
+    "fvsh_girls": 453
+  },
+  "Республика Хакасия": {
+    "fvsh_schools": 38,
+    "fvsh_girls": 272
+  },
+  "Владимирская область": {
+    "fvsh_schools": 50,
+    "fvsh_girls": 190
+  },
+  "Московская область": {
+    "fvsh_schools": 119,
+    "fvsh_girls": 1765
+  },
+  "Иркутская область": {
+    "fvsh_schools": 47,
+    "fvsh_girls": 209
+  },
+  "Ханты-Мансийский автономный округ": {
+    "fvsh_schools": 69,
+    "fvsh_girls": 750
+  },
+  "Хабаровский край": {
+    "fvsh_schools": 62,
+    "fvsh_girls": 404
+  },
+  "Санкт-Петербург": {
+    "fvsh_schools": 123,
+    "fvsh_girls": 956
+  },
+  "Архангельская область": {
+    "fvsh_schools": 71,
+    "fvsh_girls": 374
+  },
+  "Орловская область": {
+    "fvsh_schools": 17,
+    "fvsh_girls": 45
+  },
+  "Смоленская область": {
+    "fvsh_schools": 28,
+    "fvsh_girls": 195
+  },
+  "Красноярский край": {
+    "fvsh_schools": 94,
+    "fvsh_girls": 587
+  },
+  "Чеченская Республика": {
+    "fvsh_schools": 53,
+    "fvsh_girls": 244
+  },
+  "Кемеровская область": {
+    "fvsh_schools": 102,
+    "fvsh_girls": 909
+  },
+  "Вологодская область": {
+    "fvsh_schools": 61,
+    "fvsh_girls": 361
+  },
+  "Кировская область": {
+    "fvsh_schools": 60,
+    "fvsh_girls": 392
+  },
+  "Республика Ингушетия": {
+    "fvsh_schools": 26,
+    "fvsh_girls": 96
+  },
+  "Томская область": {
+    "fvsh_schools": 71,
+    "fvsh_girls": 424
+  },
+  "Ростовская область": {
+    "fvsh_schools": 114,
+    "fvsh_girls": 1039
+  },
+  "Тульская область": {
+    "fvsh_schools": 72,
+    "fvsh_girls": 208
+  },
+  "Курская область": {
+    "fvsh_schools": 33,
+    "fvsh_girls": 235
+  },
+  "Ивановская область": {
+    "fvsh_schools": 34,
+    "fvsh_girls": 197
+  },
+  "Псковская область": {
+    "fvsh_schools": 22,
+    "fvsh_girls": 149
+  },
+  "Тамбовская область": {
+    "fvsh_schools": 34,
+    "fvsh_girls": 183
+  },
+  "Приморский край": {
+    "fvsh_schools": 43,
+    "fvsh_girls": 266
+  },
+  "Мурманская область": {
+    "fvsh_schools": 32,
+    "fvsh_girls": 139
+  },
+  "Сахалинская область": {
+    "fvsh_schools": 28,
+    "fvsh_girls": 105
+  },
+  "Пермский край": {
+    "fvsh_schools": 89,
+    "fvsh_girls": 439
+  },
+  "Амурская область": {
+    "fvsh_schools": 13,
+    "fvsh_girls": 40
+  },
+  "Республика Карелия": {
+    "fvsh_schools": 25,
+    "fvsh_girls": 51
+  },
+  "Тюменская область": {
+    "fvsh_schools": 59,
+    "fvsh_girls": 331
+  }
+}
