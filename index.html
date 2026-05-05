@@ -126,12 +126,13 @@
     .chip:active{ transform: translateY(1px); }
     .chip input{ transform: scale(1.05); }
     .chip img{ width: 24px; height: 24px; object-fit: contain; }
-    .chip span{ font-weight: 700; font-size: 13px; }
-    .chip small{ margin-left: auto; color: var(--muted); font-size: 12px; }
+    .chip span{ font-weight: 700; font-size: 13px; line-height: 1; }
+    .chip small{ margin-left: auto; color: var(--muted); font-size: 12px; line-height: 1; }
+    .chip input{ flex-shrink: 0; vertical-align: middle; }
     .chip .dot{ width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
     /* Compact competition chips */
     .comp-chip{ padding: 7px 8px; gap: 6px; border-radius: 10px; margin-bottom: 0; }
-    .comp-chip span{ font-size: 11px; line-height: 1.2; }
+    .comp-chip span{ font-size: 11px; line-height: 1; }
     .comp-logo{ width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
     .comp-dot{ width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
@@ -545,12 +546,14 @@
     }
     .popup h3 { margin: 0 0 4px; font-size: 14px; }
     .popup .muted { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
-    .popup .type-badge {
-      display: inline-block;
+    .type-badge {
+      display: inline-flex;
+      align-items: center;
       padding: 2px 8px;
       border-radius: 8px;
       font-size: 11px;
       font-weight: 700;
+      line-height: 1;
       margin-bottom: 6px;
     }
 
@@ -566,6 +569,7 @@
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+      width: fit-content;
       max-width: min(620px, calc(100vw - 420px));
       pointer-events: auto;
     }
@@ -1055,8 +1059,8 @@
         <button id="resetRegionFilter" style="display:none;margin-left:8px;padding:3px 10px;font-size:11px;font-weight:700;border:1px solid #e4002b;border-radius:8px;background:rgba(228,0,43,0.07);color:#e4002b;cursor:pointer;white-space:nowrap;">✕ Все регионы</button>
       </div>
       <div class="tab-btns">
-        <button class="tab-btn active" id="tabSchools">ОСП</button>
-        <button class="tab-btn" id="tabNoGirls">Без девочек</button>
+        <button class="tab-btn active" id="tabSchools">ОСП с девочками</button>
+        <button class="tab-btn" id="tabNoGirls">ОСП без девочек</button>
         <button class="tab-btn" id="tabFvsh">«Футбол в Школе»</button>
         <button class="tab-btn" id="tabClubs">Клубы</button>
         <button class="tab-btn" id="tabRegions">Регионы</button>
@@ -3169,7 +3173,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;color:#111;line-hei
 h1{font-size:17pt;font-weight:900;margin:0 0 4px;color:#1d4ed8}
 h2{font-size:11pt;font-weight:800;margin:14px 0 6px;border-bottom:2px solid #2563eb;padding-bottom:3px;color:#1d4ed8;page-break-after:avoid}
 .badges{margin-bottom:10px}
-.badge{display:inline-block;border-radius:5px;padding:2px 9px;font-size:8.5pt;font-weight:700;margin-right:4px}
+.badge{display:inline-flex;align-items:center;line-height:1;border-radius:5px;padding:2px 9px;font-size:8.5pt;font-weight:700;margin-right:4px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
 .kpi{border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 6px;text-align:center}
 .kpi .v{font-size:20pt;font-weight:900;line-height:1.1}
