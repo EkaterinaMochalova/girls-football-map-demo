@@ -51,8 +51,13 @@
     #sidebarHeader{
       padding: 14px 14px 10px 14px;
       border-bottom: 1px solid var(--stroke);
-      background: linear-gradient(to bottom, rgba(255,255,255,0.76), rgba(255,255,255,0.60));
+      background: url('assets/rfs-pattern-blue.svg') repeat, #0a2245;
+      background-size: 36px auto;
+      color: #fff;
     }
+    #sidebarHeader .title { color: #fff !important; }
+    #sidebarHeader #resetAll { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.75); }
+    #sidebarHeader #resetAll:hover { background: rgba(255,255,255,0.12); }
 
     .title{
       font-weight: 800;
@@ -73,14 +78,19 @@
       gap: 10px;
       padding: 12px 14px 14px 14px;
       border-bottom: 1px solid var(--stroke);
+      background: url('assets/rfs-pattern-blue.svg') repeat, #0a2245;
+      background-size: 36px auto;
     }
     .kpi{
-      background: rgba(255,255,255,0.6);
-      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
       border-radius: 14px;
       padding: 10px 10px;
       box-shadow: var(--shadow-soft);
+      color: #fff;
     }
+    .kpi .v{ color: #fff; }
+    .kpi .t{ color: rgba(255,255,255,0.65); }
     .kpi .v{ font-weight: 800; font-size: 18px; letter-spacing:-0.02em; }
     .kpi .t{ margin-top: 2px; font-size: 11px; color: var(--muted); }
 
