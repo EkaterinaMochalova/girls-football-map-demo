@@ -4075,8 +4075,8 @@ ${schoolRows.length?`
 (function() {
   const MOBILE_BP  = 1080;
   const LS_KEY     = 'gfm_sheetH';
-  const SNAP_PEEK  = Math.max(60, Math.round(window.innerHeight * 0.08)); // ≥60px / 8vh
-  const SNAP_HALF  = 0.38; // fraction of viewport
+  const SNAP_MIN   = Math.round(window.innerHeight * 0.25); // 25vh — never smaller
+  const SNAP_HALF  = 0.45; // fraction of viewport
   const SNAP_FULL  = 0.90; // fraction of viewport
 
   const sheetEl  = document.getElementById('mobileSheet');
@@ -4090,7 +4090,7 @@ ${schoolRows.length?`
   function vh(frac) { return Math.round(window.innerHeight * frac); }
 
   function applyHeight(px) {
-    const clamped = Math.max(SNAP_PEEK, Math.min(vh(SNAP_FULL) + 20, px));
+    const clamped = Math.max(SNAP_MIN, Math.min(vh(SNAP_FULL) + 20, px));
     sheetEl.style.height = clamped + 'px';
     appEl.style.setProperty('--sheet-h', clamped + 'px');
     try { map.invalidateSize(); } catch(e){}
@@ -4099,9 +4099,9 @@ ${schoolRows.length?`
   function snapTo(px) {
     const half = vh(SNAP_HALF);
     const full = vh(SNAP_FULL);
-    // Snap to nearest breakpoint
+    // Snap to nearest breakpoint (no peek — minimum is half)
     const dists = [
-      { v: SNAP_PEEK, d: Math.abs(px - SNAP_PEEK) },
+      { v: SNAP_MIN,  d: Math.abs(px - SNAP_MIN) },
       { v: half,      d: Math.abs(px - half) },
       { v: full,      d: Math.abs(px - full) },
     ];
@@ -4148,13 +4148,14 @@ ${schoolRows.length?`
   document.addEventListener('touchmove',  e => { if (!dragging) return; onMove(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
   document.addEventListener('touchend',   onEnd);
 
-  // Tap handle → expand to half if peeking, otherwise collapse to peek
+  // Tap handle → cycle min ↔ half ↔ full
   let tapStartY = 0;
   handleEl.addEventListener('touchstart', e => { tapStartY = e.touches[0].clientY; }, { passive: true });
   handleEl.addEventListener('touchend', e => {
     if (Math.abs(e.changedTouches[0].clientY - tapStartY) > 8) return; // was a drag, not a tap
     const h = sheetEl.getBoundingClientRect().height;
-    const target = h <= SNAP_PEEK * 1.5 ? vh(SNAP_HALF) : SNAP_PEEK;
+    const half = vh(SNAP_HALF), full = vh(SNAP_FULL);
+    const target = h < half - 20 ? half : (h < full - 20 ? full : SNAP_MIN);
     applyHeight(target);
     localStorage.setItem(LS_KEY, target);
   });
