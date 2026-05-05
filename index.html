@@ -643,7 +643,12 @@
       #search{ width: 140px; max-width: none; }
       .row{ grid-template-columns: 1.4fr 1fr 80px; }
       .row .addr{ display:none; }
-      #regionPanel { width: min(340px, 90vw); }
+      /* Region panel: full width, stops above the bottom sheet */
+      #regionPanel {
+        width: 100%;
+        bottom: var(--sheet-h, 25vh);
+        border-left: none;
+      }
     }
 
     /* Cluster markers — uniform blue regardless of size */
