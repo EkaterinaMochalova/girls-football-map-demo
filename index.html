@@ -1249,7 +1249,15 @@
     ];
     for (const [rx, abbr] of ORG) s = s.replace(rx, abbr);
 
-    // ── 2. Sub-institution types within name (longest first) ────────────
+    // ── 2. Administrative territory terms ───────────────────────────────
+    const GEO = [
+      [/городского\s+округа/gi,        'ГО'],
+      [/муниципального\s+района/gi,     'МР'],
+      [/муниципального\s+образования/gi,'МО'],
+    ];
+    for (const [rx, abbr] of GEO) s = s.replace(rx, abbr);
+
+    // ── 3. Sub-institution types within name (longest first) ────────────
     const SUB = [
       [/детско-юношеская\s+спортивная\s+школа\s+олимпийского\s+резерва/gi, 'ДЮСШОР'],
       [/детско-юношеская\s+спортивная\s+школа/gi,          'ДЮСШ'],
