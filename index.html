@@ -511,22 +511,112 @@
     /* Mobile tabs */
     #mobileTabs { display: none; }
     .mobileTab {
-      flex: 1; padding: 12px; border: none;
-      background: rgba(255,255,255,0.5);
+      flex: 1; padding: 10px; border: none;
+      background: transparent;
       font-size: 14px; font-weight: 700; color: var(--muted);
       cursor: pointer; border-bottom: 3px solid transparent;
       transition: color .15s, border-color .15s, background .15s;
     }
-    .mobileTab.active { color: var(--text); border-bottom-color: #e4002b; background: rgba(255,255,255,0.75); }
+    .mobileTab.active { color: var(--text); border-bottom-color: #e4002b; }
+
+    /* Desktop: mobileSheet is invisible — children join #app grid directly */
+    #mobileSheet { display: contents; }
+    #sheetHandle  { display: none; }
+    .sheet-pill   { display: none; }
 
     @media (max-width: 1080px){
-      #app{ grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; }
+      /* Full-screen app shell */
+      #app {
+        display: block;
+        position: relative;
+        height: 100svh;
+        overflow: hidden;
+        padding: 0;
+      }
+
+      /* Map fills entire screen, always visible */
+      #mapCard {
+        position: absolute;
+        inset: 0;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        z-index: 1;
+      }
+      #mapCard.tab-hidden { display: block !important; }
+
+      /* Desktop-only resizer hidden */
       #mapListResizer { display: none; }
-      #sidebar{ grid-column: 1; grid-row: 1; max-height: 42vh; }
-      #mobileTabs{ display: flex; grid-column: 1; grid-row: 2; background: var(--card); border: 1px solid var(--stroke); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); overflow: hidden; }
-      #mapCard{ grid-column: 1; grid-row: 3; min-height: 0; }
-      #listCard{ grid-column: 1; grid-row: 3; min-height: 0; }
-      #mapCard.tab-hidden, #listCard.tab-hidden{ display: none; }
+
+      /* Bottom sheet overlay */
+      #mobileSheet {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: var(--sheet-h, 38vh);
+        background: var(--card);
+        border-radius: 16px 16px 0 0;
+        border: 1px solid var(--stroke);
+        border-bottom: none;
+        box-shadow: 0 -6px 32px rgba(0,0,0,0.18);
+        z-index: 400;
+        overflow: hidden;
+      }
+
+      /* Drag handle pill */
+      #sheetHandle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 22px;
+        flex-shrink: 0;
+        cursor: ns-resize;
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      .sheet-pill {
+        display: block;
+        width: 36px;
+        height: 4px;
+        background: var(--stroke);
+        border-radius: 2px;
+      }
+
+      /* Mobile tabs bar */
+      #mobileTabs {
+        display: flex;
+        flex-shrink: 0;
+        border-bottom: 1px solid var(--stroke);
+      }
+
+      /* Sidebar inside sheet: scrollable, no extra chrome */
+      #sidebar {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        max-height: none;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        grid-column: unset;
+        grid-row: unset;
+      }
+      #sidebar.tab-hidden { display: none; }
+
+      /* List inside sheet */
+      #listCard {
+        flex: 1;
+        min-height: 0;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        grid-column: unset;
+        grid-row: unset;
+      }
+      #listCard.tab-hidden { display: none; }
+
       #search{ width: 140px; max-width: none; }
       .row{ grid-template-columns: 1.4fr 1fr 80px; }
       .row .addr{ display:none; }
@@ -847,6 +937,35 @@
 <body>
 <div id="app">
 
+  <!-- Map — always full-screen on mobile, grid item on desktop -->
+  <main id="mapCard">
+    <div id="map"></div>
+    <button id="fitRussia" title="Показать всю Россию" style="position:absolute;bottom:24px;left:12px;z-index:450;background:#fff;border:1px solid rgba(0,0,0,0.18);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,0.15);color:#1a1f2e;">🗺 Вся Россия</button>
+
+    <!-- Region detail panel (slide-in over map) -->
+    <div id="regionPanel">
+      <div id="regionPanelHeader">
+        <div>
+          <div id="regionPanelName">Регион</div>
+          <div id="regionPanelSub"></div>
+        </div>
+        <button id="closeRegionPanel" title="Закрыть">✕</button>
+      </div>
+      <div id="regionPanelKpis"></div>
+      <div id="regionPanelContent"></div>
+    </div>
+  </main>
+
+  <!-- Draggable resizer between map and list (desktop only) -->
+  <div id="mapListResizer" title="Потяни, чтобы изменить размер">
+    <div class="resizer-grip"></div>
+  </div>
+
+  <!-- mobileSheet: display:contents on desktop (children join #app grid directly),
+       draggable bottom-sheet overlay on mobile -->
+  <div id="mobileSheet">
+  <div id="sheetHandle"><div class="sheet-pill"></div></div>
+
   <!-- Sidebar -->
   <aside id="sidebar">
     <div id="sidebarHeader">
@@ -1038,30 +1157,6 @@
     </div>
   </aside>
 
-  <!-- Map -->
-  <main id="mapCard">
-    <div id="map"></div>
-    <button id="fitRussia" title="Показать всю Россию" style="position:absolute;bottom:24px;left:12px;z-index:450;background:#fff;border:1px solid rgba(0,0,0,0.18);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,0.15);color:#1a1f2e;">🗺 Вся Россия</button>
-
-    <!-- Region detail panel (slide-in over map) -->
-    <div id="regionPanel">
-      <div id="regionPanelHeader">
-        <div>
-          <div id="regionPanelName">Регион</div>
-          <div id="regionPanelSub"></div>
-        </div>
-        <button id="closeRegionPanel" title="Закрыть">✕</button>
-      </div>
-      <div id="regionPanelKpis"></div>
-      <div id="regionPanelContent"></div>
-    </div>
-  </main>
-
-  <!-- Draggable resizer between map and list (desktop only) -->
-  <div id="mapListResizer" title="Потяни, чтобы изменить размер">
-    <div class="resizer-grip"></div>
-  </div>
-
   <!-- Mobile tabs (hidden on desktop) -->
   <div id="mobileTabs">
     <button id="tabMap" class="mobileTab active">Карта</button>
@@ -1090,7 +1185,9 @@
     <div id="schoolsList"></div>
   </section>
 
-</div>
+  </div><!-- /#mobileSheet -->
+
+</div><!-- /#app -->
 
 <div id="err"></div>
 
@@ -3592,23 +3689,35 @@ ${schoolRows.length?`
     fitRussiaBtn.addEventListener('click', fitToRussia);
 
     // Mobile tabs (Карта / Список)
-    const tabMapBtn  = document.getElementById('tabMap');
+    const tabMapBtn   = document.getElementById('tabMap');
     const tabListBtn2 = document.getElementById('tabList');
-    const mapCardEl  = document.getElementById('mapCard');
-    const listCardEl = document.getElementById('listCard');
+    const mapCardEl   = document.getElementById('mapCard');
+    const listCardEl  = document.getElementById('listCard');
+    const sidebarEl   = document.getElementById('sidebar');
+    const isMobileView = () => window.innerWidth <= 1080;
     if (tabMapBtn && tabListBtn2) {
       tabMapBtn.addEventListener('click', () => {
         tabMapBtn.classList.add('active');
         tabListBtn2.classList.remove('active');
-        mapCardEl.classList.remove('tab-hidden');
-        listCardEl.classList.add('tab-hidden');
+        if (isMobileView()) {
+          sidebarEl.classList.remove('tab-hidden');
+          listCardEl.classList.add('tab-hidden');
+        } else {
+          mapCardEl.classList.remove('tab-hidden');
+          listCardEl.classList.add('tab-hidden');
+        }
         map.invalidateSize();
       });
       tabListBtn2.addEventListener('click', () => {
         tabListBtn2.classList.add('active');
         tabMapBtn.classList.remove('active');
-        listCardEl.classList.remove('tab-hidden');
-        mapCardEl.classList.add('tab-hidden');
+        if (isMobileView()) {
+          listCardEl.classList.remove('tab-hidden');
+          sidebarEl.classList.add('tab-hidden');
+        } else {
+          listCardEl.classList.remove('tab-hidden');
+          mapCardEl.classList.add('tab-hidden');
+        }
       });
     }
 
@@ -3934,6 +4043,91 @@ ${schoolRows.length?`
 
   // Init after DOM + Leaflet are ready
   window.addEventListener('load', initSizes);
+})();
+
+// ── Mobile bottom-sheet drag ───────────────────────────────────────────────
+(function() {
+  const MOBILE_BP  = 1080;
+  const LS_KEY     = 'gfm_sheetH';
+  const SNAP_PEEK  = 52;   // px  — just handle + tabs
+  const SNAP_HALF  = 0.38; // fraction of viewport
+  const SNAP_FULL  = 0.90; // fraction of viewport
+
+  const sheetEl  = document.getElementById('mobileSheet');
+  const handleEl = document.getElementById('sheetHandle');
+  const appEl    = document.getElementById('app');
+
+  if (!sheetEl || !handleEl) return;
+
+  function isMob() { return window.innerWidth <= MOBILE_BP; }
+
+  function vh(frac) { return Math.round(window.innerHeight * frac); }
+
+  function applyHeight(px) {
+    const clamped = Math.max(SNAP_PEEK, Math.min(vh(SNAP_FULL) + 20, px));
+    sheetEl.style.height = clamped + 'px';
+    appEl.style.setProperty('--sheet-h', clamped + 'px');
+    try { map.invalidateSize(); } catch(e){}
+  }
+
+  function snapTo(px) {
+    const half = vh(SNAP_HALF);
+    const full = vh(SNAP_FULL);
+    // Snap to nearest breakpoint
+    const dists = [
+      { v: SNAP_PEEK, d: Math.abs(px - SNAP_PEEK) },
+      { v: half,      d: Math.abs(px - half) },
+      { v: full,      d: Math.abs(px - full) },
+    ];
+    const best = dists.reduce((a, b) => b.d < a.d ? b : a).v;
+    applyHeight(best);
+    localStorage.setItem(LS_KEY, best);
+  }
+
+  function initHeight() {
+    if (!isMob()) return;
+    const saved = parseInt(localStorage.getItem(LS_KEY) || '0', 10);
+    applyHeight(saved > 0 ? saved : vh(SNAP_HALF));
+  }
+
+  // ── Drag state ─────────────────────────────────────────────────────────
+  let dragging = false, startY = 0, startH = 0;
+
+  function onStart(clientY) {
+    if (!isMob()) return;
+    dragging = true;
+    startY   = clientY;
+    startH   = sheetEl.getBoundingClientRect().height;
+    document.body.style.userSelect = 'none';
+  }
+
+  function onMove(clientY) {
+    if (!dragging) return;
+    const delta = startY - clientY; // drag up → positive → taller
+    applyHeight(startH + delta);
+  }
+
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.userSelect = '';
+    snapTo(sheetEl.getBoundingClientRect().height);
+  }
+
+  handleEl.addEventListener('mousedown',  e => { onStart(e.clientY);            e.preventDefault(); });
+  document.addEventListener('mousemove',  e => { onMove(e.clientY); });
+  document.addEventListener('mouseup',        onEnd);
+
+  handleEl.addEventListener('touchstart', e => { onStart(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+  document.addEventListener('touchmove',  e => { if (!dragging) return; onMove(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+  document.addEventListener('touchend',   onEnd);
+
+  window.addEventListener('resize', () => {
+    if (!isMob()) { sheetEl.style.height = ''; return; }
+    initHeight();
+  });
+
+  window.addEventListener('load', initHeight);
 })();
 </script>
 </body>
