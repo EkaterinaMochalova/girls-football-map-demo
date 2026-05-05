@@ -1673,6 +1673,7 @@
   let fnl2Brand = { color: "#0369a1", name: "2 Лига" };
   let pointsGeoLayer = null;
   let currentFilteredPointFeatures = [];
+  let currentWithGirlsKpi = 0;
   let currentFilteredNoGirlsCount = 0;
   let sportsArr = [];
 
@@ -2550,6 +2551,8 @@
     document.getElementById('kpiRegions').textContent          = fmt.format(nRegions);
     document.getElementById('kpiGirls').textContent            = fmt.format(nGirls);
     document.getElementById('kpiSchoolsWithGirls').textContent = fmt.format(nWithGirls);
+    currentWithGirlsKpi = nWithGirls;
+    if (sportsStatus) sportsStatus.textContent = `(${fmt.format(nWithGirls)})`;
   }
 
   // ---- Overlay region filter (ФвШ + 5ФК) ----
@@ -2959,7 +2962,7 @@
     });
     rows.sort((a,b) => Number(b.properties?.girls_total ?? 0) - Number(a.properties?.girls_total ?? 0));
 
-    listSub.textContent = `${fmt.format(rows.length)} ${plur(rows.length,'ОСП','ОСП','ОСП')}`;
+    listSub.textContent = `${fmt.format(currentWithGirlsKpi)} ${plur(currentWithGirlsKpi,'ОСП','ОСП','ОСП')}`;
     schoolsList.innerHTML = "";
     if (!rows.length){
       schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено по текущим фильтрам.</div>`;
@@ -3630,7 +3633,6 @@ ${schoolRows.length?`
     }
     regionsData = regions; // must be after merge so getEnabledRegionSet() includes extra regions
 
-    if (sportsStatus) sportsStatus.textContent = `(${fmt.format(points.features?.length ?? 0)})`;
     updateKPIs(new Set());
 
     // Regions layer — click opens detail panel
