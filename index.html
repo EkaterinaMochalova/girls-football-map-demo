@@ -649,6 +649,10 @@
         bottom: var(--sheet-h, 25vh);
         border-left: none;
       }
+      /* Hide Leaflet zoom controls behind the open region panel */
+      #app:has(#regionPanel.open) .leaflet-top.leaflet-left {
+        display: none;
+      }
     }
 
     /* Cluster markers — uniform blue regardless of size */
