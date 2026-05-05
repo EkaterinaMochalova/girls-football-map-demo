@@ -610,6 +610,12 @@
         grid-column: unset;
         grid-row: unset;
       }
+      /* #filters collapses to 0 on desktop (overflow:auto, min-height:0) — fix on mobile */
+      #filters {
+        overflow: visible;
+        min-height: unset;
+        flex: unset;
+      }
 
       /* List: natural height, inner scroll handled by sheetContent */
       #listCard {
