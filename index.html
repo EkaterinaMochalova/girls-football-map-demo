@@ -643,6 +643,25 @@
       #search{ width: 140px; max-width: none; }
       .row{ grid-template-columns: 1.4fr 1fr 80px; }
       .row .addr{ display:none; }
+
+      /* Stack listHeader on mobile so tabs get a full row to scroll */
+      #listHeader { flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
+      #listHeader .left { width: 100%; }
+      .tab-btns {
+        order: 2;
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+      }
+      .tab-btns::-webkit-scrollbar { display: none; }
+      .tab-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
       /* Region panel: full width, stops above the bottom sheet */
       #regionPanel {
         width: 100%;
