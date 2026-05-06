@@ -2952,8 +2952,8 @@
     listSub.textContent = `${fmt.format(filtered.length)} ${plur(filtered.length,'клуб','клуба','клубов')}`;
     schoolsList.innerHTML = '';
 
-    // ── Any/All toggle (only when 2+ competitions are checked) ─────────
-    if (filterActive && checked.length > 1) {
+    // ── Any/All toggle — always visible ────────────────────────────────
+    {
       const modeBtn = (id, mode, label) => {
         const on = clubsMatchMode === mode;
         return `<button id="${id}" style="padding:2px 10px;border-radius:8px;font-size:11px;cursor:pointer;
