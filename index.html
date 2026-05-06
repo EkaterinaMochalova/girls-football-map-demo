@@ -641,8 +641,26 @@
       }
 
       #search{ width: 140px; max-width: none; }
-      .row{ grid-template-columns: 1.4fr 1fr 80px; }
-      .row .addr{ display:none; }
+      /* Compact card layout — name+meta on top, addr inline beside, no empty grid cells */
+      .row {
+        display: block;
+        grid-template-columns: none;
+        padding: 8px 10px;
+        margin-bottom: 6px;
+        border-radius: 10px;
+        gap: 0;
+      }
+      .row > div { min-width: 0; }
+      .row .name { font-size: 13px; line-height: 1.25; }
+      .row .meta { font-size: 11px; margin-top: 1px; }
+      .row .addr {
+        display: block;
+        font-size: 11px;
+        margin-top: 2px;
+        line-height: 1.3;
+        color: var(--muted);
+      }
+      .row .addr:empty { display: none; }
 
       /* Stack listHeader on mobile so tabs get a full row to scroll */
       #listHeader { flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
