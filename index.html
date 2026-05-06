@@ -641,6 +641,8 @@
       }
 
       #search{ width: 140px; max-width: none; }
+      /* Tighter outer padding around the list */
+      #schoolsList { padding: 8px 10px 10px; }
       /* Compact card layout — name+meta on top, addr inline beside, no empty grid cells */
       .row {
         display: block;
@@ -661,6 +663,10 @@
         color: var(--muted);
       }
       .row .addr:empty { display: none; }
+      /* Club rows */
+      .club-row { padding: 7px 10px !important; gap: 8px !important; }
+      /* Region rows */
+      .region-row { padding: 7px 10px !important; gap: 8px !important; }
 
       /* Stack listHeader on mobile so tabs get a full row to scroll */
       #listHeader { flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
@@ -3043,6 +3049,7 @@
         .map(c => `<span style="font-size:11px;background:${c.color}22;color:${c.color};border-radius:6px;padding:2px 7px;font-weight:700;white-space:nowrap;flex-shrink:0;">${escapeHTML(c.label)}</span>`)
         .join('');
       const el = document.createElement('div');
+      el.className = 'club-row';
       // Custom layout for clubs: name/region on left, tags scrollable on right (no fixed grid)
       el.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--stroke);';
       el.innerHTML = `
