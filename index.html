@@ -2888,9 +2888,8 @@
 
   // ---- Clubs list ----
   function renderClubsList(){
-    // Women's competitions only — men's clubs (РПЛ/1 Лига/2 Лига) only
-    // affect map highlighting, never appear in the clubs list.
-    const allLeagues = [
+    // Women's competitions — only these provide rows + tags in the list
+    const womenLeagues = [
       { check: superCheckbox,  byRegion: superByRegion,    nameMap: superByRegionName, label: 'Суперлига',     color: superBrand.color },
       { check: firstCheckbox,  byRegion: firstByRegion,    nameMap: firstByRegionName, label: 'Первая лига',   color: firstBrand.color },
       { check: secondLeagueCheck, byRegion: secondByRegion,    nameMap: secondNameMap,   label: secondBrand.name,    color: secondBrand.color },
@@ -2900,16 +2899,50 @@
       { check: fyuflU16Check,  byRegion: fyuflU16ByRegion, nameMap: fyuflU16NameMap, label: fyuflU16Brand.name, color: fyuflU16Brand.color },
       { check: yuflU14Check,   byRegion: yuflU14ByRegion,  nameMap: yuflU14NameMap,  label: yuflU14Brand.name,  color: yuflU14Brand.color },
     ];
+    // Men's competitions — only used to filter regions, not shown as tags
+    const menLeagues = [
+      { check: rplCheck,   byRegion: rplByRegion,  label: rplBrand.name },
+      { check: fnl1Check,  byRegion: fnl1ByRegion, label: fnl1Brand.name },
+      { check: fnl2Check,  byRegion: fnl2ByRegion, label: fnl2Brand.name },
+    ];
 
-    const checked = allLeagues.filter(l => l.check?.checked);
-    const filterActive = checked.length > 0;
-    const active = filterActive ? checked : allLeagues;
+    const womenChecked = womenLeagues.filter(l => l.check?.checked);
+    const menChecked   = menLeagues.filter(l => l.check?.checked);
+    const allChecked   = [...womenChecked, ...menChecked];
+    const filterActive = allChecked.length > 0;
 
-    // Group: key = name + region → { name, region, city, comps: [{label, color, leagueIdx}] }
+    // Active women leagues to pull rows from: if any women's checked, only those;
+    // otherwise (only men's checked, or nothing checked) — all women leagues.
+    const womenActive = womenChecked.length ? womenChecked : womenLeagues;
+
+    // Build region→leagues map covering ALL checked competitions for filter
+    const regionLeagueSet = new Map(); // regionKey → Set of league labels
+    if (filterActive) {
+      for (const l of allChecked) {
+        for (const [rKey, clubs] of Object.entries(l.byRegion)) {
+          if (!clubs || !clubs.length) continue;
+          if (!regionLeagueSet.has(rKey)) regionLeagueSet.set(rKey, new Set());
+          regionLeagueSet.get(rKey).add(l.label);
+        }
+      }
+    }
+    const allCheckedLabels = new Set(allChecked.map(l => l.label));
+    const regionPasses = (rKey) => {
+      if (!filterActive) return true;
+      const have = regionLeagueSet.get(rKey);
+      if (!have) return false;
+      if (clubsMatchMode === 'all') {
+        for (const lbl of allCheckedLabels) if (!have.has(lbl)) return false;
+        return true;
+      }
+      return have.size > 0; // "any"
+    };
+
+    // Group rows from women's leagues only, but skip regions that don't pass the filter
     const grouped = new Map();
-    for (let li = 0; li < active.length; li++) {
-      const league = active[li];
+    for (const league of womenActive) {
       for (const [rKey, clubs] of Object.entries(league.byRegion)) {
+        if (!regionPasses(rKey)) continue;
         const regionDisplay = (league.nameMap && league.nameMap[rKey]) || rKey;
         for (const c of clubs) {
           const name = typeof c === 'string' ? c : (c.club || '');
@@ -2929,16 +2962,6 @@
     }
 
     let rows = [...grouped.values()];
-
-    // "All selected" mode: club must play in EVERY checked league
-    if (filterActive && clubsMatchMode === 'all' && checked.length > 1) {
-      const need = new Set(checked.map(l => l.label));
-      rows = rows.filter(r => {
-        const have = new Set(r.comps.map(c => c.label));
-        for (const lbl of need) if (!have.has(lbl)) return false;
-        return true;
-      });
-    }
 
     rows.sort((a,b) => a.region.localeCompare(b.region, 'ru') || a.name.localeCompare(b.name, 'ru'));
 
