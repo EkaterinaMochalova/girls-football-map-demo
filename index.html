@@ -2958,34 +2958,31 @@
     // otherwise (only men's checked, or nothing checked) — all women leagues.
     const womenActive = womenChecked.length ? womenChecked : womenLeagues;
 
-    // Build region→leagues map covering ALL checked competitions for filter
-    const regionLeagueSet = new Map(); // regionKey → Set of league labels
-    if (filterActive) {
-      for (const l of allChecked) {
-        for (const [rKey, clubs] of Object.entries(l.byRegion)) {
-          if (!clubs || !clubs.length) continue;
-          if (!regionLeagueSet.has(rKey)) regionLeagueSet.set(rKey, new Set());
-          regionLeagueSet.get(rKey).add(l.label);
-        }
+    // Region → Set of MEN's leagues present (used for region-level filtering)
+    const menRegionSet = new Map();
+    for (const l of menLeagues) {
+      for (const [rKey, clubs] of Object.entries(l.byRegion)) {
+        if (!clubs || !clubs.length) continue;
+        if (!menRegionSet.has(rKey)) menRegionSet.set(rKey, new Set());
+        menRegionSet.get(rKey).add(l.label);
       }
     }
-    const allCheckedLabels = new Set(allChecked.map(l => l.label));
-    const regionPasses = (rKey) => {
-      if (!filterActive) return true;
-      const have = regionLeagueSet.get(rKey);
-      if (!have) return false;
+    const regionPassesMen = (rKey) => {
+      if (!menChecked.length) return true;
+      const have = menRegionSet.get(rKey) || new Set();
       if (clubsMatchMode === 'all') {
-        for (const lbl of allCheckedLabels) if (!have.has(lbl)) return false;
+        for (const m of menChecked) if (!have.has(m.label)) return false;
         return true;
       }
-      return have.size > 0; // "any"
+      // "any": at least one men's league present (or no men's selected — already true)
+      return menChecked.some(m => have.has(m.label));
     };
 
-    // Group rows from women's leagues only, but skip regions that don't pass the filter
+    // Group rows from women's leagues only, but skip regions that don't pass the men's filter
     const grouped = new Map();
     for (const league of womenActive) {
       for (const [rKey, clubs] of Object.entries(league.byRegion)) {
-        if (!regionPasses(rKey)) continue;
+        if (!regionPassesMen(rKey)) continue;
         const regionDisplay = (league.nameMap && league.nameMap[rKey]) || rKey;
         for (const c of clubs) {
           const name = typeof c === 'string' ? c : (c.club || '');
@@ -3005,6 +3002,16 @@
     }
 
     let rows = [...grouped.values()];
+
+    // Club-level filter for women's "all" mode: club must play in ALL checked women's leagues
+    if (clubsMatchMode === 'all' && womenChecked.length > 0) {
+      const need = new Set(womenChecked.map(l => l.label));
+      rows = rows.filter(r => {
+        const have = new Set(r.comps.map(c => c.label));
+        for (const lbl of need) if (!have.has(lbl)) return false;
+        return true;
+      });
+    }
 
     rows.sort((a,b) => a.region.localeCompare(b.region, 'ru') || a.name.localeCompare(b.name, 'ru'));
 
