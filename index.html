@@ -2457,6 +2457,7 @@
   let activeListRegion = null;
   let activeListTab = 'schools'; // 'schools' | 'fvsh' | 'clubs' | 'regions'
   let regionsMatchMode = 'any';  // 'any' | 'all'
+  let clubsMatchMode   = 'any';  // 'any' | 'all'
   let superByRegionName = {}, firstByRegionName = {};
 
   function filterListByRegion(regionName) {
@@ -2903,33 +2904,86 @@
     ];
 
     const checked = allLeagues.filter(l => l.check?.checked);
-    const active = checked.length ? checked : allLeagues;
+    const filterActive = checked.length > 0;
+    const active = filterActive ? checked : allLeagues;
 
-    const rows = [];
-    for (const league of active) {
+    // Group: key = name + region → { name, region, city, comps: [{label, color, leagueIdx}] }
+    const grouped = new Map();
+    for (let li = 0; li < active.length; li++) {
+      const league = active[li];
       for (const [rKey, clubs] of Object.entries(league.byRegion)) {
         const regionDisplay = (league.nameMap && league.nameMap[rKey]) || rKey;
         for (const c of clubs) {
           const name = typeof c === 'string' ? c : (c.club || '');
           const city = typeof c === 'string' ? '' : (c.city || '');
-          rows.push({ region: regionDisplay, name, city, competition: league.label, color: league.color });
+          if (!name) continue;
+          const key = `${name}|${regionDisplay}`;
+          if (!grouped.has(key)) {
+            grouped.set(key, { name, region: regionDisplay, city, comps: [] });
+          }
+          const entry = grouped.get(key);
+          if (city && !entry.city) entry.city = city;
+          if (!entry.comps.some(x => x.label === league.label)) {
+            entry.comps.push({ label: league.label, color: league.color });
+          }
         }
       }
     }
-    rows.sort((a,b) => a.region.localeCompare(b.region, 'ru') || a.competition.localeCompare(b.competition, 'ru'));
+
+    let rows = [...grouped.values()];
+
+    // "All selected" mode: club must play in EVERY checked league
+    if (filterActive && clubsMatchMode === 'all' && checked.length > 1) {
+      const need = new Set(checked.map(l => l.label));
+      rows = rows.filter(r => {
+        const have = new Set(r.comps.map(c => c.label));
+        for (const lbl of need) if (!have.has(lbl)) return false;
+        return true;
+      });
+    }
+
+    rows.sort((a,b) => a.region.localeCompare(b.region, 'ru') || a.name.localeCompare(b.name, 'ru'));
 
     const search = (searchInput.value || '').trim().toLowerCase();
     const filtered = search
-      ? rows.filter(r => [r.name, r.region, r.city, r.competition].join(' ').toLowerCase().includes(search))
+      ? rows.filter(r => [r.name, r.region, r.city, ...r.comps.map(c=>c.label)].join(' ').toLowerCase().includes(search))
       : rows;
 
     listSub.textContent = `${fmt.format(filtered.length)} ${plur(filtered.length,'клуб','клуба','клубов')}`;
     schoolsList.innerHTML = '';
+
+    // ── Any/All toggle (only when 2+ competitions are checked) ─────────
+    if (filterActive && checked.length > 1) {
+      const modeBtn = (id, mode, label) => {
+        const on = clubsMatchMode === mode;
+        return `<button id="${id}" style="padding:2px 10px;border-radius:8px;font-size:11px;cursor:pointer;
+          border:1px solid ${on?'#2563eb':'var(--stroke)'};
+          background:${on?'rgba(37,99,235,0.1)':'transparent'};
+          color:${on?'#2563eb':'var(--muted)'};
+          font-weight:${on?700:400};">${label}</button>`;
+      };
+      const modeBar = document.createElement('div');
+      modeBar.style.cssText = 'display:flex;align-items:center;gap:6px;padding:8px 14px 7px;flex-shrink:0;border-bottom:1px solid var(--stroke);background:rgba(255,255,255,0.55);flex-wrap:wrap;';
+      modeBar.innerHTML = `
+        <span style="font-size:11px;color:var(--muted);">Клуб играет в соревнованиях:</span>
+        ${modeBtn('clubModeAny','any','хотя бы одно')}
+        ${modeBtn('clubModeAll','all','все выбранные')}`;
+      schoolsList.appendChild(modeBar);
+      modeBar.querySelector('#clubModeAny').addEventListener('click', () => { clubsMatchMode='any'; renderClubsList(); });
+      modeBar.querySelector('#clubModeAll').addEventListener('click', () => { clubsMatchMode='all'; renderClubsList(); });
+    }
+
     if (!filtered.length) {
-      schoolsList.innerHTML = `<div style="padding:12px;color:var(--muted);">Ничего не найдено.</div>`;
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:12px;color:var(--muted);';
+      empty.textContent = 'Ничего не найдено.';
+      schoolsList.appendChild(empty);
       return;
     }
     for (const r of filtered) {
+      const tagsHtml = r.comps
+        .map(c => `<span style="font-size:11px;background:${c.color}22;color:${c.color};border-radius:6px;padding:2px 7px;font-weight:700;white-space:nowrap;">${escapeHTML(c.label)}</span>`)
+        .join('');
       const el = document.createElement('div');
       el.className = 'row';
       el.innerHTML = `
@@ -2938,7 +2992,7 @@
           <div class="meta">${escapeHTML(r.region)}</div>
         </div>
         <div class="addr">${escapeHTML(r.city)}</div>
-        <div style="font-size:11px;background:${r.color}22;color:${r.color};border-radius:6px;padding:2px 7px;align-self:center;font-weight:700;white-space:nowrap;">${escapeHTML(r.competition)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;align-self:center;justify-content:flex-end;">${tagsHtml}</div>
         <div></div>
       `;
       schoolsList.appendChild(el);
