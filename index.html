@@ -2888,19 +2888,17 @@
 
   // ---- Clubs list ----
   function renderClubsList(){
-    // All competition sources in display order
+    // Women's competitions only — men's clubs (РПЛ/1 Лига/2 Лига) only
+    // affect map highlighting, never appear in the clubs list.
     const allLeagues = [
       { check: superCheckbox,  byRegion: superByRegion,    nameMap: superByRegionName, label: 'Суперлига',     color: superBrand.color },
       { check: firstCheckbox,  byRegion: firstByRegion,    nameMap: firstByRegionName, label: 'Первая лига',   color: firstBrand.color },
+      { check: secondLeagueCheck, byRegion: secondByRegion,    nameMap: secondNameMap,   label: secondBrand.name,    color: secondBrand.color },
       { check: molodezhCheck,  byRegion: molodezhByRegion, nameMap: molodezhNameMap, label: molodezhBrand.name, color: molodezhBrand.color },
       { check: yuflU18Check,   byRegion: yuflU18ByRegion,  nameMap: yuflU18NameMap,  label: yuflU18Brand.name,  color: yuflU18Brand.color },
       { check: yuflU16Check,   byRegion: yuflU16ByRegion,  nameMap: yuflU16NameMap,  label: yuflU16Brand.name,  color: yuflU16Brand.color },
-      { check: yuflU14Check,   byRegion: yuflU14ByRegion,  nameMap: yuflU14NameMap,  label: yuflU14Brand.name,  color: yuflU14Brand.color },
       { check: fyuflU16Check,  byRegion: fyuflU16ByRegion, nameMap: fyuflU16NameMap, label: fyuflU16Brand.name, color: fyuflU16Brand.color },
-      { check: rplCheck,       byRegion: rplByRegion,      nameMap: rplNameMap,      label: rplBrand.name,      color: rplBrand.color },
-      { check: fnl1Check,         byRegion: fnl1ByRegion,      nameMap: fnl1NameMap,     label: fnl1Brand.name,      color: fnl1Brand.color },
-      { check: fnl2Check,         byRegion: fnl2ByRegion,      nameMap: fnl2NameMap,     label: fnl2Brand.name,      color: fnl2Brand.color },
-      { check: secondLeagueCheck, byRegion: secondByRegion,    nameMap: secondNameMap,   label: secondBrand.name,    color: secondBrand.color },
+      { check: yuflU14Check,   byRegion: yuflU14ByRegion,  nameMap: yuflU14NameMap,  label: yuflU14Brand.name,  color: yuflU14Brand.color },
     ];
 
     const checked = allLeagues.filter(l => l.check?.checked);
