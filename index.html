@@ -197,7 +197,7 @@
       margin-bottom: 8px;
     }
     .rangeWrap .labelLine b{ font-size: 13px; }
-    .rangeWrap .labelLine span{ font-size: 12px; color: var(--muted); }
+    .rangeWrap .labelLine span{ font-size: 12px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
     input[type="range"]{ width: 100%; }
 
     .checks{
@@ -1189,12 +1189,12 @@
         <h4>Пороговые фильтры</h4>
 
         <div class="rangeWrap" style="margin-bottom:10px;">
-          <div class="labelLine"><b>Футболисток в ОСП</b><span>≥ <span id="minGirlsSchoolVal">0</span></span></div>
+          <div class="labelLine"><b>Девушек занимается футболом в ОСП</b><span>≥ <span id="minGirlsSchoolVal">0</span></span></div>
           <input type="range" id="minGirlsSchool" min="0" max="200" step="1" value="0"/>
         </div>
 
         <div class="rangeWrap" style="margin-bottom:10px;">
-          <div class="labelLine"><b>Футболисток в регионе</b><span>≥ <span id="minGirlsRegionVal">0</span></span></div>
+          <div class="labelLine"><b>Девушек занимается футболом в регионе</b><span>≥ <span id="minGirlsRegionVal">0</span></span></div>
           <input type="range" id="minGirlsRegion" min="0" max="2000" step="10" value="0"/>
         </div>
 
