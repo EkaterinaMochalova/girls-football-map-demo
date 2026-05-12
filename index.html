@@ -193,11 +193,10 @@
       box-shadow: var(--shadow-soft);
     }
     .rangeWrap .labelLine{
-      display:flex; justify-content: space-between; align-items: flex-start;
       margin-bottom: 8px;
+      font-size: 13px; font-weight: 700;
     }
-    .rangeWrap .labelLine b{ font-size: 13px; }
-    .rangeWrap .labelLine span{ font-size: 12px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+    .rangeWrap .labelLine .val{ font-size: 12px; font-weight: 400; color: var(--muted); white-space: nowrap; }
     input[type="range"]{ width: 100%; }
 
     .checks{
@@ -1189,17 +1188,17 @@
         <h4>Пороговые фильтры</h4>
 
         <div class="rangeWrap" style="margin-bottom:10px;">
-          <div class="labelLine"><b>Девушек занимается футболом в ОСП</b><span style="white-space:nowrap;flex-shrink:0;margin-left:6px">≥ <span id="minGirlsSchoolVal">0</span></span></div>
+          <div class="labelLine">Девушек занимается футболом в ОСП <span class="val">≥ <span id="minGirlsSchoolVal">0</span></span></div>
           <input type="range" id="minGirlsSchool" min="0" max="200" step="1" value="0"/>
         </div>
 
         <div class="rangeWrap" style="margin-bottom:10px;">
-          <div class="labelLine"><b>Девушек занимается футболом в регионе</b><span style="white-space:nowrap;flex-shrink:0;margin-left:6px">≥ <span id="minGirlsRegionVal">0</span></span></div>
+          <div class="labelLine">Девушек занимается футболом в регионе <span class="val">≥ <span id="minGirlsRegionVal">0</span></span></div>
           <input type="range" id="minGirlsRegion" min="0" max="2000" step="10" value="0"/>
         </div>
 
         <div class="rangeWrap">
-          <div class="labelLine"><b>ОСП с девушками в регионе</b><span>≥ <span id="minSchoolsWithGirlsVal">0</span></span></div>
+          <div class="labelLine">ОСП с девушками в регионе <span class="val">≥ <span id="minSchoolsWithGirlsVal">0</span></span></div>
           <input type="range" id="minSchoolsWithGirls" min="0" max="200" step="1" value="0"/>
         </div>
       </div>
